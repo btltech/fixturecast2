@@ -169,7 +169,7 @@ class AnalysisLLM:
             else:
                 analysis_points.append(
                     f"⚔️ **Tactical Matchup:** {home_name} ({home_style}, {home_goals_for:.1f} GF / {home_goals_against:.1f} GA). "
-                    f"{away_name} data limited (newly promoted/new to league)."
+                    f"{away_name} data limited (newly promoted/new to league). Model uncertainty higher due to limited match sample."
                 )
         
         # Form

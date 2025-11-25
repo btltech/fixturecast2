@@ -231,12 +231,14 @@ app.add_middleware(
 # Initialize predictor once at startup (loads trained models)
 from api_client import ApiClient
 from safe_feature_builder import FeatureBuilder
+from analysis_llm import AnalysisLLM
 import json
 
 # Initialize components
 predictor = None
 api_client = None
 feature_builder = FeatureBuilder()
+analysis_llm = AnalysisLLM()
 
 @app.on_event("startup")
 async def startup_event():
@@ -410,8 +412,19 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
         # 4.5 Validate prediction consistency
         validation = validate_prediction_consistency(result, features)
         
-        # 5. Generate comprehensive analysis text
-        analysis = generate_enhanced_analysis(fixture, features, result)
+        # 5. Enrich features with Elo ratings for analysis
+        elo_ratings = result.get('elo_ratings', {})
+        enriched_features = {
+            **features,
+            'home_elo': elo_ratings.get('home', 1500),
+            'away_elo': elo_ratings.get('away', 1500),
+            'home_rank': features.get('home_league_pos', 10),
+            'away_rank': features.get('away_league_pos', 10),
+        }
+        print(f"DEBUG: enriched_features home_elo={enriched_features.get('home_elo')}, away_elo={enriched_features.get('away_elo')}, home_rank={enriched_features.get('home_rank')}, away_rank={enriched_features.get('away_rank')}")
+        
+        # 6. Generate comprehensive analysis text using polished AnalysisLLM
+        analysis = analysis_llm.analyze(result, enriched_features)
         
         # Track prediction stats
         ensemble_confidence = max(result['home_win_prob'], result['draw_prob'], result['away_win_prob'])

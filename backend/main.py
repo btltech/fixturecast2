@@ -79,7 +79,11 @@ def get_team_details(team_id: int, league: int, season: int = 2025):
 
 @app.get("/api/prediction/{fixture_id}")
 def get_prediction(fixture_id: int, league: int, season: int = 2025):
-    # 1. Fetch all data
+    """
+    Generate a comprehensive ML prediction for a fixture.
+    Fetches data from 15 API endpoints and extracts 65+ features.
+    """
+    # 1. Fetch core data (original 10 calls)
     fixture_details = api_client.get_fixture_details(fixture_id)
     
     if not fixture_details['response']:
@@ -98,17 +102,43 @@ def get_prediction(fixture_id: int, league: int, season: int = 2025):
     away_injuries = api_client.get_injuries(away_id, season)
     odds = api_client.get_odds(fixture_id)
     
-    # 2. Build Features
+    # 2. Fetch enhanced data (new 5 calls for richer predictions)
+    home_players = api_client.get_players(home_id, season)
+    away_players = api_client.get_players(away_id, season)
+    home_coach = api_client.get_coach(home_id)
+    away_coach = api_client.get_coach(away_id)
+    
+    # Get fixture IDs from recent matches for detailed stats
+    home_fixture_ids = [f['fixture']['id'] for f in home_last_10.get('response', [])[:5]]
+    away_fixture_ids = [f['fixture']['id'] for f in away_last_10.get('response', [])[:5]]
+    home_recent_stats = api_client.get_recent_fixture_stats(home_fixture_ids)
+    away_recent_stats = api_client.get_recent_fixture_stats(away_fixture_ids)
+    
+    # 3. Build Features (now with 65+ features)
     features = feature_builder.build_features(
         fixture_details, standings, home_last_10, away_last_10, 
-        home_stats, away_stats, h2h, home_injuries, away_injuries, odds
+        home_stats, away_stats, h2h, home_injuries, away_injuries, odds,
+        home_players=home_players,
+        away_players=away_players,
+        home_coach=home_coach,
+        away_coach=away_coach,
+        home_recent_stats=home_recent_stats,
+        away_recent_stats=away_recent_stats
     )
     
-    # 3. Predict
+    # 4. Predict
     prediction = predictor.predict_fixture(features)
     
-    # 4. Generate AI Analysis
-    analysis = analyzer.analyze(prediction, features)
+    # 5. Generate AI Analysis - enrich features with Elo, rank, and new data
+    elo_ratings = prediction.get('elo_ratings', {})
+    enriched_features = {
+        **features,
+        'home_elo': elo_ratings.get('home', 1500),
+        'away_elo': elo_ratings.get('away', 1500),
+        'home_rank': features.get('home_league_pos', 10),
+        'away_rank': features.get('away_league_pos', 10),
+    }
+    analysis = analyzer.analyze(prediction, enriched_features)
     
     return {
         "fixture_id": fixture_id,

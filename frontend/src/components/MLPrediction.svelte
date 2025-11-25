@@ -15,6 +15,27 @@
     $: bttsPct = (prediction.btts_prob * 100).toFixed(1);
     $: over25Pct = (prediction.over25_prob * 100).toFixed(1);
 
+    // Confidence / intervals (if backend provides them)
+    $: confidence = prediction.confidence_intervals
+        ? prediction.confidence_intervals
+        : null;
+
+    $: confidenceLevel = confidence ? confidence.confidence_level : null;
+
+    function getConfidenceLabel() {
+        if (!confidenceLevel) return "Confidence: pending";
+        if (confidenceLevel === "very_high") return "Very High Confidence";
+        if (confidenceLevel === "high") return "High Confidence";
+        if (confidenceLevel === "medium") return "Medium Confidence";
+        if (confidenceLevel === "low") return "Low Confidence";
+        return "Confidence: analysing";
+    }
+
+    function getConfidenceClass() {
+        if (!confidenceLevel) return "pending";
+        return confidenceLevel;
+    }
+
     let showBreakdown = false;
 
     function getOutcomeClass(prob) {
@@ -25,6 +46,54 @@
 
     function toggleBreakdown() {
         showBreakdown = !showBreakdown;
+    }
+
+    // Simple human-readable reasons using available features if present
+    $: reasons = [];
+
+    $: if (prediction && prediction.elo_ratings) {
+        const diff = Math.abs(prediction.elo_ratings.diff || 0);
+        if (diff >= 80) {
+            const favored = prediction.elo_ratings.diff > 0 ? homeTeam : awayTeam;
+            reasons = [
+                ...reasons,
+                `${favored} has a clear Elo rating advantage (~${diff.toFixed(0)} pts)`,
+            ];
+        }
+    }
+
+    $: if (prediction) {
+        const homeForm = prediction.home_form_last5 ?? prediction.home_points_last10;
+        const awayForm = prediction.away_form_last5 ?? prediction.away_points_last10;
+        if (typeof homeForm === "number" && typeof awayForm === "number") {
+            const diff = homeForm - awayForm;
+            if (diff >= 3) {
+                reasons = [
+                    ...reasons,
+                    `${homeTeam} is in better recent form over the last matches`,
+                ];
+            } else if (diff <= -3) {
+                reasons = [
+                    ...reasons,
+                    `${awayTeam} is in better recent form over the last matches`,
+                ];
+            }
+        }
+    }
+
+    $: if (prediction && typeof prediction.rank_difference === "number") {
+        const diff = prediction.rank_difference;
+        if (diff < -5) {
+            reasons = [
+                ...reasons,
+                `${homeTeam} sits significantly higher in the table`,
+            ];
+        } else if (diff > 5) {
+            reasons = [
+                ...reasons,
+                `${awayTeam} sits significantly higher in the table`,
+            ];
+        }
     }
 </script>
 
@@ -52,7 +121,13 @@
                 />
             </svg>
         </div>
-        <h3>AI-Powered Prediction</h3>
+        <div class="header-title-block">
+            <h3>AI-Powered Prediction</h3>
+            <div class="confidence-chip {getConfidenceClass()}">
+                <span class="dot"></span>
+                <span>{getConfidenceLabel()}</span>
+            </div>
+        </div>
         <button
             class="info-btn"
             on:click={toggleBreakdown}
@@ -139,6 +214,17 @@
                 <span class="pill-value">{over25Pct}%</span>
             </div>
         </div>
+
+        {#if reasons.length > 0}
+            <div class="reasons-block">
+                <div class="reasons-title">Why the model leans this way</div>
+                <ul>
+                    {#each reasons.slice(0, 3) as r}
+                        <li>{r}</li>
+                    {/each}
+                </ul>
+            </div>
+        {/if}
     </div>
 
     <!-- Model Breakdown (Expandable) -->
@@ -219,8 +305,14 @@
         color: var(--primary-400, #a78bfa);
     }
 
-    .prediction-header h3 {
+    .header-title-block {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .prediction-header h3 {
         margin: 0;
         font-size: 1.25rem;
         font-weight: 700;
@@ -228,6 +320,62 @@
         background-clip: text;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+    }
+
+    .confidence-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.7rem;
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        color: #e5e7eb;
+        align-self: flex-start;
+    }
+
+    .confidence-chip .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        background: #9ca3af;
+    }
+
+    .confidence-chip.very_high {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.08);
+    }
+
+    .confidence-chip.very_high .dot {
+        background: #22c55e;
+    }
+
+    .confidence-chip.high {
+        border-color: #a3e635;
+        background: rgba(163, 230, 53, 0.08);
+    }
+
+    .confidence-chip.high .dot {
+        background: #a3e635;
+    }
+
+    .confidence-chip.medium {
+        border-color: #fbbf24;
+        background: rgba(251, 191, 36, 0.08);
+    }
+
+    .confidence-chip.medium .dot {
+        background: #fbbf24;
+    }
+
+    .confidence-chip.low {
+        border-color: #f97316;
+        background: rgba(249, 115, 22, 0.08);
+    }
+
+    .confidence-chip.low .dot {
+        background: #f97316;
     }
 
     .info-btn {
@@ -385,6 +533,31 @@
         font-size: 1.3rem;
         font-weight: 700;
         color: var(--blue-400, #60a5fa);
+    }
+
+    .reasons-block {
+        margin-top: 18px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        font-size: 0.8rem;
+    }
+
+    .reasons-title {
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #e5e7eb;
+    }
+
+    .reasons-block ul {
+        margin: 0;
+        padding-left: 18px;
+        color: #cbd5f5;
+    }
+
+    .reasons-block li {
+        margin-bottom: 2px;
     }
 
     .model-breakdown {

@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
   import SkeletonLoader from "../components/SkeletonLoader.svelte";
+  import SearchBar from "../components/SearchBar.svelte";
   import ConfidenceBadge from "../components/ConfidenceBadge.svelte";
   import AccuracyTracker from "../components/AccuracyTracker.svelte";
   import { compareStore } from "../services/compareStore.js";
@@ -52,6 +53,7 @@
   // Predictions state - on demand
   let predictions = {}; // fixture_id -> prediction data
   let loadingPredictions = {}; // fixture_id -> boolean
+  let searchQuery = "";
   
   // UK timezone helpers
   function getUKDate() {
@@ -183,6 +185,14 @@
       return { winner: "draw", prob: drawProb, label: "Draw" };
     }
   }
+
+  $: filteredFixtures = deduplicatedFixtures.filter((fixture) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    const home = fixture.teams.home.name.toLowerCase();
+    const away = fixture.teams.away.name.toLowerCase();
+    return home.includes(q) || away.includes(q);
+  });
 
   function handleClickOutside(event) {
     if (showLeagueSelector && !event.target.closest('.league-selector')) {
@@ -345,20 +355,23 @@
 
   <!-- Main Content -->
   <div class="flex-grow">
-    <div class="flex items-center justify-between mb-4 lg:mb-6">
-      <div>
-        <h2 class="text-xl lg:text-2xl font-bold">{currentLeague.emoji} {currentLeague.name} Fixtures</h2>
-        <p class="text-sm text-slate-400">One game per team • Predictions on demand</p>
+    <div class="flex flex-col gap-3 mb-4 lg:mb-6">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl lg:text-2xl font-bold">{currentLeague.emoji} {currentLeague.name} Fixtures</h2>
+          <p class="text-sm text-slate-400">One game per team • Predictions on demand</p>
+        </div>
+        <button 
+          on:click={loadFixtures}
+          class="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+          title="Refresh fixtures"
+        >
+          <svg class="w-5 h-5 {loading ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
       </div>
-      <button 
-        on:click={loadFixtures}
-        class="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-        title="Refresh fixtures"
-      >
-        <svg class="w-5 h-5 {loading ? 'animate-spin' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-      </button>
+      <SearchBar bind:searchQuery />
     </div>
 
     <!-- Info Banner -->
@@ -383,10 +396,10 @@
           <SkeletonLoader type="fixture" />
         {/each}
       </div>
-    {:else if deduplicatedFixtures.length > 0}
+    {:else if filteredFixtures.length > 0}
       <!-- Fixtures Grid -->
       <div class="grid gap-4 md:grid-cols-2">
-        {#each deduplicatedFixtures as fixture (fixture.fixture.id)}
+        {#each filteredFixtures as fixture (fixture.fixture.id)}
           {@const fixtureId = fixture.fixture.id}
           {@const pred = predictions[fixtureId]}
           {@const summary = getPredictionSummary(pred)}

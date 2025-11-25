@@ -2,7 +2,7 @@
   import { Link } from "svelte-routing";
   import { onMount } from "svelte";
 
-  let searchQuery = "";
+  export let searchQuery = "";
   let teams = [];
   let filteredTeams = [];
   let fixtures = [];

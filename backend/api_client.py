@@ -23,7 +23,12 @@ class ApiClient:
             "squads": 3600,
             "injuries": 900,
             "odds": 60,
-            "teams": 86400 # Cache teams for a day
+            "teams": 86400,  # Cache teams for a day
+            "players": 3600,  # Cache player stats for 1 hour
+            "events": 300,  # Cache fixture events for 5 min
+            "statistics": 300,  # Cache fixture statistics for 5 min
+            "coachs": 86400,  # Cache coach info for a day
+            "sidelined": 3600,  # Cache sidelined players for 1 hour
         }
 
     def _get_cache_key(self, endpoint, params):
@@ -171,4 +176,65 @@ class ApiClient:
 
     def get_next_fixtures(self, team_id, league_id, season=2025, next_n=3):
         return self._call_api("fixtures", {"team": team_id, "league": league_id, "season": season, "next": next_n}, "fixtures")
+
+    # ========== NEW ENHANCED DATA ENDPOINTS ==========
+    
+    def get_players(self, team_id, season=2025):
+        """
+        Get all players for a team with their season statistics.
+        Returns goals, assists, minutes played, cards, etc.
+        """
+        return self._call_api("players", {"team": team_id, "season": season}, "players")
+    
+    def get_fixture_events(self, fixture_id):
+        """
+        Get events for a specific fixture (goals, cards, substitutions).
+        Useful for analyzing goal timing patterns and discipline.
+        """
+        return self._call_api("fixtures/events", {"fixture": fixture_id}, "events")
+    
+    def get_fixture_statistics(self, fixture_id):
+        """
+        Get detailed match statistics (shots, possession, xG if available).
+        """
+        return self._call_api("fixtures/statistics", {"fixture": fixture_id}, "statistics")
+    
+    def get_coach(self, team_id):
+        """
+        Get coach information including name, career history, and tenure at current club.
+        """
+        return self._call_api("coachs", {"team": team_id}, "coachs")
+    
+    def get_sidelined(self, team_id, season=2025):
+        """
+        Get detailed sidelined players (injuries + suspensions) with return dates.
+        More detailed than basic injuries endpoint.
+        """
+        # Note: This may require the player ID, so we use injuries as fallback
+        # If sidelined endpoint doesn't work well, injuries are already being fetched
+        return self._call_api("sidelined", {"team": team_id}, "sidelined")
+    
+    def get_top_scorers(self, league_id, season=2025):
+        """
+        Get top scorers in a league - useful for context about key players.
+        """
+        return self._call_api("players/topscorers", {"league": league_id, "season": season}, "players")
+    
+    def get_top_assists(self, league_id, season=2025):
+        """
+        Get top assist providers in a league.
+        """
+        return self._call_api("players/topassists", {"league": league_id, "season": season}, "players")
+    
+    def get_recent_fixture_stats(self, fixture_ids):
+        """
+        Get statistics for multiple recent fixtures.
+        Returns aggregated stats for analysis.
+        """
+        all_stats = []
+        for fid in fixture_ids[:5]:  # Limit to last 5 to conserve API calls
+            stats = self.get_fixture_statistics(fid)
+            if stats.get("response"):
+                all_stats.append({"fixture_id": fid, "stats": stats["response"]})
+        return all_stats
 

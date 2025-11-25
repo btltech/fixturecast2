@@ -185,13 +185,13 @@ class AnalysisLLM:
             if abs(form_diff) > 5:
                 if form_diff > 0:
                     analysis_points.append(
-                        f"📈 **Form:** {home_name} flying ({home_wins_last10}W/10, {home_form_last5:.0f}pts last 5). "
-                        f"{away_name} struggling ({away_wins_last10}W, {away_form_last5:.0f}pts). Momentum heavily favors hosts."
+                        f"📈 **Form:** {home_name} flying ({home_wins_last10}W in last 10, {home_form_last5:.0f}pts in last 5). "
+                        f"{away_name} struggling ({away_wins_last10}W in last 10, {away_form_last5:.0f}pts in last 5). Momentum heavily favors hosts."
                     )
                 else:
                     analysis_points.append(
-                        f"📈 **Form:** {away_name} in great form ({away_wins_last10}W/10, {away_form_last5:.0f}pts last 5). "
-                        f"{home_name} struggling ({home_wins_last10}W, {home_form_last5:.0f}pts). Visitors have momentum."
+                        f"📈 **Form:** {away_name} in great form ({away_wins_last10}W in last 10, {away_form_last5:.0f}pts in last 5). "
+                        f"{home_name} struggling ({home_wins_last10}W in last 10, {home_form_last5:.0f}pts in last 5). Visitors have momentum."
                     )
             else:
                 analysis_points.append(f"📈 **Form:** Both sides in similar form — no clear momentum advantage.")

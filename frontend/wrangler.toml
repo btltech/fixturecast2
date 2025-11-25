@@ -1,0 +1,15 @@
+name = "fixturecast"
+compatibility_date = "2024-01-01"
+
+# Cloudflare Pages configuration
+pages_build_output_dir = "dist"
+
+[build]
+command = "npm run build"
+
+[build.environment]
+NODE_VERSION = "18"
+
+# Environment variables (set these in Cloudflare dashboard)
+# VITE_API_URL = "https://your-backend-api.railway.app"
+# VITE_ML_API_URL = "https://your-ml-api.railway.app"

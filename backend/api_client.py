@@ -12,6 +12,9 @@ class ApiClient:
         self.base_url = config.get("api_base_url")
         self.allowed_leagues = set(config.get("allowed_competitions", []))
         
+        # Competition metadata for type-aware predictions
+        self.competition_metadata = config.get("competition_metadata", {})
+        
         # Simple in-memory cache: { key: { "data": ..., "expires_at": ... } }
         self.cache = {}
         
@@ -29,7 +32,53 @@ class ApiClient:
             "statistics": 300,  # Cache fixture statistics for 5 min
             "coachs": 86400,  # Cache coach info for a day
             "sidelined": 3600,  # Cache sidelined players for 1 hour
+            "rounds": 3600,  # Cache round info for 1 hour
         }
+    
+    def get_competition_info(self, league_id):
+        """
+        Get competition metadata including type, format, and special rules.
+        Returns dict with: type, format, two_leg_knockout, neutral_final, prestige_factor
+        """
+        league_str = str(league_id)
+        if league_str in self.competition_metadata:
+            return self.competition_metadata[league_str]
+        
+        # Default for unknown leagues
+        return {
+            "name": f"League {league_id}",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": False,
+            "neutral_final": False,
+            "prestige_factor": 1.0
+        }
+    
+    def get_fixture_round(self, fixture_id):
+        """
+        Get the round information for a fixture (e.g., 'Group A - 5', 'Round of 16', 'Final').
+        Useful for determining knockout vs group stage.
+        """
+        result = self._call_api("fixtures", {"id": fixture_id}, "fixtures")
+        if result and result.get("response"):
+            fixture = result["response"][0]
+            league_round = fixture.get("league", {}).get("round", "")
+            return {
+                "round": league_round,
+                "is_knockout": self._is_knockout_round(league_round),
+                "is_final": "final" in league_round.lower(),
+                "is_group_stage": "group" in league_round.lower(),
+            }
+        return {"round": "", "is_knockout": False, "is_final": False, "is_group_stage": False}
+    
+    def _is_knockout_round(self, round_name):
+        """Determine if a round is a knockout round based on its name."""
+        knockout_keywords = [
+            "round of", "quarter", "semi", "final", 
+            "knockout", "elimination", "playoff", "1/8", "1/4", "1/2"
+        ]
+        round_lower = round_name.lower()
+        return any(kw in round_lower for kw in knockout_keywords)
 
     def _get_cache_key(self, endpoint, params):
         param_str = "&".join([f"{k}={v}" for k, v in sorted(params.items())])

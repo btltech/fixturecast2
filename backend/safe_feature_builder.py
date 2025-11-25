@@ -3,18 +3,36 @@ import numpy as np
 from datetime import datetime
 
 class FeatureBuilder:
+    
+    # Competition type encoding
+    COMPETITION_TYPES = {
+        "domestic_league": 0,
+        "european_cup": 1,
+        "domestic_cup": 2,
+        "other": 3
+    }
+    
+    # European league IDs for cross-league team matching
+    EUROPEAN_COMPETITIONS = {2, 3, 848}  # UCL, UEL, UECL
+    
+    # Top domestic leagues by prestige
+    TOP_LEAGUES = {39, 140, 135, 78, 61}  # PL, La Liga, Serie A, Bundesliga, Ligue 1
+    
     def build_features(self, fixture_details, standings, home_last_10, away_last_10, 
                       home_stats, away_stats, h2h, home_injuries, away_injuries, odds,
                       home_players=None, away_players=None, home_coach=None, away_coach=None,
-                      home_recent_stats=None, away_recent_stats=None):
+                      home_recent_stats=None, away_recent_stats=None,
+                      competition_info=None, round_info=None):
         """
         Extract comprehensive features from API data for ML models.
-        Returns a rich feature dictionary with 65+ features.
+        Returns a rich feature dictionary with 80+ features.
         
         New optional parameters for enhanced predictions:
         - home_players/away_players: Player stats including goals, assists
         - home_coach/away_coach: Coach info and tenure
         - home_recent_stats/away_recent_stats: Match statistics from recent games
+        - competition_info: Competition metadata (type, format, prestige)
+        - round_info: Round information (knockout vs group, final, etc.)
         """
         
         try:
@@ -23,10 +41,12 @@ class FeatureBuilder:
             away_id = fixture['teams']['away']['id']
             home_name = fixture['teams']['home']['name']
             away_name = fixture['teams']['away']['name']
+            league_id = fixture.get('league', {}).get('id', 0)
+            league_round = fixture.get('league', {}).get('round', '')
         except (KeyError, IndexError, TypeError) as e:
             print(f"Warning: Failed to extract fixture details: {e}")
-            home_id = away_id = 0
-            home_name = away_name = "Unknown"
+            home_id = away_id = league_id = 0
+            home_name = away_name = league_round = "Unknown"
 
         # Core IDs
         features = {
@@ -34,7 +54,14 @@ class FeatureBuilder:
             "away_id": away_id,
             "home_name": home_name,
             "away_name": away_name,
+            "league_id": league_id,
         }
+        
+        # ========== COMPETITION TYPE FEATURES ==========
+        comp_features = self._extract_competition_features(
+            league_id, league_round, competition_info, round_info
+        )
+        features.update(comp_features)
 
         # League standings features
         home_rank, home_points = self._get_team_standing(standings, home_id)
@@ -655,3 +682,175 @@ class FeatureBuilder:
             print(f"Error extracting goal timing: {e}")
         
         return features
+
+    # ========== COMPETITION-TYPE FEATURE EXTRACTION ==========
+    
+    def _extract_competition_features(self, league_id, league_round, competition_info=None, round_info=None):
+        """
+        Extract competition-specific features for different tournament types.
+        Handles domestic leagues, European cups (UCL/UEL), knockout stages, etc.
+        """
+        features = {
+            # Competition type (one-hot encoded)
+            "is_domestic_league": 0,
+            "is_european_cup": 0,
+            "is_domestic_cup": 0,
+            
+            # Stage features
+            "is_knockout_stage": 0,
+            "is_group_stage": 0,
+            "is_final": 0,
+            "is_two_leg_tie": 0,
+            "is_neutral_venue": 0,
+            
+            # For analysis LLM
+            "is_knockout": False,
+            "is_two_leg": False,
+            "is_european": False,
+            "competition_type": "domestic_league",
+            "competition_name": "",
+            
+            # Prestige and stakes
+            "competition_prestige": 1.0,
+            "stakes_multiplier": 1.0,
+            
+            # Competition metadata
+            "competition_type_encoded": 0,
+            "league_id": league_id,
+        }
+        
+        # Use provided competition_info or infer from league_id
+        if competition_info is None:
+            competition_info = self._infer_competition_info(league_id)
+        
+        # Set competition name
+        features["competition_name"] = competition_info.get("name", "")
+        
+        comp_type = competition_info.get("type", "domestic_league")
+        features["competition_type"] = comp_type  # For analysis LLM
+        
+        # Set competition type flags
+        if comp_type == "domestic_league":
+            features["is_domestic_league"] = 1
+            features["competition_type_encoded"] = 0
+        elif comp_type == "european_cup":
+            features["is_european_cup"] = 1
+            features["is_european"] = True  # For analysis LLM
+            features["competition_type_encoded"] = 1
+        elif comp_type == "domestic_cup":
+            features["is_domestic_cup"] = 1
+            features["competition_type_encoded"] = 2
+        
+        # Set prestige factor
+        features["competition_prestige"] = competition_info.get("prestige_factor", 1.0)
+        
+        # Analyze round information
+        if round_info:
+            features["is_knockout_stage"] = 1 if round_info.get("is_knockout") else 0
+            features["is_group_stage"] = 1 if round_info.get("is_group_stage") else 0
+            features["is_final"] = 1 if round_info.get("is_final") else 0
+            features["is_knockout"] = bool(round_info.get("is_knockout"))  # For analysis LLM
+        elif league_round:
+            # Infer from round string
+            round_lower = league_round.lower()
+            is_knockout = self._is_knockout_round_str(round_lower)
+            features["is_knockout_stage"] = 1 if is_knockout else 0
+            features["is_knockout"] = is_knockout  # For analysis LLM
+            features["is_group_stage"] = 1 if "group" in round_lower else 0
+            features["is_final"] = 1 if "final" in round_lower and "semi" not in round_lower else 0
+        
+        # Two-leg tie detection
+        if competition_info.get("two_leg_knockout") and features["is_knockout_stage"] and not features["is_final"]:
+            features["is_two_leg_tie"] = 1
+            features["is_two_leg"] = True  # For analysis LLM
+        
+        # Neutral venue (typically finals)
+        if competition_info.get("neutral_final") and features["is_final"]:
+            features["is_neutral_venue"] = 1
+        
+        # Stakes multiplier (higher for knockouts, finals)
+        stakes = 1.0
+        if features["is_knockout_stage"]:
+            stakes *= 1.3
+        if features["is_final"]:
+            stakes *= 1.5
+        if features["is_european_cup"]:
+            stakes *= 1.2
+        features["stakes_multiplier"] = stakes
+        
+        # Form reliability (lower for European games - domestic form less predictive)
+        if features["is_european_cup"]:
+            features["home_form_reliability"] = 0.6
+            features["away_form_reliability"] = 0.6
+        else:
+            features["home_form_reliability"] = 1.0
+            features["away_form_reliability"] = 1.0
+        
+        return features
+    
+    # Competition name lookup
+    COMPETITION_NAMES = {
+        2: "UEFA Champions League",
+        3: "UEFA Europa League",
+        848: "UEFA Conference League",
+        39: "Premier League",
+        140: "La Liga",
+        135: "Serie A",
+        78: "Bundesliga",
+        61: "Ligue 1",
+        40: "Championship",
+        41: "League One",
+        42: "League Two",
+        45: "FA Cup",
+        48: "League Cup (Carabao Cup)",
+    }
+    
+    def _infer_competition_info(self, league_id):
+        """Infer competition info when not provided."""
+        name = self.COMPETITION_NAMES.get(league_id, "")
+        
+        if league_id in self.EUROPEAN_COMPETITIONS:
+            return {
+                "type": "european_cup",
+                "format": "group_knockout",
+                "two_leg_knockout": True,
+                "neutral_final": True,
+                "prestige_factor": 1.5 if league_id == 2 else 1.3 if league_id == 3 else 1.1,
+                "name": name
+            }
+        elif league_id in self.TOP_LEAGUES:
+            return {
+                "type": "domestic_league",
+                "format": "league",
+                "two_leg_knockout": False,
+                "neutral_final": False,
+                "prestige_factor": 1.0,
+                "name": name
+            }
+        elif league_id in {45, 48}:  # FA Cup, League Cup
+            return {
+                "type": "domestic_cup",
+                "format": "knockout",
+                "two_leg_knockout": False,
+                "neutral_final": True,
+                "prestige_factor": 0.9,
+                "name": name
+            }
+        else:
+            return {
+                "type": "domestic_league",
+                "format": "league",
+                "two_leg_knockout": False,
+                "neutral_final": False,
+                "prestige_factor": 0.8,
+                "name": name
+            }
+    
+    def _is_knockout_round_str(self, round_str):
+        """Check if round string indicates knockout stage."""
+        knockout_keywords = [
+            "round of", "quarter", "semi", "final", 
+            "knockout", "elimination", "playoff", "1/8", "1/4", "1/2"
+        ]
+        return any(kw in round_str for kw in knockout_keywords)
+

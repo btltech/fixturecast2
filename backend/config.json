@@ -1,20 +1,131 @@
 {
     "allowed_competitions": [
-        39,
-        140,
-        135,
-        78,
-        61,
-        88,
-        94,
-        40,
-        141,
-        136,
-        79,
-        62,
-        2,
-        3
+        39, 140, 135, 78, 61, 88, 94,
+        40, 141, 136, 79, 62,
+        2, 3, 848
     ],
     "api_key": "7e8b710173fa71540abf5fc7fc5fb9b2",
-    "api_base_url": "https://v3.football.api-sports.io"
+    "api_base_url": "https://v3.football.api-sports.io",
+    "competition_metadata": {
+        "2": {
+            "name": "Champions League",
+            "type": "european_cup",
+            "format": "group_knockout",
+            "two_leg_knockout": true,
+            "neutral_final": true,
+            "prestige_factor": 1.5
+        },
+        "3": {
+            "name": "Europa League",
+            "type": "european_cup",
+            "format": "group_knockout",
+            "two_leg_knockout": true,
+            "neutral_final": true,
+            "prestige_factor": 1.3
+        },
+        "848": {
+            "name": "Conference League",
+            "type": "european_cup",
+            "format": "group_knockout",
+            "two_leg_knockout": true,
+            "neutral_final": true,
+            "prestige_factor": 1.1
+        },
+        "39": {
+            "name": "Premier League",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 1.0
+        },
+        "140": {
+            "name": "La Liga",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 1.0
+        },
+        "135": {
+            "name": "Serie A",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 1.0
+        },
+        "78": {
+            "name": "Bundesliga",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 1.0
+        },
+        "61": {
+            "name": "Ligue 1",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 1.0
+        },
+        "88": {
+            "name": "Eredivisie",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 0.9
+        },
+        "94": {
+            "name": "Primeira Liga",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 0.9
+        },
+        "40": {
+            "name": "Championship",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 0.8
+        },
+        "141": {
+            "name": "Segunda División",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 0.8
+        },
+        "136": {
+            "name": "Serie B",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 0.8
+        },
+        "79": {
+            "name": "2. Bundesliga",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 0.8
+        },
+        "62": {
+            "name": "Ligue 2",
+            "type": "domestic_league",
+            "format": "league",
+            "two_leg_knockout": false,
+            "neutral_final": false,
+            "prestige_factor": 0.8
+        }
+    }
 }

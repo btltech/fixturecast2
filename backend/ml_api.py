@@ -253,7 +253,7 @@ async def startup_event():
         with open(config_path) as f:
             config = json.load(f)
         api_client = ApiClient(config)
-        print("API Client initialized successfully!")
+        print("API Client initialized! Enhanced feature set (24 API calls per prediction)")
     except Exception as e:
         print(f"Warning: Failed to initialize API Client: {e}")
 
@@ -332,6 +332,7 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
     """
     Get prediction for a specific fixture ID.
     Fetches real data, builds features, and runs prediction.
+    Now with competition-type awareness for UCL/UEL knockouts vs domestic leagues.
     """
     if predictor is None:
         raise HTTPException(status_code=503, detail="ML models not loaded")
@@ -365,6 +366,27 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
         # Fetch odds (optional)
         odds = api_client.get_odds(fixture_id)
         
+        # Fetch injuries
+        home_injuries = api_client.get_injuries(home_id, season)
+        away_injuries = api_client.get_injuries(away_id, season)
+        
+        # 2b. Enhanced data fetching (always enabled for best predictions)
+        # Fetch player and coach data (4 additional calls)
+        home_players = api_client.get_players(home_id, season)
+        away_players = api_client.get_players(away_id, season)
+        home_coach = api_client.get_coach(home_id)
+        away_coach = api_client.get_coach(away_id)
+        
+        # Fetch detailed statistics for recent matches (up to 10 more calls)
+        home_fixture_ids = [f['fixture']['id'] for f in home_last_10.get('response', [])[:5]]
+        away_fixture_ids = [f['fixture']['id'] for f in away_last_10.get('response', [])[:5]]
+        home_recent_stats = api_client.get_recent_fixture_stats(home_fixture_ids)
+        away_recent_stats = api_client.get_recent_fixture_stats(away_fixture_ids)
+        
+        # 2c. Get competition metadata for type-aware predictions
+        competition_info = api_client.get_competition_info(league)
+        round_info = api_client.get_fixture_round(fixture_id) if competition_info.get("type") == "european_cup" else None
+        
         # 3. Build features with fallback
         try:
             features = feature_builder.build_features(
@@ -375,9 +397,17 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
                 home_stats=home_stats,
                 away_stats=away_stats,
                 h2h=h2h,
-                home_injuries=None,
-                away_injuries=None,
-                odds=odds
+                home_injuries=home_injuries,
+                away_injuries=away_injuries,
+                odds=odds,
+                home_players=home_players,
+                away_players=away_players,
+                home_coach=home_coach,
+                away_coach=away_coach,
+                home_recent_stats=home_recent_stats,
+                away_recent_stats=away_recent_stats,
+                competition_info=competition_info,
+                round_info=round_info
             )
         except Exception as e:
             print(f"Feature building failed: {e}. Using fallback features.")
@@ -403,7 +433,10 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
                 "h2h_total_matches": 6,
                 "home_clean_sheets": 3, "away_clean_sheets": 3,
                 "home_total_matches": 20, "away_total_matches": 20,
-                "odds_available": False
+                "odds_available": False,
+                # Competition defaults
+                "is_domestic_league": 1, "is_european_cup": 0,
+                "is_knockout_stage": 0, "competition_prestige": 1.0
             }
         
         # 4. Predict

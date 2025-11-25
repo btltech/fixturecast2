@@ -72,6 +72,51 @@ class AnalysisLLM:
                 else:
                     analysis_points.append(f"⚖️ **Model Consensus:** Models are split ({models_favoring_home} for {home_name}, {models_favoring_away} for {away_name}) — prediction carries higher uncertainty.")
         
+        # Competition Context - NEW
+        competition_type = features.get('competition_type', 'domestic_league')
+        competition_name = features.get('competition_name', '')
+        is_knockout = features.get('is_knockout', False)
+        is_two_leg = features.get('is_two_leg', False)
+        is_european = features.get('is_european', False)
+        is_group_stage = features.get('is_group_stage', False)
+        is_neutral_venue = features.get('is_neutral_venue', False)
+        
+        if is_european:
+            if is_knockout:
+                if is_two_leg:
+                    analysis_points.append(
+                        f"🏆 **European Knockout:** Two-leg tie — expect tactical caution in this first/second leg. "
+                        f"Away goals could be crucial if aggregate is close."
+                    )
+                elif is_neutral_venue:
+                    analysis_points.append(
+                        f"🏆 **Final:** Neutral venue — no home advantage. "
+                        f"One-off knockout drama typically favors pragmatic approaches."
+                    )
+                else:
+                    analysis_points.append(
+                        f"🏆 **European Knockout:** High stakes single-leg tie — expect intensity and late drama."
+                    )
+            elif is_group_stage:
+                analysis_points.append(
+                    f"🏆 **European Group Stage:** Form from domestic leagues may not fully translate. "
+                    f"Teams often rotate or raise their game for European nights."
+                )
+        elif competition_type == 'domestic_cup':
+            if is_knockout:
+                analysis_points.append(
+                    f"🏆 **Cup Match:** Knockout format — giant killings possible as underdogs raise their game."
+                )
+        
+        # Form reliability warning for European competitions
+        home_form_reliability = features.get('home_form_reliability', 1.0)
+        away_form_reliability = features.get('away_form_reliability', 1.0)
+        if home_form_reliability < 1.0 or away_form_reliability < 1.0:
+            analysis_points.append(
+                f"⚠️ **Form Caveat:** Domestic form may be less predictive in European competition — "
+                f"different intensity and tactical setups."
+            )
+        
         # Elo & League combined
         home_elo = features.get('home_elo', 0)
         away_elo = features.get('away_elo', 0)
@@ -268,7 +313,7 @@ class AnalysisLLM:
 
 ---
 
-*Analysis by FixtureCast AI — 8-model ensemble (GBDT 22%, Elo 22%, GNN 18%, LSTM 14%, Bayesian 10%, Transformer 8%, CatBoost 6%)*"""
+*Analysis by FixtureCast AI — 8-model ensemble with competition-aware weighting*"""
         
         return analysis
     

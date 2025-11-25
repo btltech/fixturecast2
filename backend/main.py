@@ -81,7 +81,8 @@ def get_team_details(team_id: int, league: int, season: int = 2025):
 def get_prediction(fixture_id: int, league: int, season: int = 2025):
     """
     Generate a comprehensive ML prediction for a fixture.
-    Fetches data from 15 API endpoints and extracts 65+ features.
+    Fetches data from 24+ API endpoints and extracts 80+ features.
+    Now with competition-type awareness for UCL/UEL knockouts vs domestic leagues.
     """
     # 1. Fetch core data (original 10 calls)
     fixture_details = api_client.get_fixture_details(fixture_id)
@@ -114,7 +115,11 @@ def get_prediction(fixture_id: int, league: int, season: int = 2025):
     home_recent_stats = api_client.get_recent_fixture_stats(home_fixture_ids)
     away_recent_stats = api_client.get_recent_fixture_stats(away_fixture_ids)
     
-    # 3. Build Features (now with 65+ features)
+    # 3. Get competition metadata for type-aware predictions
+    competition_info = api_client.get_competition_info(league)
+    round_info = api_client.get_fixture_round(fixture_id) if competition_info.get("type") == "european_cup" else None
+    
+    # 4. Build Features (now with 80+ features including competition-type)
     features = feature_builder.build_features(
         fixture_details, standings, home_last_10, away_last_10, 
         home_stats, away_stats, h2h, home_injuries, away_injuries, odds,
@@ -123,13 +128,15 @@ def get_prediction(fixture_id: int, league: int, season: int = 2025):
         home_coach=home_coach,
         away_coach=away_coach,
         home_recent_stats=home_recent_stats,
-        away_recent_stats=away_recent_stats
+        away_recent_stats=away_recent_stats,
+        competition_info=competition_info,
+        round_info=round_info
     )
     
-    # 4. Predict
+    # 5. Predict
     prediction = predictor.predict_fixture(features)
     
-    # 5. Generate AI Analysis - enrich features with Elo, rank, and new data
+    # 6. Generate AI Analysis - enrich features with Elo, rank, competition data
     elo_ratings = prediction.get('elo_ratings', {})
     enriched_features = {
         **features,
@@ -137,6 +144,8 @@ def get_prediction(fixture_id: int, league: int, season: int = 2025):
         'away_elo': elo_ratings.get('away', 1500),
         'home_rank': features.get('home_league_pos', 10),
         'away_rank': features.get('away_league_pos', 10),
+        'competition_name': competition_info.get('name', 'Unknown'),
+        'competition_type': competition_info.get('type', 'domestic_league'),
     }
     analysis = analyzer.analyze(prediction, enriched_features)
     
@@ -145,7 +154,8 @@ def get_prediction(fixture_id: int, league: int, season: int = 2025):
         "prediction": prediction,
         "analysis": analysis,
         "fixture_details": fixture_details['response'][0] if fixture_details.get('response') else {},
-        "features": features  # Optional: return features for debugging
+        "features": features,  # Return features for debugging
+        "competition_info": competition_info  # Include competition metadata
     }
 
 if __name__ == "__main__":

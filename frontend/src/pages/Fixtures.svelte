@@ -38,6 +38,9 @@
     { id: 2, name: "Champions League", country: "Europe", emoji: "🏆", tier: 0 },
     { id: 3, name: "Europa League", country: "Europe", emoji: "🥈", tier: 0 },
     { id: 848, name: "Conference League", country: "Europe", emoji: "🥉", tier: 0 },
+    // Domestic Cups (Tier 3)
+    { id: 45, name: "FA Cup", country: "England", emoji: "🏆", tier: 3 },
+    { id: 48, name: "League Cup", country: "England", emoji: "🏆", tier: 3 },
   ];
 
   // Create league map for quick lookup
@@ -273,6 +276,19 @@
             <span class="flex-1">{league.name}</span>
           </button>
         {/each}
+
+        <div class="text-xs text-slate-400 px-2 py-1 font-bold mt-3">DOMESTIC CUPS</div>
+        {#each leagues.filter(l => l.tier === 3) as league}
+          <button
+            class="w-full text-left px-3 py-3 rounded-lg text-sm transition-colors flex items-center gap-3 touch-target {selectedLeague === league.id
+              ? 'bg-accent text-white font-bold'
+              : 'text-slate-300 hover:bg-white/10'}"
+            on:click={() => changeLeague(league.id)}
+          >
+            <span>{league.emoji}</span>
+            <span class="flex-1">{league.name}</span>
+          </button>
+        {/each}
       </div>
     {/if}
   </div>
@@ -335,6 +351,28 @@
           </div>
           <div class="space-y-1">
             {#each leagues.filter(l => l.tier === 2) as league}
+              <button
+                class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors {selectedLeague === league.id
+                  ? 'bg-accent text-primary font-bold'
+                  : 'text-slate-400 hover:bg-white/5 hover:text-white'}"
+                on:click={() => changeLeague(league.id)}
+              >
+                <div class="flex justify-between items-center">
+                  <span>{league.name}</span>
+                  <span class="text-xs opacity-60">{league.emoji}</span>
+                </div>
+              </button>
+            {/each}
+          </div>
+        </div>
+
+        <!-- Domestic Cups -->
+        <div>
+          <div class="text-xs font-semibold text-orange-400 uppercase tracking-wider mb-2 px-3 pt-2 border-t border-white/10">
+            Domestic Cups
+          </div>
+          <div class="space-y-1">
+            {#each leagues.filter(l => l.tier === 3) as league}
               <button
                 class="w-full text-left px-3 py-2 rounded-md text-sm transition-colors {selectedLeague === league.id
                   ? 'bg-accent text-primary font-bold'

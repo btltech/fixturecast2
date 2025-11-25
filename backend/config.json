@@ -2,7 +2,8 @@
     "allowed_competitions": [
         39, 140, 135, 78, 61, 88, 94,
         40, 141, 136, 79, 62,
-        2, 3, 848
+        2, 3, 848,
+        45, 48
     ],
     "api_key": "7e8b710173fa71540abf5fc7fc5fb9b2",
     "api_base_url": "https://v3.football.api-sports.io",
@@ -126,6 +127,22 @@
             "two_leg_knockout": false,
             "neutral_final": false,
             "prestige_factor": 0.8
+        },
+        "45": {
+            "name": "FA Cup",
+            "type": "domestic_cup",
+            "format": "knockout",
+            "two_leg_knockout": false,
+            "neutral_final": true,
+            "prestige_factor": 0.9
+        },
+        "48": {
+            "name": "League Cup",
+            "type": "domestic_cup",
+            "format": "knockout",
+            "two_leg_knockout": false,
+            "neutral_final": true,
+            "prestige_factor": 0.7
         }
     }
 }

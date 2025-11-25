@@ -348,6 +348,12 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
             
         fixture = fixture_response['response'][0]
         
+        # Auto-detect league from fixture if not explicitly provided or default
+        actual_league = fixture.get('league', {}).get('id', league)
+        if actual_league and actual_league != league:
+            print(f"Auto-detected league {actual_league} from fixture (param was {league})")
+            league = actual_league
+        
         home_id = fixture['teams']['home']['id']
         away_id = fixture['teams']['away']['id']
         

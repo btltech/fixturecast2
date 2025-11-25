@@ -409,7 +409,7 @@
           </svg>
         </button>
       </div>
-      <SearchBar bind:searchQuery />
+      <SearchBar bind:searchQuery selectedLeague={selectedLeague} />
     </div>
 
     <!-- Info Banner -->

@@ -3,18 +3,21 @@
   import { onMount } from "svelte";
 
   export let searchQuery = "";
+  export let selectedLeague = 39; // Default to Premier League, but can be overridden
+  
   let teams = [];
   let filteredTeams = [];
   let fixtures = [];
   let filteredFixtures = [];
   let showResults = false;
   let loading = false;
+  let currentLeague = selectedLeague;
 
-  async function loadData() {
+  async function loadData(leagueId) {
     try {
       const [teamsRes, fixturesRes] = await Promise.all([
-        fetch("http://localhost:8001/api/teams?league=39&season=2025"),
-        fetch("http://localhost:8001/api/fixtures?league=39&next=50&season=2025"),
+        fetch(`http://localhost:8001/api/teams?league=${leagueId}&season=2025`),
+        fetch(`http://localhost:8001/api/fixtures?league=${leagueId}&next=50&season=2025`),
       ]);
       const teamsData = await teamsRes.json();
       const fixturesData = await fixturesRes.json();
@@ -26,8 +29,14 @@
     }
   }
 
+  // Reload data when selectedLeague changes
+  $: if (selectedLeague !== currentLeague) {
+    currentLeague = selectedLeague;
+    loadData(selectedLeague);
+  }
+
   onMount(() => {
-    loadData();
+    loadData(selectedLeague);
   });
 
   function handleSearch() {

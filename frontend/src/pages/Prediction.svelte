@@ -188,6 +188,29 @@
         class="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-10 transition-opacity duration-500"
       ></div>
 
+      <!-- Competition Badge -->
+      {#if data.fixture_details.league}
+        {@const league = data.fixture_details.league}
+        {@const isEuropean = [2, 3, 848].includes(league.id)}
+        {@const isCup = [45, 48].includes(league.id)}
+        {@const round = league.round || ''}
+        <div class="flex justify-center mb-4">
+          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium
+            {isEuropean ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 
+             isCup ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 
+             'bg-accent/20 text-accent border border-accent/30'}">
+            {#if league.logo}
+              <img src={league.logo} alt="" class="w-4 h-4" />
+            {/if}
+            <span>{league.name}</span>
+            {#if round}
+              <span class="text-slate-400">•</span>
+              <span class="text-slate-300">{round}</span>
+            {/if}
+          </div>
+        </div>
+      {/if}
+
       <div
         class="flex flex-col md:flex-row justify-between items-center mb-6 md:mb-8 gap-4 md:gap-6"
       >

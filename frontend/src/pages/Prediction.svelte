@@ -216,7 +216,7 @@
       >
         <!-- Home Team -->
         <Link
-          to={`/team/${data.fixture_details.teams.home.id}?league=${data.fixture_details.league.id}`}
+          to={`/team/${data.fixture_details.teams.home.id}?league=${data.fixture_details.league?.id || 39}`}
           class="flex flex-col items-center w-full md:w-1/3 group cursor-pointer"
         >
           <div class="relative">
@@ -265,7 +265,7 @@
 
         <!-- Away Team -->
         <Link
-          to={`/team/${data.fixture_details.teams.away.id}?league=${data.fixture_details.league.id}`}
+          to={`/team/${data.fixture_details.teams.away.id}?league=${data.fixture_details.league?.id || 39}`}
           class="flex flex-col items-center w-full md:w-1/3 group cursor-pointer"
         >
           <div class="relative">

@@ -98,7 +98,7 @@
       {#if filteredTeams.length === 0 && filteredFixtures.length === 0}
         <div class="p-4 text-center text-slate-400">No results found</div>
       {:else}
-        <!-- Teams -->}
+        <!-- Teams -->
         {#if filteredTeams.length > 0}
           <div class="p-2 border-b border-white/10">
             <div class="text-xs text-slate-400 px-2 py-1 font-bold">TEAMS</div>
@@ -124,7 +124,7 @@
           </div>
         {/if}
 
-        <!-- Fixtures -->}
+        <!-- Fixtures -->
         {#if filteredFixtures.length > 0}
           <div class="p-2">
             <div class="text-xs text-slate-400 px-2 py-1 font-bold">

@@ -1,0 +1,11 @@
+# Cloudflare Pages Configuration
+# Build command: npm run build
+# Build output directory: dist
+# Root directory: frontend
+
+[build]
+  command = "npm run build"
+  cwd = "frontend"
+
+[build.environment]
+  NODE_VERSION = "18"

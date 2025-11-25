@@ -1,0 +1,20 @@
+{
+    "allowed_competitions": [
+        39,
+        140,
+        135,
+        78,
+        61,
+        88,
+        94,
+        40,
+        141,
+        136,
+        79,
+        62,
+        2,
+        3
+    ],
+    "api_key": "7e8b710173fa71540abf5fc7fc5fb9b2",
+    "api_base_url": "https://v3.football.api-sports.io"
+}

@@ -1,0 +1,237 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --safe-area-inset-top: env(safe-area-inset-top);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+}
+
+body {
+  @apply font-sans antialiased;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: contain;
+}
+
+[data-theme="light"] body {
+  @apply bg-slate-50 text-slate-900;
+}
+
+/* Glassmorphism utilities */
+.glass {
+  @apply backdrop-blur-md border;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+.glass-card {
+  @apply backdrop-blur-sm border rounded-xl;
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="light"] .glass-card {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* =====================================================
+   MOBILE-FIRST RESPONSIVE UTILITIES
+   ===================================================== */
+
+/* Touch-friendly minimum sizes (44px is Apple's recommendation) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Safe areas for notched devices */
+.safe-top {
+  padding-top: max(1rem, var(--safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, var(--safe-area-inset-bottom));
+}
+
+/* Mobile-optimized scrolling */
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-snap-item {
+  scroll-snap-align: start;
+}
+
+/* Hide scrollbars but keep functionality on mobile */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile card styles with better touch feedback */
+.mobile-card {
+  @apply glass-card p-4;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.mobile-card:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Bottom sheet overlay for mobile */
+.bottom-sheet {
+  @apply fixed inset-x-0 bottom-0 z-50 rounded-t-3xl;
+  background: var(--bg-secondary);
+  padding-bottom: var(--safe-area-inset-bottom);
+  max-height: 85vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.bottom-sheet.open {
+  transform: translateY(0);
+}
+
+.bottom-sheet-handle {
+  @apply w-10 h-1 bg-slate-600 rounded-full mx-auto mt-3 mb-4;
+}
+
+/* Improved mobile typography */
+@media (max-width: 640px) {
+  h1 {
+    @apply text-2xl;
+  }
+  h2 {
+    @apply text-xl;
+  }
+  h3 {
+    @apply text-lg;
+  }
+  
+  /* Larger tap targets on mobile */
+  button, a, [role="button"] {
+    min-height: 44px;
+  }
+  
+  /* Better spacing for mobile */
+  .mobile-p {
+    @apply px-4 py-3;
+  }
+  
+  .mobile-gap {
+    @apply gap-3;
+  }
+}
+
+/* Pull-to-refresh indicator styling */
+.pull-indicator {
+  @apply flex items-center justify-center h-12 text-slate-400 text-sm;
+  transform: translateY(-100%);
+  transition: transform 0.2s ease;
+}
+
+.pull-indicator.visible {
+  transform: translateY(0);
+}
+
+/* Mobile navigation transitions */
+.slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.slide-down {
+  animation: slideDown 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Floating action button for mobile */
+.fab {
+  @apply fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg z-40;
+  @apply flex items-center justify-center;
+  @apply bg-accent text-white;
+  padding-bottom: calc(env(safe-area-inset-bottom) / 2);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+/* Mobile overlay */
+.mobile-overlay {
+  @apply fixed inset-0 bg-black/60 z-40;
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.mobile-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Swipe gesture hints */
+.swipe-hint {
+  @apply text-xs text-slate-500 text-center py-2;
+}
+
+/* Responsive grid helpers */
+.mobile-grid-1 {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4;
+}
+
+.mobile-grid-2 {
+  @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3;
+}
+

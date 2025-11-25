@@ -1,0 +1,1592 @@
+[
+  {
+    "fixture_id": 12345,
+    "home_team": "Liverpool",
+    "away_team": "Man United",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-30T15:00:00",
+    "logged_at": "2025-11-24T23:31:15.298414",
+    "prediction": {
+      "home_win_prob": 0.65,
+      "draw_prob": 0.2,
+      "away_win_prob": 0.15,
+      "predicted_outcome": "home",
+      "confidence": 0.65,
+      "confidence_level": "high",
+      "predicted_scoreline": "2-0",
+      "btts_prob": 0.45,
+      "over25_prob": 0.55
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.6,
+        "draw": 0.22,
+        "away_win": 0.18
+      }
+    },
+    "result": {
+      "home_goals": 2,
+      "away_goals": 1,
+      "actual_outcome": "home",
+      "status": "FT",
+      "recorded_at": "2025-11-24T23:31:15.298669"
+    },
+    "evaluated": true,
+    "evaluation": {
+      "outcome_correct": true,
+      "brier_score": 0.061666666666666654,
+      "btts_correct": false,
+      "over25_correct": true,
+      "exact_score": false,
+      "score_diff": 1,
+      "confidence_level": "high",
+      "confidence": 0.65
+    }
+  },
+  {
+    "fixture_id": 999999,
+    "home_team": "Test Home",
+    "away_team": "Test Away",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-12-01T15:00:00",
+    "logged_at": "2025-11-24T23:31:20.954506",
+    "prediction": {
+      "home_win_prob": 0.65,
+      "draw_prob": 0.2,
+      "away_win_prob": 0.15,
+      "predicted_outcome": "home",
+      "confidence": 0.65,
+      "confidence_level": "high",
+      "predicted_scoreline": "2-1",
+      "btts_prob": 0.55,
+      "over25_prob": 0.6
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.6,
+        "draw": 0.22,
+        "away_win": 0.18
+      },
+      "elo": {
+        "home_win": 0.7,
+        "draw": 0.18,
+        "away_win": 0.12
+      },
+      "gnn": {
+        "home_win": 0.65,
+        "draw": 0.2,
+        "away_win": 0.15
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1379091,
+    "home_team": "Chelsea",
+    "away_team": "Arsenal",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-30T16:30:00+00:00",
+    "logged_at": "2025-11-25T01:02:20.446556",
+    "prediction": {
+      "home_win_prob": 0.5044707084091351,
+      "draw_prob": 0.20777620554505116,
+      "away_win_prob": 0.2877530860458138,
+      "predicted_outcome": "home",
+      "confidence": 0.5044707084091351,
+      "confidence_level": "medium",
+      "predicted_scoreline": "1-0",
+      "btts_prob": 0.542,
+      "over25_prob": 0.518
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.7509,
+        "draw": 0.139,
+        "away_win": 0.1101
+      },
+      "catboost": {
+        "home_win": 0.5098,
+        "draw": 0.191,
+        "away_win": 0.2991
+      },
+      "transformer": {
+        "home_win": 0.2262,
+        "draw": 0.3393,
+        "away_win": 0.4346
+      },
+      "lstm": {
+        "home_win": 0.3608,
+        "draw": 0.2131,
+        "away_win": 0.4262
+      },
+      "gnn": {
+        "home_win": 0.3681,
+        "draw": 0.2487,
+        "away_win": 0.3832
+      },
+      "bayesian": {
+        "home_win": 0.2153,
+        "draw": 0.2831,
+        "away_win": 0.5016
+      },
+      "elo": {
+        "home_win": 0.3559,
+        "draw": 0.3,
+        "away_win": 0.3441,
+        "home_rating": 1682.0,
+        "away_rating": 1777.8,
+        "rating_diff": 4.1
+      },
+      "monte_carlo": {
+        "home_win": 0.276,
+        "draw": 0.249,
+        "away_win": 0.475,
+        "score_dist": {
+          "0-2": 774,
+          "2-0": 485,
+          "1-0": 710,
+          "1-1": 1209,
+          "0-0": 625,
+          "2-1": 673,
+          "0-1": 1020,
+          "0-4": 191,
+          "2-4": 110,
+          "0-3": 466,
+          "4-1": 97,
+          "1-3": 503,
+          "2-3": 286,
+          "3-0": 166,
+          "3-2": 220,
+          "2-2": 540,
+          "4-0": 58,
+          "1-4": 220,
+          "1-2": 883,
+          "3-4": 58,
+          "5-3": 8,
+          "3-3": 106,
+          "4-3": 22,
+          "1-5": 67,
+          "4-2": 55,
+          "7-3": 1,
+          "3-1": 220,
+          "3-6": 7,
+          "5-0": 10,
+          "2-5": 38,
+          "5-2": 12,
+          "0-5": 53,
+          "0-7": 3,
+          "0-6": 18,
+          "3-5": 11,
+          "1-7": 2,
+          "5-1": 13,
+          "1-6": 21,
+          "4-4": 10,
+          "2-6": 7,
+          "5-4": 3,
+          "4-6": 3,
+          "2-7": 4,
+          "4-5": 1,
+          "6-1": 1,
+          "6-4": 1,
+          "6-2": 2,
+          "1-8": 2,
+          "2-8": 3,
+          "7-1": 1,
+          "4-7": 1
+        },
+        "btts_prob": 0.542,
+        "over25_prob": 0.518,
+        "over15_prob": 0.764,
+        "home_lambda": 1.14,
+        "away_lambda": 1.62
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1379094,
+    "home_team": "Manchester City",
+    "away_team": "Leeds",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-29T15:00:00+00:00",
+    "logged_at": "2025-11-25T01:02:20.564453",
+    "prediction": {
+      "home_win_prob": 0.7569496484676638,
+      "draw_prob": 0.07533371268976335,
+      "away_win_prob": 0.16771663884257293,
+      "predicted_outcome": "home",
+      "confidence": 0.7569496484676638,
+      "confidence_level": "high",
+      "predicted_scoreline": "4-0",
+      "btts_prob": 0.392,
+      "over25_prob": 0.823
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.5061,
+        "draw": 0.1017,
+        "away_win": 0.3922
+      },
+      "catboost": {
+        "home_win": 0.2832,
+        "draw": 0.2217,
+        "away_win": 0.4951
+      },
+      "transformer": {
+        "home_win": 0.7146,
+        "draw": 0.1712,
+        "away_win": 0.1142
+      },
+      "lstm": {
+        "home_win": 0.6564,
+        "draw": 0.1025,
+        "away_win": 0.2411
+      },
+      "gnn": {
+        "home_win": 0.7439,
+        "draw": 0.0875,
+        "away_win": 0.1686
+      },
+      "bayesian": {
+        "home_win": 0.8115,
+        "draw": 0.1356,
+        "away_win": 0.0529
+      },
+      "elo": {
+        "home_win": 0.8407,
+        "draw": 0.1124,
+        "away_win": 0.0468,
+        "home_rating": 1784.5,
+        "away_rating": 1343.7,
+        "rating_diff": 540.8
+      },
+      "monte_carlo": {
+        "home_win": 0.932,
+        "draw": 0.051,
+        "away_win": 0.017,
+        "score_dist": {
+          "7-1": 168,
+          "5-0": 923,
+          "2-0": 885,
+          "1-0": 452,
+          "3-1": 651,
+          "6-1": 297,
+          "7-0": 336,
+          "2-1": 462,
+          "4-0": 1216,
+          "8-0": 333,
+          "1-1": 225,
+          "4-1": 543,
+          "5-1": 475,
+          "6-0": 579,
+          "3-0": 1146,
+          "2-2": 117,
+          "8-2": 49,
+          "6-2": 87,
+          "1-2": 52,
+          "0-2": 15,
+          "3-2": 139,
+          "8-1": 185,
+          "5-3": 25,
+          "0-0": 133,
+          "6-4": 3,
+          "4-2": 150,
+          "2-3": 21,
+          "5-2": 129,
+          "7-2": 39,
+          "7-5": 1,
+          "0-1": 64,
+          "3-3": 31,
+          "8-4": 4,
+          "4-3": 17,
+          "3-4": 3,
+          "8-3": 9,
+          "6-3": 8,
+          "7-3": 7,
+          "4-5": 2,
+          "5-4": 2,
+          "1-3": 8,
+          "1-4": 2,
+          "4-4": 1,
+          "3-5": 1,
+          "1-5": 1,
+          "2-4": 1,
+          "0-3": 1,
+          "5-5": 1,
+          "7-4": 1
+        },
+        "btts_prob": 0.392,
+        "over25_prob": 0.823,
+        "over15_prob": 0.935,
+        "home_lambda": 4.0,
+        "away_lambda": 0.5
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1379092,
+    "home_team": "Crystal Palace",
+    "away_team": "Manchester United",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-30T12:00:00+00:00",
+    "logged_at": "2025-11-25T01:02:20.485376",
+    "prediction": {
+      "home_win_prob": 0.6965556941299781,
+      "draw_prob": 0.12472993302429243,
+      "away_win_prob": 0.1787143728457295,
+      "predicted_outcome": "home",
+      "confidence": 0.6965556941299781,
+      "confidence_level": "high",
+      "predicted_scoreline": "2-0",
+      "btts_prob": 0.532,
+      "over25_prob": 0.646
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.619,
+        "draw": 0.1076,
+        "away_win": 0.2734
+      },
+      "catboost": {
+        "home_win": 0.4066,
+        "draw": 0.2003,
+        "away_win": 0.3931
+      },
+      "transformer": {
+        "home_win": 0.3403,
+        "draw": 0.4712,
+        "away_win": 0.1885
+      },
+      "lstm": {
+        "home_win": 0.5141,
+        "draw": 0.162,
+        "away_win": 0.3239
+      },
+      "gnn": {
+        "home_win": 0.6848,
+        "draw": 0.1077,
+        "away_win": 0.2075
+      },
+      "bayesian": {
+        "home_win": 0.3781,
+        "draw": 0.3352,
+        "away_win": 0.2867
+      },
+      "elo": {
+        "home_win": 0.7262,
+        "draw": 0.18,
+        "away_win": 0.0938,
+        "home_rating": 1645.6,
+        "away_rating": 1486.5,
+        "rating_diff": 259.0
+      },
+      "monte_carlo": {
+        "home_win": 0.727,
+        "draw": 0.165,
+        "away_win": 0.108,
+        "score_dist": {
+          "3-2": 316,
+          "4-0": 559,
+          "2-1": 958,
+          "6-1": 109,
+          "5-1": 218,
+          "3-0": 885,
+          "2-0": 1111,
+          "6-2": 47,
+          "8-2": 11,
+          "1-1": 782,
+          "6-0": 93,
+          "7-0": 53,
+          "3-1": 763,
+          "1-0": 867,
+          "4-2": 198,
+          "2-2": 406,
+          "3-3": 101,
+          "0-2": 131,
+          "4-4": 14,
+          "5-3": 36,
+          "1-2": 333,
+          "5-0": 269,
+          "0-0": 345,
+          "4-3": 63,
+          "4-1": 491,
+          "5-2": 110,
+          "0-1": 307,
+          "8-0": 21,
+          "1-3": 92,
+          "6-3": 12,
+          "2-3": 102,
+          "0-3": 28,
+          "7-1": 32,
+          "2-4": 29,
+          "7-2": 15,
+          "3-4": 12,
+          "1-4": 26,
+          "7-3": 4,
+          "8-1": 21,
+          "8-3": 4,
+          "0-4": 8,
+          "3-5": 4,
+          "5-4": 7,
+          "1-5": 2,
+          "4-6": 1,
+          "2-5": 2,
+          "1-6": 1,
+          "4-5": 1
+        },
+        "btts_prob": 0.532,
+        "over25_prob": 0.646,
+        "over15_prob": 0.848,
+        "home_lambda": 2.47,
+        "away_lambda": 0.83
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1386747,
+    "home_team": "Watford",
+    "away_team": "Preston",
+    "league_id": 40,
+    "league_name": "Championship",
+    "match_date": "2025-11-25T19:45:00+00:00",
+    "logged_at": "2025-11-25T00:27:11.257520",
+    "prediction": {
+      "home_win_prob": 0.38993721187182945,
+      "draw_prob": 0.1820574439319286,
+      "away_win_prob": 0.4280053441962421,
+      "predicted_outcome": "away",
+      "confidence": 0.4280053441962421,
+      "confidence_level": "low",
+      "predicted_scoreline": "0-1",
+      "btts_prob": 0.397,
+      "over25_prob": 0.319
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.5629,
+        "draw": 0.1215,
+        "away_win": 0.3156
+      },
+      "catboost": {
+        "home_win": 0.3972,
+        "draw": 0.2006,
+        "away_win": 0.4022
+      },
+      "transformer": {
+        "home_win": 0.3237,
+        "draw": 0.5072,
+        "away_win": 0.1691
+      },
+      "lstm": {
+        "home_win": 0.587,
+        "draw": 0.1377,
+        "away_win": 0.2753
+      },
+      "gnn": {
+        "home_win": 0.2588,
+        "draw": 0.2533,
+        "away_win": 0.4879
+      },
+      "bayesian": {
+        "home_win": 0.4487,
+        "draw": 0.3666,
+        "away_win": 0.1846
+      },
+      "elo": {
+        "home_win": 0.207,
+        "draw": 0.23,
+        "away_win": 0.563,
+        "home_rating": 1270.6,
+        "away_rating": 1500,
+        "rating_diff": -129.4
+      },
+      "monte_carlo": {
+        "home_win": 0.398,
+        "draw": 0.305,
+        "away_win": 0.297,
+        "score_dist": {
+          "1-0": 136,
+          "0-2": 61,
+          "1-1": 134,
+          "4-0": 6,
+          "2-1": 83,
+          "0-0": 141,
+          "2-0": 93,
+          "4-1": 7,
+          "0-1": 116,
+          "3-2": 16,
+          "1-2": 58,
+          "2-2": 24,
+          "0-3": 19,
+          "3-0": 25,
+          "1-3": 18,
+          "5-0": 1,
+          "5-1": 4,
+          "2-3": 11,
+          "1-4": 2,
+          "3-1": 26,
+          "1-5": 3,
+          "1-6": 1,
+          "2-4": 3,
+          "0-4": 3,
+          "6-3": 1,
+          "3-3": 6,
+          "0-5": 2
+        },
+        "btts_prob": 0.397,
+        "over25_prob": 0.319
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1451096,
+    "home_team": "Chelsea",
+    "away_team": "Barcelona",
+    "league_id": 39,
+    "league_name": "UEFA Champions League",
+    "match_date": "2025-11-25T20:00:00+00:00",
+    "logged_at": "2025-11-25T00:40:45.319277",
+    "prediction": {
+      "home_win_prob": 0.7211494360096707,
+      "draw_prob": 0.11911228609426523,
+      "away_win_prob": 0.15973827789606398,
+      "predicted_outcome": "home",
+      "confidence": 0.7211494360096707,
+      "confidence_level": "high",
+      "predicted_scoreline": "2-0",
+      "btts_prob": 0.334,
+      "over25_prob": 0.458
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.6261,
+        "draw": 0.1148,
+        "away_win": 0.2591
+      },
+      "catboost": {
+        "home_win": 0.1723,
+        "draw": 0.1868,
+        "away_win": 0.6409
+      },
+      "transformer": {
+        "home_win": 0.4,
+        "draw": 0.2,
+        "away_win": 0.4
+      },
+      "lstm": {
+        "home_win": 0.6415,
+        "draw": 0.1069,
+        "away_win": 0.2516
+      },
+      "gnn": {
+        "home_win": 0.7405,
+        "draw": 0.0887,
+        "away_win": 0.1708
+      },
+      "bayesian": {
+        "home_win": 0.2372,
+        "draw": 0.5505,
+        "away_win": 0.2122
+      },
+      "elo": {
+        "home_win": 0.7452,
+        "draw": 0.18,
+        "away_win": 0.0748,
+        "home_rating": 1682.0,
+        "away_rating": 1500,
+        "rating_diff": 282.0
+      },
+      "monte_carlo": {
+        "home_win": 0.728,
+        "draw": 0.188,
+        "away_win": 0.084,
+        "score_dist": {
+          "2-0": 170,
+          "2-3": 3,
+          "1-0": 147,
+          "4-0": 58,
+          "3-3": 4,
+          "3-1": 49,
+          "3-0": 117,
+          "4-2": 4,
+          "2-1": 74,
+          "2-2": 24,
+          "5-0": 30,
+          "4-1": 29,
+          "0-1": 53,
+          "5-1": 13,
+          "7-0": 6,
+          "1-1": 94,
+          "0-0": 66,
+          "3-2": 14,
+          "6-0": 6,
+          "6-2": 2,
+          "0-2": 12,
+          "7-1": 3,
+          "1-3": 2,
+          "5-2": 2,
+          "1-2": 13,
+          "0-3": 1,
+          "7-3": 1,
+          "6-1": 3
+        },
+        "btts_prob": 0.334,
+        "over25_prob": 0.458
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1451100,
+    "home_team": "Bodo/Glimt",
+    "away_team": "Juventus",
+    "league_id": 39,
+    "league_name": "UEFA Champions League",
+    "match_date": "2025-11-25T20:00:00+00:00",
+    "logged_at": "2025-11-25T00:31:39.074893",
+    "prediction": {
+      "home_win_prob": 0.6075677039348665,
+      "draw_prob": 0.12978962953914636,
+      "away_win_prob": 0.2626426665259871,
+      "predicted_outcome": "home",
+      "confidence": 0.6075677039348665,
+      "confidence_level": "medium",
+      "predicted_scoreline": "1-0",
+      "btts_prob": 0.297,
+      "over25_prob": 0.215
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.7337,
+        "draw": 0.05,
+        "away_win": 0.2162
+      },
+      "catboost": {
+        "home_win": 0.4242,
+        "draw": 0.2461,
+        "away_win": 0.3298
+      },
+      "transformer": {
+        "home_win": 0.4,
+        "draw": 0.2,
+        "away_win": 0.4
+      },
+      "lstm": {
+        "home_win": 0.46,
+        "draw": 0.18,
+        "away_win": 0.36
+      },
+      "gnn": {
+        "home_win": 0.48,
+        "draw": 0.1777,
+        "away_win": 0.3423
+      },
+      "bayesian": {
+        "home_win": 0.2953,
+        "draw": 0.2589,
+        "away_win": 0.4458
+      },
+      "elo": {
+        "home_win": 0.5251,
+        "draw": 0.23,
+        "away_win": 0.2449,
+        "home_rating": 1500,
+        "away_rating": 1500,
+        "rating_diff": 100
+      },
+      "monte_carlo": {
+        "home_win": 0.392,
+        "draw": 0.346,
+        "away_win": 0.262,
+        "score_dist": {
+          "0-0": 194,
+          "2-0": 75,
+          "4-1": 6,
+          "1-0": 193,
+          "3-2": 5,
+          "2-1": 60,
+          "1-2": 41,
+          "0-2": 41,
+          "0-1": 151,
+          "1-1": 131,
+          "5-1": 1,
+          "1-3": 14,
+          "3-0": 26,
+          "4-0": 8,
+          "2-2": 20,
+          "2-3": 2,
+          "0-3": 12,
+          "3-1": 16,
+          "5-0": 2,
+          "0-4": 1,
+          "3-3": 1
+        },
+        "btts_prob": 0.297,
+        "over25_prob": 0.215
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1451098,
+    "home_team": "Borussia Dortmund",
+    "away_team": "Villarreal",
+    "league_id": 39,
+    "league_name": "UEFA Champions League",
+    "match_date": "2025-11-25T20:00:00+00:00",
+    "logged_at": "2025-11-25T00:31:49.265453",
+    "prediction": {
+      "home_win_prob": 0.6214151549362497,
+      "draw_prob": 0.12883503884839595,
+      "away_win_prob": 0.2497498062153543,
+      "predicted_outcome": "home",
+      "confidence": 0.6214151549362497,
+      "confidence_level": "medium",
+      "predicted_scoreline": "1-0",
+      "btts_prob": 0.288,
+      "over25_prob": 0.209
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.7337,
+        "draw": 0.05,
+        "away_win": 0.2162
+      },
+      "catboost": {
+        "home_win": 0.4251,
+        "draw": 0.2396,
+        "away_win": 0.3353
+      },
+      "transformer": {
+        "home_win": 0.4,
+        "draw": 0.2,
+        "away_win": 0.4
+      },
+      "lstm": {
+        "home_win": 0.46,
+        "draw": 0.18,
+        "away_win": 0.36
+      },
+      "gnn": {
+        "home_win": 0.48,
+        "draw": 0.1777,
+        "away_win": 0.3423
+      },
+      "bayesian": {
+        "home_win": 0.5201,
+        "draw": 0.2491,
+        "away_win": 0.2309
+      },
+      "elo": {
+        "home_win": 0.5251,
+        "draw": 0.23,
+        "away_win": 0.2449,
+        "home_rating": 1500,
+        "away_rating": 1500,
+        "rating_diff": 100
+      },
+      "monte_carlo": {
+        "home_win": 0.373,
+        "draw": 0.351,
+        "away_win": 0.276,
+        "score_dist": {
+          "1-0": 187,
+          "0-0": 210,
+          "0-1": 143,
+          "3-0": 24,
+          "1-2": 44,
+          "1-1": 124,
+          "0-2": 55,
+          "0-3": 12,
+          "2-0": 72,
+          "0-4": 3,
+          "1-3": 12,
+          "2-1": 54,
+          "4-0": 6,
+          "2-2": 16,
+          "6-1": 1,
+          "4-1": 4,
+          "3-1": 17,
+          "3-2": 4,
+          "2-3": 5,
+          "4-3": 1,
+          "4-2": 2,
+          "1-6": 1,
+          "3-3": 1,
+          "5-1": 1,
+          "1-4": 1
+        },
+        "btts_prob": 0.288,
+        "over25_prob": 0.209
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1379090,
+    "home_team": "Brentford",
+    "away_team": "Burnley",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-29T15:00:00+00:00",
+    "logged_at": "2025-11-25T00:56:30.374159",
+    "prediction": {
+      "home_win_prob": 0.7341111251581679,
+      "draw_prob": 0.09529478704191205,
+      "away_win_prob": 0.17059408779992002,
+      "predicted_outcome": "home",
+      "confidence": 0.7341111251581679,
+      "confidence_level": "high",
+      "predicted_scoreline": "1-0",
+      "btts_prob": 0.498,
+      "over25_prob": 0.537
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.5191,
+        "draw": 0.1375,
+        "away_win": 0.3434
+      },
+      "catboost": {
+        "home_win": 0.3181,
+        "draw": 0.3104,
+        "away_win": 0.3715
+      },
+      "transformer": {
+        "home_win": 0.6999,
+        "draw": 0.15,
+        "away_win": 0.15
+      },
+      "lstm": {
+        "home_win": 0.5943,
+        "draw": 0.121,
+        "away_win": 0.2847
+      },
+      "gnn": {
+        "home_win": 0.6958,
+        "draw": 0.104,
+        "away_win": 0.2002
+      },
+      "bayesian": {
+        "home_win": 0.7067,
+        "draw": 0.1754,
+        "away_win": 0.1179
+      },
+      "elo": {
+        "home_win": 0.8227,
+        "draw": 0.12,
+        "away_win": 0.0573,
+        "home_rating": 1597.7,
+        "away_rating": 1347.0,
+        "rating_diff": 350.7
+      },
+      "monte_carlo": {
+        "home_win": 0.637,
+        "draw": 0.22,
+        "away_win": 0.143,
+        "score_dist": {
+          "3-1": 83,
+          "0-1": 49,
+          "1-0": 120,
+          "3-3": 11,
+          "2-0": 112,
+          "1-1": 96,
+          "2-1": 78,
+          "4-0": 33,
+          "4-1": 39,
+          "3-0": 79,
+          "2-3": 13,
+          "0-3": 6,
+          "5-1": 15,
+          "0-0": 60,
+          "4-4": 3,
+          "4-2": 19,
+          "5-2": 8,
+          "5-3": 1,
+          "0-2": 26,
+          "3-2": 22,
+          "7-1": 2,
+          "6-1": 4,
+          "2-2": 50,
+          "1-2": 31,
+          "1-4": 3,
+          "5-0": 12,
+          "6-2": 2,
+          "1-3": 10,
+          "6-0": 3,
+          "4-3": 2,
+          "2-7": 1,
+          "2-4": 1,
+          "7-0": 2,
+          "6-3": 1,
+          "1-5": 1,
+          "3-4": 2
+        },
+        "btts_prob": 0.498,
+        "over25_prob": 0.537
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1379096,
+    "home_team": "Sunderland",
+    "away_team": "Bournemouth",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-29T15:00:00+00:00",
+    "logged_at": "2025-11-25T01:02:34.474314",
+    "prediction": {
+      "home_win_prob": 0.504936985000337,
+      "draw_prob": 0.19377266148492017,
+      "away_win_prob": 0.3012903535147428,
+      "predicted_outcome": "home",
+      "confidence": 0.504936985000337,
+      "confidence_level": "medium",
+      "predicted_scoreline": "2-1",
+      "btts_prob": 0.577,
+      "over25_prob": 0.569
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.6178,
+        "draw": 0.1113,
+        "away_win": 0.2709
+      },
+      "catboost": {
+        "home_win": 0.4339,
+        "draw": 0.1623,
+        "away_win": 0.4038
+      },
+      "transformer": {
+        "home_win": 0.1667,
+        "draw": 0.6667,
+        "away_win": 0.1667
+      },
+      "lstm": {
+        "home_win": 0.4849,
+        "draw": 0.1717,
+        "away_win": 0.3434
+      },
+      "gnn": {
+        "home_win": 0.5201,
+        "draw": 0.164,
+        "away_win": 0.3159
+      },
+      "bayesian": {
+        "home_win": 0.2445,
+        "draw": 0.4394,
+        "away_win": 0.3161
+      },
+      "elo": {
+        "home_win": 0.3551,
+        "draw": 0.3,
+        "away_win": 0.3449,
+        "home_rating": 1500,
+        "away_rating": 1596.5,
+        "rating_diff": 3.5
+      },
+      "monte_carlo": {
+        "home_win": 0.515,
+        "draw": 0.238,
+        "away_win": 0.246,
+        "score_dist": {
+          "1-0": 890,
+          "3-1": 584,
+          "2-1": 953,
+          "3-0": 475,
+          "2-0": 813,
+          "2-2": 566,
+          "4-3": 60,
+          "1-2": 569,
+          "4-0": 229,
+          "1-1": 1100,
+          "3-2": 362,
+          "5-0": 75,
+          "0-2": 366,
+          "5-2": 78,
+          "0-1": 617,
+          "4-2": 165,
+          "3-3": 163,
+          "3-4": 45,
+          "4-1": 239,
+          "0-0": 529,
+          "2-3": 221,
+          "0-4": 44,
+          "0-3": 150,
+          "1-4": 66,
+          "1-3": 230,
+          "7-1": 11,
+          "2-4": 86,
+          "6-1": 30,
+          "5-3": 20,
+          "5-1": 97,
+          "1-6": 8,
+          "6-4": 2,
+          "6-0": 22,
+          "0-6": 4,
+          "0-7": 1,
+          "1-5": 12,
+          "3-6": 3,
+          "7-4": 2,
+          "4-4": 26,
+          "4-5": 3,
+          "2-5": 22,
+          "0-5": 8,
+          "7-2": 4,
+          "2-6": 2,
+          "5-6": 1,
+          "3-5": 4,
+          "7-3": 5,
+          "7-0": 3,
+          "6-2": 11,
+          "6-3": 7,
+          "8-1": 2,
+          "5-4": 6,
+          "4-6": 2,
+          "8-0": 3,
+          "6-5": 1,
+          "8-2": 1,
+          "7-5": 1,
+          "8-3": 1
+        },
+        "btts_prob": 0.577,
+        "over25_prob": 0.569,
+        "over15_prob": 0.796,
+        "home_lambda": 1.81,
+        "away_lambda": 1.19
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1379093,
+    "home_team": "Everton",
+    "away_team": "Newcastle",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-29T17:30:00+00:00",
+    "logged_at": "2025-11-25T01:02:20.524509",
+    "prediction": {
+      "home_win_prob": 0.540180594220094,
+      "draw_prob": 0.1739316736329638,
+      "away_win_prob": 0.2858877321469423,
+      "predicted_outcome": "home",
+      "confidence": 0.540180594220094,
+      "confidence_level": "medium",
+      "predicted_scoreline": "1-0",
+      "btts_prob": 0.433,
+      "over25_prob": 0.379
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.5756,
+        "draw": 0.1119,
+        "away_win": 0.3125
+      },
+      "catboost": {
+        "home_win": 0.4877,
+        "draw": 0.1133,
+        "away_win": 0.3991
+      },
+      "transformer": {
+        "home_win": 0.3641,
+        "draw": 0.4376,
+        "away_win": 0.1983
+      },
+      "lstm": {
+        "home_win": 0.4252,
+        "draw": 0.1916,
+        "away_win": 0.3832
+      },
+      "gnn": {
+        "home_win": 0.6223,
+        "draw": 0.1291,
+        "away_win": 0.2486
+      },
+      "bayesian": {
+        "home_win": 0.3217,
+        "draw": 0.3501,
+        "away_win": 0.3282
+      },
+      "elo": {
+        "home_win": 0.4078,
+        "draw": 0.3,
+        "away_win": 0.2922,
+        "home_rating": 1593.6,
+        "away_rating": 1653.2,
+        "rating_diff": 40.4
+      },
+      "monte_carlo": {
+        "home_win": 0.445,
+        "draw": 0.285,
+        "away_win": 0.27,
+        "score_dist": {
+          "0-0": 1078,
+          "2-1": 832,
+          "2-0": 917,
+          "3-0": 376,
+          "1-0": 1408,
+          "0-1": 1013,
+          "1-1": 1302,
+          "2-2": 422,
+          "1-3": 197,
+          "1-2": 586,
+          "3-2": 164,
+          "4-0": 131,
+          "2-3": 117,
+          "0-4": 34,
+          "3-1": 355,
+          "4-2": 29,
+          "3-4": 17,
+          "0-2": 493,
+          "0-5": 6,
+          "2-4": 23,
+          "6-1": 6,
+          "0-3": 161,
+          "4-1": 124,
+          "3-3": 45,
+          "5-0": 37,
+          "1-4": 40,
+          "5-2": 14,
+          "4-3": 9,
+          "5-1": 23,
+          "1-5": 2,
+          "6-0": 11,
+          "5-3": 6,
+          "5-4": 1,
+          "7-1": 3,
+          "6-2": 5,
+          "2-5": 2,
+          "3-5": 1,
+          "7-0": 2,
+          "0-6": 1,
+          "1-6": 1,
+          "4-4": 3,
+          "6-3": 1,
+          "0-7": 1,
+          "3-6": 1
+        },
+        "btts_prob": 0.433,
+        "over25_prob": 0.379,
+        "over15_prob": 0.65,
+        "home_lambda": 1.28,
+        "away_lambda": 0.92
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1379098,
+    "home_team": "West Ham",
+    "away_team": "Liverpool",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-30T14:05:00+00:00",
+    "logged_at": "2025-11-25T01:02:34.552386",
+    "prediction": {
+      "home_win_prob": 0.3562584255433188,
+      "draw_prob": 0.14761758816770768,
+      "away_win_prob": 0.49612398628897353,
+      "predicted_outcome": "away",
+      "confidence": 0.49612398628897353,
+      "confidence_level": "medium",
+      "predicted_scoreline": "1-2",
+      "btts_prob": 0.702,
+      "over25_prob": 0.79
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.5681,
+        "draw": 0.127,
+        "away_win": 0.3049
+      },
+      "catboost": {
+        "home_win": 0.4456,
+        "draw": 0.2547,
+        "away_win": 0.2997
+      },
+      "transformer": {
+        "home_win": 0.435,
+        "draw": 0.1829,
+        "away_win": 0.382
+      },
+      "lstm": {
+        "home_win": 0.5592,
+        "draw": 0.1469,
+        "away_win": 0.2938
+      },
+      "gnn": {
+        "home_win": 0.2711,
+        "draw": 0.2491,
+        "away_win": 0.4798
+      },
+      "bayesian": {
+        "home_win": 0.2062,
+        "draw": 0.1892,
+        "away_win": 0.6046
+      },
+      "elo": {
+        "home_win": 0.1487,
+        "draw": 0.18,
+        "away_win": 0.6713,
+        "home_rating": 1495.6,
+        "away_rating": 1797.1,
+        "rating_diff": -201.5
+      },
+      "monte_carlo": {
+        "home_win": 0.158,
+        "draw": 0.156,
+        "away_win": 0.686,
+        "score_dist": {
+          "1-6": 162,
+          "0-2": 578,
+          "2-3": 515,
+          "1-4": 541,
+          "1-1": 586,
+          "1-2": 832,
+          "2-2": 524,
+          "3-2": 252,
+          "1-7": 66,
+          "2-5": 255,
+          "1-3": 822,
+          "3-3": 239,
+          "5-7": 1,
+          "2-6": 122,
+          "4-6": 12,
+          "0-1": 454,
+          "4-3": 82,
+          "0-3": 568,
+          "0-0": 153,
+          "2-1": 411,
+          "1-0": 196,
+          "4-0": 22,
+          "1-5": 306,
+          "0-4": 404,
+          "2-4": 333,
+          "4-5": 43,
+          "3-5": 95,
+          "4-2": 79,
+          "3-4": 163,
+          "2-0": 137,
+          "3-8": 10,
+          "3-6": 35,
+          "1-8": 27,
+          "0-5": 230,
+          "3-1": 170,
+          "5-4": 19,
+          "0-7": 48,
+          "5-3": 18,
+          "3-0": 51,
+          "2-7": 42,
+          "0-6": 114,
+          "3-7": 16,
+          "4-4": 52,
+          "4-1": 71,
+          "5-1": 21,
+          "5-6": 8,
+          "4-7": 11,
+          "2-8": 19,
+          "6-3": 6,
+          "6-2": 4,
+          "6-1": 3,
+          "4-8": 6,
+          "0-8": 18,
+          "5-5": 8,
+          "5-2": 26,
+          "7-1": 1,
+          "6-5": 2,
+          "6-0": 2,
+          "7-4": 1,
+          "6-6": 1,
+          "7-3": 1,
+          "5-0": 5,
+          "6-7": 1
+        },
+        "btts_prob": 0.702,
+        "over25_prob": 0.79,
+        "over15_prob": 0.92,
+        "home_lambda": 1.37,
+        "away_lambda": 2.86
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1379097,
+    "home_team": "Tottenham",
+    "away_team": "Fulham",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-29T20:00:00+00:00",
+    "logged_at": "2025-11-25T01:02:34.514454",
+    "prediction": {
+      "home_win_prob": 0.5351606443274463,
+      "draw_prob": 0.15864923414726323,
+      "away_win_prob": 0.30619012152529046,
+      "predicted_outcome": "home",
+      "confidence": 0.5351606443274463,
+      "confidence_level": "medium",
+      "predicted_scoreline": "1-0",
+      "btts_prob": 0.531,
+      "over25_prob": 0.537
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.5408,
+        "draw": 0.1033,
+        "away_win": 0.3559
+      },
+      "catboost": {
+        "home_win": 0.3833,
+        "draw": 0.2541,
+        "away_win": 0.3626
+      },
+      "transformer": {
+        "home_win": 0.4344,
+        "draw": 0.2712,
+        "away_win": 0.2944
+      },
+      "lstm": {
+        "home_win": 0.45,
+        "draw": 0.1833,
+        "away_win": 0.3667
+      },
+      "gnn": {
+        "home_win": 0.686,
+        "draw": 0.1073,
+        "away_win": 0.2067
+      },
+      "bayesian": {
+        "home_win": 0.4628,
+        "draw": 0.2673,
+        "away_win": 0.2699
+      },
+      "elo": {
+        "home_win": 0.3577,
+        "draw": 0.3,
+        "away_win": 0.3423,
+        "home_rating": 1452.0,
+        "away_rating": 1546.7,
+        "rating_diff": 5.3
+      },
+      "monte_carlo": {
+        "home_win": 0.563,
+        "draw": 0.231,
+        "away_win": 0.206,
+        "score_dist": {
+          "0-0": 598,
+          "1-2": 525,
+          "3-0": 614,
+          "1-1": 1106,
+          "2-1": 988,
+          "2-0": 953,
+          "0-2": 312,
+          "0-1": 588,
+          "5-2": 58,
+          "1-0": 1075,
+          "2-3": 160,
+          "4-1": 269,
+          "5-1": 103,
+          "4-0": 258,
+          "0-3": 131,
+          "4-2": 142,
+          "0-4": 23,
+          "3-3": 91,
+          "1-4": 45,
+          "5-0": 95,
+          "3-1": 576,
+          "2-2": 501,
+          "4-3": 42,
+          "1-3": 171,
+          "3-2": 312,
+          "6-0": 27,
+          "6-2": 24,
+          "0-5": 5,
+          "6-1": 37,
+          "2-4": 44,
+          "7-1": 5,
+          "3-7": 1,
+          "3-5": 4,
+          "3-4": 25,
+          "2-5": 12,
+          "5-3": 14,
+          "8-1": 6,
+          "1-6": 4,
+          "3-6": 1,
+          "6-3": 7,
+          "5-4": 7,
+          "4-4": 9,
+          "1-5": 7,
+          "4-5": 4,
+          "7-2": 5,
+          "7-0": 9,
+          "8-0": 3,
+          "0-6": 1,
+          "6-4": 1,
+          "7-3": 1,
+          "4-6": 1
+        },
+        "btts_prob": 0.531,
+        "over25_prob": 0.537,
+        "over15_prob": 0.774,
+        "home_lambda": 1.82,
+        "away_lambda": 1.01
+      }
+    },
+    "result": null,
+    "evaluated": false
+  },
+  {
+    "fixture_id": 1379095,
+    "home_team": "Nottingham Forest",
+    "away_team": "Brighton",
+    "league_id": 39,
+    "league_name": "Premier League",
+    "match_date": "2025-11-30T14:05:00+00:00",
+    "logged_at": "2025-11-25T01:02:34.434613",
+    "prediction": {
+      "home_win_prob": 0.43606277072973326,
+      "draw_prob": 0.20021352810099752,
+      "away_win_prob": 0.36372370116926916,
+      "predicted_outcome": "home",
+      "confidence": 0.43606277072973326,
+      "confidence_level": "low",
+      "predicted_scoreline": "1-2",
+      "btts_prob": 0.59,
+      "over25_prob": 0.636
+    },
+    "model_breakdown": {
+      "gbdt": {
+        "home_win": 0.6049,
+        "draw": 0.1245,
+        "away_win": 0.2707
+      },
+      "catboost": {
+        "home_win": 0.5416,
+        "draw": 0.2334,
+        "away_win": 0.225
+      },
+      "transformer": {
+        "home_win": 0.1337,
+        "draw": 0.3342,
+        "away_win": 0.5321
+      },
+      "lstm": {
+        "home_win": 0.2785,
+        "draw": 0.2152,
+        "away_win": 0.5063
+      },
+      "gnn": {
+        "home_win": 0.2229,
+        "draw": 0.2656,
+        "away_win": 0.5115
+      },
+      "bayesian": {
+        "home_win": 0.2322,
+        "draw": 0.3145,
+        "away_win": 0.4532
+      },
+      "elo": {
+        "home_win": 0.4536,
+        "draw": 0.27,
+        "away_win": 0.2764,
+        "home_rating": 1594.9,
+        "away_rating": 1632.6,
+        "rating_diff": 62.2
+      },
+      "monte_carlo": {
+        "home_win": 0.179,
+        "draw": 0.193,
+        "away_win": 0.628,
+        "score_dist": {
+          "1-2": 960,
+          "1-3": 740,
+          "1-1": 856,
+          "0-5": 138,
+          "0-2": 897,
+          "1-5": 175,
+          "1-0": 446,
+          "0-0": 387,
+          "0-4": 339,
+          "3-2": 168,
+          "2-1": 473,
+          "0-1": 830,
+          "0-3": 644,
+          "3-1": 178,
+          "2-4": 227,
+          "2-6": 43,
+          "1-4": 386,
+          "1-6": 78,
+          "2-3": 409,
+          "2-0": 221,
+          "2-7": 12,
+          "1-7": 26,
+          "2-2": 525,
+          "3-3": 141,
+          "3-6": 16,
+          "4-4": 17,
+          "4-3": 32,
+          "3-7": 5,
+          "2-5": 110,
+          "0-6": 59,
+          "5-6": 2,
+          "3-5": 37,
+          "6-3": 3,
+          "3-4": 81,
+          "3-0": 71,
+          "4-6": 5,
+          "6-2": 2,
+          "0-8": 11,
+          "4-1": 56,
+          "4-2": 53,
+          "4-0": 27,
+          "0-7": 20,
+          "5-0": 11,
+          "5-3": 12,
+          "6-1": 4,
+          "5-2": 10,
+          "4-5": 15,
+          "6-4": 4,
+          "5-1": 10,
+          "3-8": 4,
+          "7-3": 1,
+          "5-4": 9,
+          "1-8": 8,
+          "6-0": 1,
+          "6-5": 2,
+          "6-8": 1,
+          "2-8": 1,
+          "5-5": 1
+        },
+        "btts_prob": 0.59,
+        "over25_prob": 0.636,
+        "over15_prob": 0.834,
+        "home_lambda": 1.12,
+        "away_lambda": 2.19
+      }
+    },
+    "result": null,
+    "evaluated": false
+  }
+]

@@ -1,0 +1,11 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+.DS_Store
+*.joblib
+*.pkl
+*.pt
+*.pth
+ml_engine/trained_models/*.joblib

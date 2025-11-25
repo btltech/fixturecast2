@@ -1,0 +1,62 @@
+============================================================
+COMPREHENSIVE ML MODEL TRAINING
+============================================================
+
+1. Loading historical data...
+   Loaded 1900 matches across all seasons
+
+2. Building feature vectors and labels...
+Building features from 1900 matches...
+  Processed 500/1900 matches...
+  Processed 1000/1900 matches...
+  Processed 1500/1900 matches...
+Feature extraction complete. Built 1900 samples.
+
+3. Initializing ensemble predictor...
+Loaded trained GBDTModel
+Loaded trained CatBoostModel
+Loaded trained PoissonModel
+Loaded trained TransformerSequenceModel
+Loaded trained LSTMSequenceModel
+Loaded trained GNNModel
+Loaded trained BayesianModel
+Loaded trained EloGlickoModel
+Loaded trained meta-model.
+
+4. Training individual models...
+------------------------------------------------------------
+
+[1/8] Training GBDT Model...
+   ✗ Error: 'GradientBoostingClassifier' object has no attribute 'model'
+
+[2/8] Training CatBoost Model...
+   ✗ Error: 'LogisticRegression' object has no attribute 'model'
+
+[3/8] Training Poisson Model...
+Training Poisson Model (simple linear regression for lambda)...
+Poisson model training complete.
+   ✓ Saved to /Users/mobolaji/.gemini/antigravity/scratch/fixturecast/ml_engine/trained_models/poisson_model.pkl
+
+[4/8] Saving Transformer Model (heuristic-based)...
+   ✓ Saved to /Users/mobolaji/.gemini/antigravity/scratch/fixturecast/ml_engine/trained_models/transformer_model.pkl
+
+[5/8] Saving LSTM Model (heuristic-based)...
+   ✓ Saved to /Users/mobolaji/.gemini/antigravity/scratch/fixturecast/ml_engine/trained_models/lstm_model.pkl
+
+[6/8] Saving GNN Model (heuristic-based)...
+   ✓ Saved to /Users/mobolaji/.gemini/antigravity/scratch/fixturecast/ml_engine/trained_models/gnn_model.pkl
+
+[7/8] Saving Bayesian Model (heuristic-based)...
+   ✓ Saved to /Users/mobolaji/.gemini/antigravity/scratch/fixturecast/ml_engine/trained_models/bayesian_model.pkl
+
+[8/8] Saving Elo Model (heuristic-based)...
+   ✓ Saved to /Users/mobolaji/.gemini/antigravity/scratch/fixturecast/ml_engine/trained_models/elo_model.pkl
+
+============================================================
+ALL MODELS TRAINED AND SAVED
+============================================================
+
+Models saved to: /Users/mobolaji/.gemini/antigravity/scratch/fixturecast/ml_engine/trained_models
+Total samples: 1900
+
+Next step: Re-train meta-model with these base models

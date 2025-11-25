@@ -1,0 +1,437 @@
+{
+  "total_predictions": 115,
+  "predictions_by_model": {
+    "gbdt": 115,
+    "catboost": 115,
+    "transformer": 115,
+    "lstm": 115,
+    "gnn": 115,
+    "bayesian": 115,
+    "elo": 115,
+    "monte_carlo": 115
+  },
+  "confidence_sums": {
+    "gbdt": 68.10670000000005,
+    "catboost": 53.95329999999996,
+    "transformer": 64.56810000000004,
+    "lstm": 61.8686,
+    "gnn": 70.9423,
+    "bayesian": 65.90470000000005,
+    "elo": 70.39839999999995,
+    "monte_carlo": 70.23
+  },
+  "confidence_counts": {
+    "gbdt": 115,
+    "catboost": 115,
+    "transformer": 115,
+    "lstm": 115,
+    "gnn": 115,
+    "bayesian": 115,
+    "elo": 115,
+    "monte_carlo": 115
+  },
+  "predictions_log": [
+    {
+      "timestamp": "2025-11-24T23:11:50.906142",
+      "ensemble_confidence": 0.7787
+    },
+    {
+      "timestamp": "2025-11-24T23:11:59.599085",
+      "ensemble_confidence": 0.7787
+    },
+    {
+      "timestamp": "2025-11-24T23:14:21.869862",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-24T23:17:40.087383",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-24T23:22:27.267606",
+      "ensemble_confidence": 0.7351
+    },
+    {
+      "timestamp": "2025-11-24T23:22:30.839601",
+      "ensemble_confidence": 0.5317
+    },
+    {
+      "timestamp": "2025-11-24T23:22:53.292524",
+      "ensemble_confidence": 0.7349
+    },
+    {
+      "timestamp": "2025-11-24T23:43:28.733826",
+      "ensemble_confidence": 0.5803
+    },
+    {
+      "timestamp": "2025-11-24T23:43:32.160464",
+      "ensemble_confidence": 0.6166
+    },
+    {
+      "timestamp": "2025-11-24T23:56:38.533152",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:24:08.170890",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:24:19.006118",
+      "ensemble_confidence": 0.6967
+    },
+    {
+      "timestamp": "2025-11-25T00:27:11.257514",
+      "ensemble_confidence": 0.428
+    },
+    {
+      "timestamp": "2025-11-25T00:31:01.601705",
+      "ensemble_confidence": 0.7211
+    },
+    {
+      "timestamp": "2025-11-25T00:31:39.074388",
+      "ensemble_confidence": 0.6076
+    },
+    {
+      "timestamp": "2025-11-25T00:31:49.265446",
+      "ensemble_confidence": 0.6214
+    },
+    {
+      "timestamp": "2025-11-25T00:33:12.516019",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:33:47.600037",
+      "ensemble_confidence": 0.7341
+    },
+    {
+      "timestamp": "2025-11-25T00:34:35.169370",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:35:27.688948",
+      "ensemble_confidence": 0.5049
+    },
+    {
+      "timestamp": "2025-11-25T00:36:31.939434",
+      "ensemble_confidence": 0.5401
+    },
+    {
+      "timestamp": "2025-11-25T00:38:16.003152",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:38:19.779670",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:40:45.319270",
+      "ensemble_confidence": 0.7211
+    },
+    {
+      "timestamp": "2025-11-25T00:40:57.154299",
+      "ensemble_confidence": 0.7341
+    },
+    {
+      "timestamp": "2025-11-25T00:40:59.334932",
+      "ensemble_confidence": 0.7341
+    },
+    {
+      "timestamp": "2025-11-25T00:41:04.496845",
+      "ensemble_confidence": 0.5049
+    },
+    {
+      "timestamp": "2025-11-25T00:41:06.869092",
+      "ensemble_confidence": 0.5049
+    },
+    {
+      "timestamp": "2025-11-25T00:41:11.600218",
+      "ensemble_confidence": 0.6966
+    },
+    {
+      "timestamp": "2025-11-25T00:41:14.579028",
+      "ensemble_confidence": 0.6966
+    },
+    {
+      "timestamp": "2025-11-25T00:41:28.284968",
+      "ensemble_confidence": 0.5401
+    },
+    {
+      "timestamp": "2025-11-25T00:41:29.800952",
+      "ensemble_confidence": 0.5401
+    },
+    {
+      "timestamp": "2025-11-25T00:51:25.449593",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:51:26.181353",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T00:51:26.904889",
+      "ensemble_confidence": 0.4961
+    },
+    {
+      "timestamp": "2025-11-25T00:51:27.603878",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T00:51:41.395468",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:51:41.419723",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T00:51:41.442898",
+      "ensemble_confidence": 0.4961
+    },
+    {
+      "timestamp": "2025-11-25T00:51:41.469430",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T00:51:42.231857",
+      "ensemble_confidence": 0.7341
+    },
+    {
+      "timestamp": "2025-11-25T00:51:42.922119",
+      "ensemble_confidence": 0.5352
+    },
+    {
+      "timestamp": "2025-11-25T00:51:43.590507",
+      "ensemble_confidence": 0.6966
+    },
+    {
+      "timestamp": "2025-11-25T00:51:44.335039",
+      "ensemble_confidence": 0.4361
+    },
+    {
+      "timestamp": "2025-11-25T00:52:08.737495",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T00:52:23.224988",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T00:52:23.254280",
+      "ensemble_confidence": 0.7341
+    },
+    {
+      "timestamp": "2025-11-25T00:52:23.282628",
+      "ensemble_confidence": 0.5352
+    },
+    {
+      "timestamp": "2025-11-25T00:52:23.307654",
+      "ensemble_confidence": 0.6966
+    },
+    {
+      "timestamp": "2025-11-25T00:52:23.331879",
+      "ensemble_confidence": 0.4361
+    },
+    {
+      "timestamp": "2025-11-25T00:54:24.100968",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:54:24.798044",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T00:54:25.445301",
+      "ensemble_confidence": 0.4961
+    },
+    {
+      "timestamp": "2025-11-25T00:54:26.091155",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T00:54:26.782582",
+      "ensemble_confidence": 0.7341
+    },
+    {
+      "timestamp": "2025-11-25T00:54:27.472238",
+      "ensemble_confidence": 0.5352
+    },
+    {
+      "timestamp": "2025-11-25T00:54:28.146922",
+      "ensemble_confidence": 0.6966
+    },
+    {
+      "timestamp": "2025-11-25T00:54:28.829842",
+      "ensemble_confidence": 0.4361
+    },
+    {
+      "timestamp": "2025-11-25T00:54:29.174229",
+      "ensemble_confidence": 0.4361
+    },
+    {
+      "timestamp": "2025-11-25T00:54:34.974262",
+      "ensemble_confidence": 0.4361
+    },
+    {
+      "timestamp": "2025-11-25T00:54:47.454201",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:54:47.481807",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T00:54:47.508041",
+      "ensemble_confidence": 0.4961
+    },
+    {
+      "timestamp": "2025-11-25T00:54:47.531881",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T00:54:47.560344",
+      "ensemble_confidence": 0.7341
+    },
+    {
+      "timestamp": "2025-11-25T00:56:18.461869",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T00:56:23.071565",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:56:24.390450",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T00:56:27.999428",
+      "ensemble_confidence": 0.7341
+    },
+    {
+      "timestamp": "2025-11-25T00:56:30.373600",
+      "ensemble_confidence": 0.7341
+    },
+    {
+      "timestamp": "2025-11-25T00:56:34.787872",
+      "ensemble_confidence": 0.5049
+    },
+    {
+      "timestamp": "2025-11-25T00:56:36.506351",
+      "ensemble_confidence": 0.5049
+    },
+    {
+      "timestamp": "2025-11-25T00:56:41.396376",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T00:56:43.481620",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T00:57:34.594887",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T01:01:16.442480",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T01:01:24.137512",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T01:01:41.525020",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T01:01:42.213639",
+      "ensemble_confidence": 0.6966
+    },
+    {
+      "timestamp": "2025-11-25T01:01:42.885016",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T01:01:43.593917",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T01:01:44.306641",
+      "ensemble_confidence": 0.4361
+    },
+    {
+      "timestamp": "2025-11-25T01:01:45.006101",
+      "ensemble_confidence": 0.5049
+    },
+    {
+      "timestamp": "2025-11-25T01:01:45.674656",
+      "ensemble_confidence": 0.5352
+    },
+    {
+      "timestamp": "2025-11-25T01:01:46.357801",
+      "ensemble_confidence": 0.4961
+    },
+    {
+      "timestamp": "2025-11-25T01:02:05.143384",
+      "ensemble_confidence": 0.6966
+    },
+    {
+      "timestamp": "2025-11-25T01:02:13.242068",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T01:02:13.280845",
+      "ensemble_confidence": 0.6966
+    },
+    {
+      "timestamp": "2025-11-25T01:02:13.319687",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T01:02:13.357758",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T01:02:13.399602",
+      "ensemble_confidence": 0.4361
+    },
+    {
+      "timestamp": "2025-11-25T01:02:13.442319",
+      "ensemble_confidence": 0.5049
+    },
+    {
+      "timestamp": "2025-11-25T01:02:13.483533",
+      "ensemble_confidence": 0.5352
+    },
+    {
+      "timestamp": "2025-11-25T01:02:13.522251",
+      "ensemble_confidence": 0.4961
+    },
+    {
+      "timestamp": "2025-11-25T01:02:20.445905",
+      "ensemble_confidence": 0.5045
+    },
+    {
+      "timestamp": "2025-11-25T01:02:20.485368",
+      "ensemble_confidence": 0.6966
+    },
+    {
+      "timestamp": "2025-11-25T01:02:20.524500",
+      "ensemble_confidence": 0.5402
+    },
+    {
+      "timestamp": "2025-11-25T01:02:20.564444",
+      "ensemble_confidence": 0.7569
+    },
+    {
+      "timestamp": "2025-11-25T01:02:34.434602",
+      "ensemble_confidence": 0.4361
+    },
+    {
+      "timestamp": "2025-11-25T01:02:34.473644",
+      "ensemble_confidence": 0.5049
+    }
+  ],
+  "started_at": "2025-11-24T22:42:19.877062",
+  "last_prediction_at": "2025-11-25T01:02:34.473629"
+}

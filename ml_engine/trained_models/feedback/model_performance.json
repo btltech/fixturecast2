@@ -1,0 +1,54 @@
+{
+  "overall": {
+    "correct": 1,
+    "total": 1,
+    "accuracy": 1.0
+  },
+  "by_model": {
+    "gbdt": {
+      "correct": 1,
+      "total": 1
+    }
+  },
+  "by_confidence": {
+    "high": {
+      "correct": 1,
+      "total": 1
+    },
+    "medium": {
+      "correct": 0,
+      "total": 0
+    },
+    "low": {
+      "correct": 0,
+      "total": 0
+    }
+  },
+  "by_league": {
+    "39": {
+      "name": "Premier League",
+      "correct": 1,
+      "total": 1,
+      "brier_sum": 0.061666666666666654
+    }
+  },
+  "recent_trend": [
+    {
+      "fixture_id": 12345,
+      "correct": true,
+      "confidence": 0.65,
+      "brier": 0.061666666666666654,
+      "date": "2025-11-30T15:00:00"
+    }
+  ],
+  "calibration": {
+    "bins": {
+      "60-70": {
+        "predicted_sum": 0.65,
+        "actual_sum": 1,
+        "count": 1
+      }
+    },
+    "samples": 1
+  }
+}

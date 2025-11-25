@@ -1,0 +1,23 @@
+
+# Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# HTTP Client
+requests>=2.31.0
+httpx>=0.25.0
+
+# Data Processing
+numpy>=1.24.0
+pandas>=2.0.0
+
+# ML Libraries
+scikit-learn>=1.3.0
+xgboost>=2.0.0
+catboost>=1.2.0
+
+# PyTorch (CPU version for smaller deployment)
+torch>=2.0.0 --index-url https://download.pytorch.org/whl/cpu
+
+# CORS
+python-multipart>=0.0.6

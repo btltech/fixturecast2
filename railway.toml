@@ -1,0 +1,5 @@
+[build]
+  builder = "paketobuildpacks/builder:base"
+
+[deploy]
+  release_command = "echo 'Deployed!'"

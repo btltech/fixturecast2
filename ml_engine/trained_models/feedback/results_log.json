@@ -1,0 +1,23 @@
+[
+  {
+    "fixture_id": 12345,
+    "result": {
+      "home_goals": 2,
+      "away_goals": 1,
+      "actual_outcome": "home",
+      "status": "FT",
+      "recorded_at": "2025-11-24T23:31:15.298669"
+    },
+    "evaluation": {
+      "outcome_correct": true,
+      "brier_score": 0.061666666666666654,
+      "btts_correct": false,
+      "over25_correct": true,
+      "exact_score": false,
+      "score_diff": 1,
+      "confidence_level": "high",
+      "confidence": 0.65
+    },
+    "recorded_at": "2025-11-24T23:31:15.298675"
+  }
+]

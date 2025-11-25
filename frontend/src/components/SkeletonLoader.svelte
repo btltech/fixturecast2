@@ -128,14 +128,4 @@
       background-position: -200% 0;
     }
   }
-
-  :global([data-theme="light"]) .skeleton-pulse {
-    background: linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.06) 0%,
-      rgba(0, 0, 0, 0.12) 50%,
-      rgba(0, 0, 0, 0.06) 100%
-    );
-    background-size: 200% 100%;
-  }
 </style>

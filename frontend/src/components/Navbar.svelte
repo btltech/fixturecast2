@@ -1,17 +1,8 @@
 <script>
   import { Link } from "svelte-routing";
   import SearchBar from "./SearchBar.svelte";
-  import { theme, toggleTheme, initTheme } from "../services/themeStore.js";
-  import { onMount } from "svelte";
 
   let mobileMenuOpen = false;
-  
-  // Use reactive auto-subscription ($ prefix) - automatically unsubscribes
-  $: currentTheme = $theme;
-
-  onMount(() => {
-    initTheme();
-  });
 
   function toggleMobileMenu() {
     mobileMenuOpen = !mobileMenuOpen;
@@ -58,24 +49,10 @@
         <span>🧠</span>
         <span>AI</span>
       </Link>
-      <button
-        on:click={toggleTheme}
-        class="p-2 rounded-lg hover:bg-white/10 transition-all touch-target"
-        title="Toggle theme"
-      >
-        {currentTheme === "dark" ? "🌙" : "☀️"}
-      </button>
     </div>
 
-    <!-- Mobile: Only theme toggle (menu replaced by bottom nav) -->
+    <!-- Mobile: More menu (main nav in bottom bar) -->
     <div class="flex items-center gap-2 md:hidden">
-      <button
-        on:click={toggleTheme}
-        class="p-2 rounded-lg hover:bg-white/10 transition-all touch-target"
-        title="Toggle theme"
-      >
-        {currentTheme === "dark" ? "🌙" : "☀️"}
-      </button>
       <!-- More menu for secondary items -->
       <button
         on:click={toggleMobileMenu}

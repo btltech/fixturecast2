@@ -12,25 +12,13 @@
   --safe-area-inset-bottom: env(safe-area-inset-bottom);
 }
 
-[data-theme="light"] {
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-}
-
 body {
   @apply font-sans antialiased;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   overscroll-behavior: contain;
-}
-
-[data-theme="light"] body {
-  @apply bg-slate-50 text-slate-900;
 }
 
 /* Glassmorphism utilities */
@@ -40,21 +28,10 @@ body {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme="light"] .glass {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
 .glass-card {
   @apply backdrop-blur-sm border rounded-xl;
   background: rgba(30, 41, 59, 0.5);
   border-color: rgba(255, 255, 255, 0.05);
-}
-
-[data-theme="light"] .glass-card {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(0, 0, 0, 0.05);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* =====================================================

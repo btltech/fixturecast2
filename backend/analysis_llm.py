@@ -133,14 +133,18 @@ class AnalysisLLM:
                     elo_text += f" in favor of {stronger}."
                 analysis_points.append(elo_text)
         
-        # H2H
+        # H2H - FIXED: Explain when H2H suggests draws but model disagrees
         h2h_home = features.get('h2h_home_wins', 0)
         h2h_away = features.get('h2h_away_wins', 0)
         h2h_draws = features.get('h2h_draws', 0)
         h2h_total = h2h_home + h2h_away + h2h_draws
         if h2h_total > 0:
             if h2h_draws >= h2h_total * 0.4:
-                analysis_points.append(f"📊 **H2H:** {h2h_draws} draws in last {h2h_total} meetings — slight draw tendency worth noting.")
+                h2h_text = f"📊 **H2H:** {h2h_draws} draws in last {h2h_total} meetings — slight draw tendency worth noting."
+                # FIXED: Add explanation when H2H suggests draws but model keeps draw low
+                if draw_prob < 20:
+                    h2h_text += f" Despite the recent draw pattern, current form and market signals still keep the draw as a secondary outcome ({draw_prob:.0f}%)."
+                analysis_points.append(h2h_text)
             elif h2h_home > h2h_away:
                 analysis_points.append(f"📊 **H2H:** {home_name} leads {h2h_home}-{h2h_away} in recent meetings — history on their side.")
             elif h2h_away > h2h_home:
@@ -261,23 +265,60 @@ class AnalysisLLM:
                 f"⚠️ **Late Vulnerability:** {vulnerable_team} concedes {late_concede_pct:.0f}% of goals after 75' — fitness or concentration issues."
             )
         
-        # BTTS and Over 2.5 insight
-        btts_text = "Yes" if btts_prob > 50 else "No"
-        btts_insight = "goals likely from both ends" if btts_prob > 60 else "goals likely one-sided" if btts_prob < 40 else "could go either way"
+        # BTTS and Over 2.5 insight - FIXED: Show both Yes/No percentages explicitly
+        btts_yes = btts_prob
+        btts_no = 100 - btts_prob
+        if btts_yes > 60:
+            btts_label = "Likely"
+            btts_insight = "attacking match expected"
+        elif btts_yes > 50:
+            btts_label = "Leaning Yes"
+            btts_insight = "both defenses look penetrable"
+        elif btts_yes > 40:
+            btts_label = "Borderline"
+            btts_insight = "could go either way"
+        elif btts_yes > 25:
+            btts_label = "Leaning No"
+            btts_insight = "one side likely to keep a clean sheet"
+        else:
+            btts_label = "Unlikely"
+            btts_insight = "shutout expected from one or both teams"
         
-        over25_text = "Likely" if over25_prob > 55 else "Unlikely" if over25_prob < 45 else "Borderline"
-        over25_insight = "open, high-scoring affair expected" if over25_prob > 60 else "tight game expected" if over25_prob < 40 else "could be close either way"
+        # Over 2.5 - FIXED: Use "Very unlikely" for extreme values
+        if over25_prob > 65:
+            over25_label = "Very likely"
+            over25_insight = "open, high-scoring affair expected"
+        elif over25_prob > 55:
+            over25_label = "Likely"
+            over25_insight = "goals expected in this one"
+        elif over25_prob > 45:
+            over25_label = "Borderline"
+            over25_insight = "could be close either way"
+        elif over25_prob > 30:
+            over25_label = "Unlikely"
+            over25_insight = "tight, low-scoring game expected"
+        elif over25_prob > 15:
+            over25_label = "Very unlikely"
+            over25_insight = "defensive battle anticipated"
+        else:
+            over25_label = "Rare"
+            over25_insight = f"only ~1 in {int(100/max(over25_prob, 1))} matches see 3+ goals in this type of fixture"
         
-        # Build verdict
+        # Build verdict - FIXED: Better confidence framing with upset acknowledgment
         if confidence == "HIGH":
             risk_text = "Low risk"
             bet_suggestion = f"Straight {favorite} win looks solid."
+            verdict_intro = f"{favorite} are clear favorites and the data strongly supports this."
         elif confidence == "MEDIUM":
-            risk_text = "Medium risk"
+            risk_text = "Moderate"
             bet_suggestion = "'Draw No Bet' limits downside if the underdog steals a point."
+            # FIXED: Acknowledge upset potential
+            underdog = away_name if home_prob > away_prob else home_name
+            verdict_intro = f"{favorite} have the edge, but {underdog} still carry real upset potential."
         else:
-            risk_text = "High risk"
+            risk_text = "High"
             bet_suggestion = "Consider smaller stakes or alternative markets (BTTS, corners, etc.)."
+            verdict_intro = "This is a genuine toss-up — no clear favorite emerges from the data."
         
         # Assemble analysis points
         analysis_section = "\n\n".join(analysis_points) if analysis_points else "No detailed analysis available for this fixture."
@@ -296,8 +337,8 @@ class AnalysisLLM:
 | {away_name} Win | {away_prob:.1f}% |
 
 **Predicted Score:** {score}  
-**Both teams to score:** {btts_text} ({btts_prob:.0f}%) — {btts_insight}  
-**Over 2.5 goals:** {over25_text} ({over25_prob:.0f}%) — {over25_insight}
+**Both teams to score:** {btts_label} — Yes {btts_yes:.0f}% / No {btts_no:.0f}% ({btts_insight})  
+**Over 2.5 goals:** {over25_label} ({over25_prob:.0f}%) — {over25_insight}
 
 ---
 
@@ -309,7 +350,7 @@ class AnalysisLLM:
 
 ### 🎯 Our Verdict
 
-{favorite} {'are' if favorite != 'Draw' else 'is'} {'clear favorites' if favorite_prob > 60 else 'slight favorites' if favorite_prob > 50 else 'in a tight contest'} but {'this is no certainty' if confidence != 'HIGH' else 'the data strongly supports this'}. **{risk_text}** — {bet_suggestion}
+{verdict_intro} **Risk level: {risk_text}** — {bet_suggestion}
 
 ---
 

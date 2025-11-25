@@ -1,56 +1,36 @@
 {
-  "total_predictions": 150,
+  "total_predictions": 155,
   "predictions_by_model": {
-    "gbdt": 150,
-    "catboost": 150,
-    "transformer": 150,
-    "lstm": 150,
-    "gnn": 150,
-    "bayesian": 150,
-    "elo": 150,
-    "monte_carlo": 150
+    "gbdt": 155,
+    "catboost": 155,
+    "transformer": 155,
+    "lstm": 155,
+    "gnn": 155,
+    "bayesian": 155,
+    "elo": 155,
+    "monte_carlo": 155
   },
   "confidence_sums": {
-    "gbdt": 87.39490000000002,
-    "catboost": 72.35389999999997,
-    "transformer": 84.7543000000001,
-    "lstm": 81.5734,
-    "gnn": 93.434,
-    "bayesian": 87.20919999999998,
-    "elo": 93.33979999999988,
-    "monte_carlo": 95.764
+    "gbdt": 90.65480000000002,
+    "catboost": 75.15919999999996,
+    "transformer": 87.10540000000012,
+    "lstm": 84.26489999999998,
+    "gnn": 96.3567,
+    "bayesian": 90.30999999999996,
+    "elo": 96.18539999999986,
+    "monte_carlo": 98.61399999999999
   },
   "confidence_counts": {
-    "gbdt": 150,
-    "catboost": 150,
-    "transformer": 150,
-    "lstm": 150,
-    "gnn": 150,
-    "bayesian": 150,
-    "elo": 150,
-    "monte_carlo": 150
+    "gbdt": 155,
+    "catboost": 155,
+    "transformer": 155,
+    "lstm": 155,
+    "gnn": 155,
+    "bayesian": 155,
+    "elo": 155,
+    "monte_carlo": 155
   },
   "predictions_log": [
-    {
-      "timestamp": "2025-11-25T00:51:27.603878",
-      "ensemble_confidence": 0.5402
-    },
-    {
-      "timestamp": "2025-11-25T00:51:41.395468",
-      "ensemble_confidence": 0.7569
-    },
-    {
-      "timestamp": "2025-11-25T00:51:41.419723",
-      "ensemble_confidence": 0.5045
-    },
-    {
-      "timestamp": "2025-11-25T00:51:41.442898",
-      "ensemble_confidence": 0.4961
-    },
-    {
-      "timestamp": "2025-11-25T00:51:41.469430",
-      "ensemble_confidence": 0.5402
-    },
     {
       "timestamp": "2025-11-25T00:51:42.231857",
       "ensemble_confidence": 0.7341
@@ -430,8 +410,28 @@
     {
       "timestamp": "2025-11-25T13:27:27.242836",
       "ensemble_confidence": 0.6503
+    },
+    {
+      "timestamp": "2025-11-25T13:31:27.184279",
+      "ensemble_confidence": 0.651
+    },
+    {
+      "timestamp": "2025-11-25T13:31:28.810116",
+      "ensemble_confidence": 0.6218
+    },
+    {
+      "timestamp": "2025-11-25T13:36:25.093470",
+      "ensemble_confidence": 0.5595
+    },
+    {
+      "timestamp": "2025-11-25T13:39:45.475888",
+      "ensemble_confidence": 0.5595
+    },
+    {
+      "timestamp": "2025-11-25T13:40:46.464963",
+      "ensemble_confidence": 0.6503
     }
   ],
   "started_at": "2025-11-24T22:42:19.877062",
-  "last_prediction_at": "2025-11-25T13:27:27.242818"
+  "last_prediction_at": "2025-11-25T13:40:46.464950"
 }

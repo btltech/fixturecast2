@@ -104,7 +104,7 @@
             <div class="text-xs text-slate-400 px-2 py-1 font-bold">TEAMS</div>
             {#each filteredTeams as team}
               <Link
-                to="/team/{team.team.id}"
+                to="/team/{team.team.id}?league={selectedLeague}"
                 on:click={clearSearch}
                 class="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-lg transition-colors"
               >

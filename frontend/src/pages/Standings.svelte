@@ -148,7 +148,7 @@
                 </td>
                 <td class="p-3">
                   <Link
-                    to="/team/{team.team.id}"
+                    to="/team/{team.team.id}?league={selectedLeague}"
                     class="flex items-center gap-2 hover:text-accent transition-colors"
                   >
                     <img

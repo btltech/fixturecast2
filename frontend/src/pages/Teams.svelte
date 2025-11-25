@@ -63,7 +63,7 @@
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
       {#each filteredTeams as item}
         <Link
-          to={`/team/${item.team.id}`}
+          to={`/team/${item.team.id}?league=${selectedLeague}`}
           class="glass-card p-4 flex flex-col items-center justify-center gap-4 hover:bg-white/5 transition-all hover:-translate-y-1"
         >
           <img

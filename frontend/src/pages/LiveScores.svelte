@@ -92,7 +92,7 @@
 
           <div class="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
             <Link
-              to="/team/{match.teams.home.id}"
+              to="/team/{match.teams.home.id}?league={match.league.id}"
               class="flex items-center gap-3 justify-end hover:text-accent transition-colors"
             >
               <span class="text-lg font-bold text-right"
@@ -114,7 +114,7 @@
             </div>
 
             <Link
-              to="/team/{match.teams.away.id}"
+              to="/team/{match.teams.away.id}?league={match.league.id}"
               class="flex items-center gap-3 hover:text-accent transition-colors"
             >
               <img

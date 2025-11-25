@@ -54,6 +54,7 @@ class FeatureBuilder:
             "home_goals_for_last10": home_form['goals_for'],
             "home_goals_against_last10": home_form['goals_against'],
             "home_goal_diff_last10": home_form['goal_diff'],
+            "home_form_last5": home_form['points_last5'],  # Added for short-term form
             
             "away_wins_last10": away_form['wins'],
             "away_draws_last10": away_form['draws'],
@@ -62,6 +63,7 @@ class FeatureBuilder:
             "away_goals_for_last10": away_form['goals_for'],
             "away_goals_against_last10": away_form['goals_against'],
             "away_goal_diff_last10": away_form['goal_diff'],
+            "away_form_last5": away_form['points_last5'],  # Added for short-term form
             
             "form_difference": home_form['points'] - away_form['points'],
         })
@@ -78,6 +80,8 @@ class FeatureBuilder:
             "home_goals_for_avg": home_season['goals_for_avg'],
             "home_goals_against_avg": home_season['goals_against_avg'],
             "home_clean_sheets": home_season['clean_sheets'],
+            "home_xg_avg": home_season.get('xg_for_avg'),  # Expected goals for
+            "home_xga_avg": home_season.get('xg_against_avg'),  # Expected goals against
             
             "away_total_matches": away_season['matches_played'],
             "away_total_wins": away_season['wins'],
@@ -86,6 +90,8 @@ class FeatureBuilder:
             "away_goals_for_avg": away_season['goals_for_avg'],
             "away_goals_against_avg": away_season['goals_against_avg'],
             "away_clean_sheets": away_season['clean_sheets'],
+            "away_xg_avg": away_season.get('xg_for_avg'),  # Expected goals for
+            "away_xga_avg": away_season.get('xg_against_avg'),  # Expected goals against
         })
 
         # Head-to-head features
@@ -136,19 +142,25 @@ class FeatureBuilder:
         return 10, 0
 
     def _analyze_form(self, fixtures_response, team_id):
-        """Analyze recent form from last N matches"""
+        """
+        Analyze recent form from last 10 and last 5 matches.
+        Returns points, goals, and other stats for both periods.
+        """
         form = {
             'wins': 0, 'draws': 0, 'losses': 0, 'points': 0,
-            'goals_for': 0, 'goals_against': 0, 'goal_diff': 0
+            'goals_for': 0, 'goals_against': 0, 'goal_diff': 0,
+            'wins_last5': 0, 'points_last5': 0  # Added for last 5 matches
         }
         
         if not fixtures_response or 'response' not in fixtures_response:
             return form
         
+        matches_analyzed = 0
         for f in fixtures_response['response'][:10]:  # Last 10 matches
             if f['goals']['home'] is None or f['goals']['away'] is None:
                 continue
-                
+            
+            matches_analyzed += 1
             is_home = f['teams']['home']['id'] == team_id
             goals_for = f['goals']['home'] if is_home else f['goals']['away']
             goals_against = f['goals']['away'] if is_home else f['goals']['home']
@@ -156,14 +168,24 @@ class FeatureBuilder:
             form['goals_for'] += goals_for
             form['goals_against'] += goals_against
             
+            points_earned = 0
             if goals_for > goals_against:
                 form['wins'] += 1
-                form['points'] += 3
+                points_earned = 3
+                if matches_analyzed <= 5:  # Count for last 5
+                    form['wins_last5'] += 1
             elif goals_for == goals_against:
                 form['draws'] += 1
-                form['points'] += 1
+                points_earned = 1
             else:
                 form['losses'] += 1
+                points_earned = 0
+            
+            form['points'] += points_earned
+            
+            # Track last 5 separately
+            if matches_analyzed <= 5:
+                form['points_last5'] += points_earned
         
         form['goal_diff'] = form['goals_for'] - form['goals_against']
         return form
@@ -185,10 +207,11 @@ class FeatureBuilder:
         return default
 
     def _extract_season_stats(self, stats_response):
-        """Extract season-long statistics"""
+        """Extract season-long statistics including xG if available"""
         default = {
             'matches_played': 0, 'wins': 0, 'draws': 0, 'losses': 0,
-            'goals_for_avg': 0, 'goals_against_avg': 0, 'clean_sheets': 0
+            'goals_for_avg': 0, 'goals_against_avg': 0, 'clean_sheets': 0,
+            'xg_for_avg': None, 'xg_against_avg': None  # Expected goals
         }
         
         if not stats_response or 'response' not in stats_response:
@@ -212,6 +235,18 @@ class FeatureBuilder:
             goals_for_avg_data = goals_for.get('average', {})
             goals_against_avg_data = goals_against.get('average', {})
             
+            # Try to extract xG (Expected Goals) if available
+            # API-Football may provide this under different paths depending on subscription
+            xg_for_avg = None
+            xg_against_avg = None
+            
+            # Check if xG is available (premium API feature)
+            if 'expected' in goals_for:
+                xg_for_avg = self._safe_float(goals_for.get('expected', {}).get('average', {}).get('total'))
+            
+            if 'expected' in goals_against:
+                xg_against_avg = self._safe_float(goals_against.get('expected', {}).get('average', {}).get('total'))
+            
             return {
                 'matches_played': int(fixtures.get('played', {}).get('total', 0) or 0),
                 'wins': int(fixtures.get('wins', {}).get('total', 0) or 0),
@@ -220,13 +255,22 @@ class FeatureBuilder:
                 'goals_for_avg': self._safe_float(goals_for_avg_data.get('total', 0)),
                 'goals_against_avg': self._safe_float(goals_against_avg_data.get('total', 0)),
                 'clean_sheets': int(resp.get('clean_sheet', {}).get('total', 0) or 0),
+                'xg_for_avg': xg_for_avg,  # Will be None if not available
+                'xg_against_avg': xg_against_avg,  # Will be None if not available
             }
         except Exception as e:
             print(f"Error extracting season stats: {e}")
             return default
 
     def _analyze_h2h(self, h2h_response, home_id, away_id):
-        """Analyze head-to-head record"""
+        """
+        Analyze head-to-head record from current home team's perspective.
+        
+        home_wins = times current home team won (regardless of venue in that H2H match)
+        away_wins = times current away team won (regardless of venue in that H2H match)
+        
+        This correctly tracks the matchup regardless of who was home/away in past games.
+        """
         stats = {'home_wins': 0, 'draws': 0, 'away_wins': 0, 'total': 0, 'avg_goals': 0}
         
         if not h2h_response or 'response' not in h2h_response:
@@ -240,20 +284,27 @@ class FeatureBuilder:
             stats['total'] += 1
             total_goals += f['goals']['home'] + f['goals']['away']
             
+            # Determine goals scored by each team in the current matchup context
+            # (not the home/away from that particular H2H game)
             if f['teams']['home']['id'] == home_id:
-                if f['goals']['home'] > f['goals']['away']:
-                    stats['home_wins'] += 1
-                elif f['goals']['home'] == f['goals']['away']:
-                    stats['draws'] += 1
-                else:
-                    stats['away_wins'] += 1
+                # Current home team was home in this H2H match
+                current_home_goals = f['goals']['home']
+                current_away_goals = f['goals']['away']
+            elif f['teams']['away']['id'] == home_id:
+                # Current home team was away in this H2H match
+                current_home_goals = f['goals']['away']
+                current_away_goals = f['goals']['home']
             else:
-                if f['goals']['away'] > f['goals']['home']:
-                    stats['home_wins'] += 1
-                elif f['goals']['home'] == f['goals']['away']:
-                    stats['draws'] += 1
-                else:
-                    stats['away_wins'] += 1
+                # Neither team in this H2H is in current matchup (shouldn't happen)
+                continue
+            
+            # Count from current matchup perspective
+            if current_home_goals > current_away_goals:
+                stats['home_wins'] += 1  # Current home team won
+            elif current_home_goals == current_away_goals:
+                stats['draws'] += 1
+            else:
+                stats['away_wins'] += 1  # Current away team won
         
         if stats['total'] > 0:
             stats['avg_goals'] = total_goals / stats['total']

@@ -407,6 +407,9 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
         # 4. Predict
         result = predictor.predict_fixture(features)
         
+        # 4.5 Validate prediction consistency
+        validation = validate_prediction_consistency(result, features)
+        
         # 5. Generate comprehensive analysis text
         analysis = generate_enhanced_analysis(fixture, features, result)
         
@@ -440,6 +443,83 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
     except Exception as e:
         print(f"Error in predict_fixture: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+
+
+def validate_prediction_consistency(result: dict, features: dict) -> dict:
+    """
+    Validate prediction for logical consistency and flag warnings.
+    Returns validation result with warnings if inconsistencies found.
+    """
+    warnings = []
+    
+    predicted_score = result.get('predicted_scoreline', '0-0')
+    btts_prob = result.get('btts_prob', 0)
+    over25_prob = result.get('over25_prob', 0)
+    home_prob = result.get('home_win_prob', 0)
+    draw_prob = result.get('draw_prob', 0)
+    away_prob = result.get('away_win_prob', 0)
+    
+    # Parse predicted scoreline
+    try:
+        h_goals, a_goals = map(int, predicted_score.split('-'))
+        
+        # Check 1: BTTS vs Scoreline
+        if btts_prob > 0.50 and (h_goals == 0 or a_goals == 0):
+            warnings.append(f"⚠️ BTTS is {btts_prob*100:.0f}% but predicted score is {predicted_score} (only one team scores)")
+        elif btts_prob < 0.35 and h_goals >= 1 and a_goals >= 1:
+            warnings.append(f"⚠️ BTTS is only {btts_prob*100:.0f}% but predicted score is {predicted_score} (both teams score)")
+        
+        # Check 2: Over 2.5 vs Scoreline
+        total_goals = h_goals + a_goals
+        if over25_prob > 0.55 and total_goals <= 2:
+            warnings.append(f"⚠️ Over 2.5 is {over25_prob*100:.0f}% but predicted score is {predicted_score} ({total_goals} total goals)")
+        elif over25_prob < 0.35 and total_goals > 3:
+            warnings.append(f"⚠️ Over 2.5 is only {over25_prob*100:.0f}% but predicted score is {predicted_score} ({total_goals} goals)")
+        
+        # Check 3: Scoreline vs Outcome Probability
+        if h_goals > a_goals and home_prob < 0.40:
+            warnings.append(f"⚠️ Home win predicted ({predicted_score}) but home win probability is only {home_prob*100:.0f}%")
+        elif a_goals > h_goals and away_prob < 0.40:
+            warnings.append(f"⚠️ Away win predicted ({predicted_score}) but away win probability is only {away_prob*100:.0f}%")
+        elif h_goals == a_goals and draw_prob < 0.25:
+            warnings.append(f"⚠️ Draw predicted ({predicted_score}) but draw probability is only {draw_prob*100:.0f}%")
+            
+    except Exception as e:
+        warnings.append(f"⚠️ Could not validate scoreline: {e}")
+    
+    # Check 4: Model breakdown consensus
+    model_breakdown = result.get('model_breakdown', {})
+    models_favoring_home = 0
+    models_favoring_away = 0
+    
+    for model_name, preds in model_breakdown.items():
+        if isinstance(preds, dict) and 'home_win' in preds:
+            h, a = preds.get('home_win', 0), preds.get('away_win', 0)
+            if h > a:
+                models_favoring_home += 1
+            elif a > h:
+                models_favoring_away += 1
+    
+    total_models = models_favoring_home + models_favoring_away
+    if total_models > 0:
+        if models_favoring_home > models_favoring_away and home_prob < away_prob:
+            warnings.append(f"⚠️ {models_favoring_home}/{total_models} models favor home but ensemble favors away")
+        elif models_favoring_away > models_favoring_home and away_prob < home_prob:
+            warnings.append(f"⚠️ {models_favoring_away}/{total_models} models favor away but ensemble favors home")
+    
+    # Log warnings if any
+    if warnings:
+        print(f"\n🔍 Prediction Validation Warnings for {features.get('home_name', 'Home')} vs {features.get('away_name', 'Away')}:")
+        for warning in warnings:
+            print(f"   {warning}")
+    
+    return {
+        "is_valid": len(warnings) == 0,
+        "warnings": warnings,
+        "warning_count": len(warnings)
+    }
 
 
 def generate_enhanced_analysis(fixture: dict, features: dict, result: dict) -> str:
@@ -570,20 +650,23 @@ def generate_enhanced_analysis(fixture: dict, features: dict, result: dict) -> s
     away_pts = features.get('away_league_points', 0)
     
     pos_diff = abs(home_pos - away_pos)
+    pts_diff = abs(home_pts - away_pts)
     
     if pos_diff >= 10:
         if home_pos < away_pos:
-            league_text = f"🏆 **League Context**: Major mismatch! {home_name} ({home_pos}{'st' if home_pos == 1 else 'nd' if home_pos == 2 else 'rd' if home_pos == 3 else 'th'}) vs {away_name} ({away_pos}{'th'}). Class difference should tell."
+            league_text = f"🏆 **League Context**: Major mismatch! {home_name} ({home_pos}{'st' if home_pos == 1 else 'nd' if home_pos == 2 else 'rd' if home_pos == 3 else 'th'} with {home_pts}pts) vs {away_name} ({away_pos}{'th'} with {away_pts}pts). Class difference should tell."
         else:
-            league_text = f"🏆 **League Context**: {away_name} ({away_pos}{'st' if away_pos == 1 else 'nd' if away_pos == 2 else 'rd' if away_pos == 3 else 'th'}) visits lower-ranked {home_name} ({home_pos}{'th'}). Favorites are clear."
-    elif pos_diff >= 5:
+            league_text = f"🏆 **League Context**: {away_name} ({away_pos}{'st' if away_pos == 1 else 'nd' if away_pos == 2 else 'rd' if away_pos == 3 else 'th'} with {away_pts}pts) visits lower-ranked {home_name} ({home_pos}{'th'} with {home_pts}pts). Favorites are clear."
+    elif pos_diff >= 5 or pts_diff >= 8:
         higher = home_name if home_pos < away_pos else away_name
         higher_pos = min(home_pos, away_pos)
-        league_text = f"🏆 **League Context**: {higher} sits {pos_diff} places higher in the table ({higher_pos}{'st' if higher_pos == 1 else 'nd' if higher_pos == 2 else 'rd' if higher_pos == 3 else 'th'}). Noticeable quality gap."
-    elif pos_diff <= 2:
+        higher_pts = max(home_pts, away_pts)
+        league_text = f"🏆 **League Context**: {higher} sits {pos_diff} places higher in the table ({higher_pos}{'st' if higher_pos == 1 else 'nd' if higher_pos == 2 else 'rd' if higher_pos == 3 else 'th'} with {higher_pts}pts, {pts_diff}-point advantage). Noticeable quality gap."
+    elif pos_diff <= 2 and pts_diff <= 3:
         league_text = f"🏆 **League Context**: Both teams level in the standings ({home_name}: {home_pos}{'th'} with {home_pts}pts, {away_name}: {away_pos}{'th'} with {away_pts}pts). Expect a tight contest."
     else:
-        league_text = f"🏆 **League Context**: {home_name} ({home_pos}{'th'}, {home_pts}pts) hosts {away_name} ({away_pos}{'th'}, {away_pts}pts)."
+        higher = home_name if home_pts > away_pts else away_name
+        league_text = f"🏆 **League Context**: {home_name} ({home_pos}{'th'}, {home_pts}pts) hosts {away_name} ({away_pos}{'th'}, {away_pts}pts). {higher} has the edge in standings."
     
     # ============================================
     # 5. RICH TACTICAL INSIGHTS (Goals Data)
@@ -684,13 +767,15 @@ def generate_enhanced_analysis(fixture: dict, features: dict, result: dict) -> s
     away_elo = elo_ratings.get('away', 1500)
     elo_diff = elo_ratings.get('diff', 0)
     
-    if abs(elo_diff) > 200:
-        elo_text = f"📈 **Elo Ratings**: {home_name} ({home_elo:.0f}) vs {away_name} ({away_elo:.0f}) — **{abs(elo_diff):.0f} point gap** indicates clear quality difference."
-    elif abs(elo_diff) > 100:
+    if abs(elo_diff) > 150:
         better = home_name if elo_diff > 0 else away_name
-        elo_text = f"📈 **Elo Ratings**: {home_name} ({home_elo:.0f}) vs {away_name} ({away_elo:.0f}) — {better} rated slightly higher ({abs(elo_diff):.0f} pts)."
+        worse = away_name if elo_diff > 0 else home_name
+        elo_text = f"📈 **Elo Ratings**: {home_name} ({home_elo:.0f}) vs {away_name} ({away_elo:.0f}) — **{abs(elo_diff):.0f} point gap** in favor of {better}. Clear quality advantage."
+    elif abs(elo_diff) > 80:
+        better = home_name if elo_diff > 0 else away_name
+        elo_text = f"📈 **Elo Ratings**: {home_name} ({home_elo:.0f}) vs {away_name} ({away_elo:.0f}) — {better} rated notably higher ({abs(elo_diff):.0f} pts difference)."
     else:
-        elo_text = f"📈 **Elo Ratings**: {home_name} ({home_elo:.0f}) vs {away_name} ({away_elo:.0f}) — Evenly matched on long-term rating."
+        elo_text = f"📈 **Elo Ratings**: {home_name} ({home_elo:.0f}) vs {away_name} ({away_elo:.0f}) — Evenly matched on long-term rating ({abs(elo_diff):.0f} pts apart)."
     
     # ============================================
     # ASSEMBLE FINAL ANALYSIS
@@ -738,7 +823,7 @@ def generate_enhanced_analysis(fixture: dict, features: dict, result: dict) -> s
 
 ---
 
-*Analysis by FixtureCast AI — 8-model ensemble (GBDT 30%, Elo 30%, GNN 20%, LSTM 10%, Bayesian 5%, Transformer 3%, CatBoost 2%)*
+*Analysis by FixtureCast AI — 8-model ensemble (GBDT 22%, Elo 22%, GNN 18%, LSTM 14%, Bayesian 10%, Transformer 8%, CatBoost 6%)*
 """
     
     return analysis
@@ -792,13 +877,13 @@ async def get_models_info():
         ],
         "meta_model_loaded": predictor.meta_model is not None,
         "ensemble_weights": {
-            "gbdt": 0.30,
-            "elo": 0.30,
-            "gnn": 0.20,
-            "lstm": 0.10,
-            "bayesian": 0.05,
-            "transformer": 0.03,
-            "catboost": 0.02,
+            "gbdt": 0.22,
+            "elo": 0.22,
+            "gnn": 0.18,
+            "lstm": 0.14,
+            "bayesian": 0.10,
+            "transformer": 0.08,
+            "catboost": 0.06,
             "monte_carlo": 0.00  # Auxiliary
         }
     }

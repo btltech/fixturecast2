@@ -13,6 +13,7 @@ from .elo_model import EloGlickoModel
 from .monte_carlo import MonteCarloSimulator
 from .calibration import CalibrationModel
 from .elo_tracker import EloTracker
+from .confidence_intervals import calculate_confidence_intervals
 
 class EnsemblePredictor:
     def __init__(self, load_trained=True):
@@ -130,16 +131,16 @@ class EnsemblePredictor:
         mc_res = self.mc.simulate(lambdas['home_lambda'], lambdas['away_lambda'])
         
         # 2. Ensemble (Weighted Average)
-        # Updated weights based on enhanced training insights
-        # True Elo now gets higher weight as it tracks actual ratings
+        # More balanced weights to prevent domination by 2 models
+        # Distribution ensures diverse model opinions are heard
         weights = {
-            'gbdt': 0.30,      # Trained model with enhanced features
-            'elo': 0.30,       # True Elo ratings (higher weight now)
-            'gnn': 0.20,       # League context
-            'lstm': 0.10,      # Form trends
-            'bayesian': 0.05,  # Odds-based
-            'transformer': 0.03,
-            'catboost': 0.02,
+            'gbdt': 0.22,      # Trained model with enhanced features
+            'elo': 0.22,       # True Elo ratings
+            'gnn': 0.18,       # League context
+            'lstm': 0.14,      # Form trends
+            'bayesian': 0.10,  # Odds-based
+            'transformer': 0.08,  # Sequence patterns
+            'catboost': 0.06,  # Goals-based predictor
         }
         
         # Calculate weighted sum
@@ -189,11 +190,13 @@ class EnsemblePredictor:
         calibrated = self.calibration.calibrate(probs)
         
         # 4. Construct response
-        # Find most likely scoreline using weighted selection
+        # Find most likely scoreline using intelligent weighted selection
         if mc_res['score_dist']:
             home_prob = calibrated["home_win_prob"]
             draw_prob = calibrated["draw_prob"]
             away_prob = calibrated["away_win_prob"]
+            btts_prob = mc_res['btts_prob']
+            over25_prob = mc_res['over25_prob']
             
             score_dist = mc_res['score_dist']
             
@@ -212,21 +215,42 @@ class EnsemblePredictor:
                     away_win_scores[score] = count
             
             # Calculate weighted probability for each score
-            # Score probability = MC_probability * outcome_probability
+            # Enhanced: Consider outcome probability + BTTS/Over2.5 alignment
             total_mc = sum(score_dist.values())
             weighted_scores = {}
             
             for score, count in home_win_scores.items():
+                h, a = int(score.split('-')[0]), int(score.split('-')[1])
                 mc_prob = count / total_mc
-                weighted_scores[score] = mc_prob * home_prob
+                base_weight = mc_prob * home_prob
+                
+                # Bonus for BTTS/Over2.5 alignment
+                btts_bonus = 1.3 if (h >= 1 and a >= 1 and btts_prob > 0.45) else 1.0
+                over25_bonus = 1.2 if ((h + a > 2.5) and over25_prob > 0.45) else 1.0
+                
+                weighted_scores[score] = base_weight * btts_bonus * over25_bonus
                 
             for score, count in draw_scores.items():
+                h, a = int(score.split('-')[0]), int(score.split('-')[1])
                 mc_prob = count / total_mc
-                weighted_scores[score] = mc_prob * draw_prob
+                base_weight = mc_prob * draw_prob
+                
+                # Bonus for BTTS/Over2.5 alignment
+                btts_bonus = 1.3 if (h >= 1 and a >= 1 and btts_prob > 0.45) else 1.0
+                over25_bonus = 1.2 if ((h + a > 2.5) and over25_prob > 0.45) else 1.0
+                
+                weighted_scores[score] = base_weight * btts_bonus * over25_bonus
                 
             for score, count in away_win_scores.items():
+                h, a = int(score.split('-')[0]), int(score.split('-')[1])
                 mc_prob = count / total_mc
-                weighted_scores[score] = mc_prob * away_prob
+                base_weight = mc_prob * away_prob
+                
+                # Bonus for BTTS/Over2.5 alignment
+                btts_bonus = 1.3 if (h >= 1 and a >= 1 and btts_prob > 0.45) else 1.0
+                over25_bonus = 1.2 if ((h + a > 2.5) and over25_prob > 0.45) else 1.0
+                
+                weighted_scores[score] = base_weight * btts_bonus * over25_bonus
             
             # Pick score with highest weighted probability
             if weighted_scores:
@@ -242,6 +266,17 @@ class EnsemblePredictor:
             else:
                 most_likely_score = "1-1"
         
+        # 5. Calculate confidence intervals based on model variance
+        confidence_intervals = calculate_confidence_intervals(calibrated, {
+            'gbdt': p_gbdt,
+            'catboost': p_cat,
+            'transformer': p_trans,
+            'lstm': p_lstm,
+            'gnn': p_gnn,
+            'bayesian': p_bayes,
+            'elo': p_elo
+        })
+        
         return {
             "home_win_prob": calibrated["home_win_prob"],
             "draw_prob": calibrated["draw_prob"],
@@ -250,6 +285,7 @@ class EnsemblePredictor:
             "btts_prob": mc_res['btts_prob'],
             "over25_prob": mc_res['over25_prob'],
             "scoreline_distribution": mc_res['score_dist'],
+            "confidence_intervals": confidence_intervals,  # NEW: Uncertainty ranges
             "elo_ratings": {
                 "home": p_elo.get('home_rating', features.get('home_elo_rating', 1500)),
                 "away": p_elo.get('away_rating', features.get('away_elo_rating', 1500)),

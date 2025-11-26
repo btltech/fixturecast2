@@ -16,7 +16,7 @@ from .confidence_intervals import calculate_confidence_intervals
 
 class EnsemblePredictor:
     def __init__(self, load_trained=True):
-        print("DEBUG: Loaded EnsemblePredictor v3")
+        print("DEBUG: Loaded EnsemblePredictor v4 - fresh instance loading")
         models_dir = os.path.join(os.path.dirname(__file__), "trained_models")
         
         # Initialize models - load from disk if available, else create fresh
@@ -71,13 +71,24 @@ class EnsemblePredictor:
                 print(f"Failed to load meta-model: {e}")
     
     def _load_or_create(self, model_class, path):
-        """Load model from disk if exists, else create fresh"""
+        """Load model from disk if exists, else create fresh.
+        
+        IMPORTANT: We load the pickled state (trained sklearn model, feature_keys, etc.)
+        but transfer it to a fresh instance of the class. This ensures we use
+        the current code (without local numpy imports) rather than the pickled
+        methods which may have bugs.
+        """
         if os.path.exists(path):
             try:
                 import joblib
-                model = joblib.load(path)
-                print(f"Loaded trained {model_class.__name__}")
-                return model
+                loaded = joblib.load(path)
+                # Create fresh instance with current code
+                fresh_model = model_class()
+                # Copy over the trained state (sklearn model, feature_keys, etc.)
+                if hasattr(loaded, '__dict__'):
+                    fresh_model.__dict__.update(loaded.__dict__)
+                print(f"Loaded trained {model_class.__name__} (state transferred to fresh instance)")
+                return fresh_model
             except Exception as e:
                 print(f"Failed to load {model_class.__name__}, creating fresh: {e}")
         return model_class()

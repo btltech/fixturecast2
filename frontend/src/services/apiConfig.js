@@ -4,11 +4,10 @@
 const isDev = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-// ML Prediction API (Python FastAPI)
-// Update ML_API_URL with your deployed Railway/Render URL
+// ML Prediction API (Python FastAPI on Railway)
 export const ML_API_URL = isDev 
   ? 'http://localhost:8000'
-  : (import.meta.env.VITE_ML_API_URL || 'https://fixturecast-ml.onrender.com');
+  : (import.meta.env.VITE_ML_API_URL || 'https://terrific-passion-production-4d20.up.railway.app');
 
 // Backend Data API (Football data)
 // Update BACKEND_API_URL with your deployed backend URL

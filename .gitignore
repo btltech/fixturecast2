@@ -4,8 +4,14 @@ __pycache__/
 *.pyc
 node_modules/
 .DS_Store
+
+# Exclude large ML artifacts except for essential trained models
 *.joblib
-*.pkl
 *.pt
 *.pth
-ml_engine/trained_models/*.joblib
+
+# But include the essential pkl files in trained_models
+!ml_engine/trained_models/*.pkl
+
+# Exclude feedback logs (can get large)
+ml_engine/trained_models/feedback/

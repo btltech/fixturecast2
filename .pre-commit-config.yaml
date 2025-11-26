@@ -52,7 +52,8 @@ repos:
       - id: check-yaml
       - id: check-json
       - id: check-added-large-files
-        args: ['--maxkb=1000']
+        args: ['--maxkb=5000']
+        exclude: ^ml_engine/trained_models/
       - id: check-merge-conflict
       - id: detect-private-key
 

@@ -4,6 +4,8 @@
   import Navbar from "./components/Navbar.svelte";
   import BottomNav from "./components/BottomNav.svelte";
   import ComparePanel from "./components/ComparePanel.svelte";
+  import CookieConsent from "./components/CookieConsent.svelte";
+  import ResponsibleGamblingFooter from "./components/ResponsibleGamblingFooter.svelte";
   import Home from "./pages/Home.svelte";
   import Fixtures from "./pages/Fixtures.svelte";
   import Prediction from "./pages/Prediction.svelte";
@@ -15,6 +17,9 @@
   import ModelStats from "./pages/ModelStats.svelte";
   import History from "./pages/History.svelte";
   import LiveScores from "./pages/LiveScores.svelte";
+  import Privacy from "./pages/Privacy.svelte";
+  import Terms from "./pages/Terms.svelte";
+  import Cookies from "./pages/Cookies.svelte";
 
   export let url = "";
   
@@ -66,15 +71,21 @@
       <Route path="/models" component={ModelStats} />
       <Route path="/history" component={History} />
       <Route path="/live" component={LiveScores} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/cookies" component={Cookies} />
     </main>
-    <footer class="p-4 text-center text-slate-500 text-sm hidden md:block">
-      &copy; 2025 FixtureCast ML. Powered by API-Football.
-    </footer>
+    
+    <!-- Responsible Gambling Footer -->
+    <ResponsibleGamblingFooter />
     
     <!-- Mobile Bottom Navigation -->
     <BottomNav {currentPath} />
     
     <!-- Compare Panel (floating) -->
     <ComparePanel />
+    
+    <!-- Cookie Consent Banner -->
+    <CookieConsent />
   </div>
 </Router>

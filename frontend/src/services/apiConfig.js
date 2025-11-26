@@ -10,13 +10,13 @@ const isDev =
 export const ML_API_URL = isDev
   ? "http://localhost:8002"
   : import.meta.env.VITE_ML_API_URL ||
-    "https://terrific-passion-production-4d20.up.railway.app";
+    "https://ml-api-production-6cfc.up.railway.app";
 
 // Backend Data API (Football data on Railway)
 export const BACKEND_API_URL = isDev
   ? "http://localhost:8001"
   : import.meta.env.VITE_BACKEND_API_URL ||
-    "https://backend-api-production-c024.up.railway.app";
+    "https://backend-api-production-7b7d.up.railway.app";
 
 // Export a helper to get full API URLs
 export const getMLApiUrl = (path) => `${ML_API_URL}${path}`;

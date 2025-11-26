@@ -20,14 +20,26 @@ MODELS_DIR = os.path.join(os.path.dirname(__file__), "trained_models")
 
 
 def load_all_matches():
-    """Load all historical matches from season files"""
+    """Load all historical matches from combined dataset or season files"""
     matches = []
-    for filename in sorted(os.listdir(DATA_DIR)):
-        if filename.startswith("season_") and filename.endswith(".json"):
-            filepath = os.path.join(DATA_DIR, filename)
-            with open(filepath) as f:
-                season_matches = json.load(f)
-                matches.extend(season_matches)
+
+    # First try to load the combined multi-league dataset
+    combined_file = os.path.join(DATA_DIR, "all_leagues_combined.json")
+    if os.path.exists(combined_file):
+        print(f"  Loading from combined multi-league dataset...")
+        with open(combined_file) as f:
+            matches = json.load(f)
+        print(f"  Loaded {len(matches)} matches from 6 leagues")
+    else:
+        # Fallback to individual season files (Premier League only)
+        print(f"  Loading from individual season files...")
+        for filename in sorted(os.listdir(DATA_DIR)):
+            if filename.startswith("season_") and filename.endswith(".json"):
+                filepath = os.path.join(DATA_DIR, filename)
+                with open(filepath) as f:
+                    season_matches = json.load(f)
+                    matches.extend(season_matches)
+
     matches.sort(key=lambda x: x["fixture"]["date"])
     return matches
 
@@ -432,17 +444,26 @@ def train_all_models():
     print("\n4. Training individual models...")
     print("-" * 60)
 
+    # Create main vectorizer once and save it
+    from sklearn.feature_extraction import DictVectorizer
+
+    main_vectorizer = DictVectorizer(sparse=False)
+    X_array = main_vectorizer.fit_transform(X)
+
+    # Save main vectorizer
+    vec_path = os.path.join(MODELS_DIR, "feature_vectorizer.pkl")
+    with open(vec_path, "wb") as f:
+        pickle.dump(main_vectorizer, f)
+    print(
+        f"   ✓ Main vectorizer saved with {len(main_vectorizer.get_feature_names_out())} features"
+    )
+
     print("\n[1/11] Training GBDT Model...")
     try:
-        from sklearn.ensemble import GradientBoostingClassifier
-        from sklearn.feature_extraction import DictVectorizer
+        from ml_engine.gbdt_model import GBDTModel
 
-        vectorizer = DictVectorizer(sparse=False)
-        X_array = vectorizer.fit_transform(X)
-
-        gbdt = GradientBoostingClassifier(n_estimators=100, max_depth=5, random_state=42)
-        gbdt.fit(X_array, y)
-        gbdt.feature_keys = list(vectorizer.get_feature_names_out())
+        gbdt = GBDTModel()
+        gbdt.train(X, y)  # Let the wrapper class handle training
         model_path = os.path.join(MODELS_DIR, "gbdt_model.pkl")
         with open(model_path, "wb") as f:
             pickle.dump(gbdt, f)
@@ -452,15 +473,10 @@ def train_all_models():
 
     print("\n[2/11] Training CatBoost Model...")
     try:
-        from sklearn.feature_extraction import DictVectorizer
-        from sklearn.linear_model import LogisticRegression
+        from ml_engine.catboost_model import CatBoostModel
 
-        vectorizer = DictVectorizer(sparse=False)
-        X_array = vectorizer.fit_transform(X)
-
-        catboost = LogisticRegression(max_iter=1000, random_state=42, class_weight="balanced")
-        catboost.fit(X_array, y)
-        catboost.feature_keys = list(vectorizer.get_feature_names_out())
+        catboost = CatBoostModel()
+        catboost.train(X, y)  # Let the wrapper class handle training
         model_path = os.path.join(MODELS_DIR, "catboost_model.pkl")
         with open(model_path, "wb") as f:
             pickle.dump(catboost, f)
@@ -499,6 +515,13 @@ def train_all_models():
         transformer.train(X, y)
         model_path = os.path.join(MODELS_DIR, "transformer_model.pkl")
         transformer.save(model_path)
+        # Save vectorizer for this model
+        from sklearn.feature_extraction import DictVectorizer
+
+        trans_vec = DictVectorizer(sparse=False)
+        trans_vec.fit([{k: sample.get(k, 0) for k in transformer.feature_keys} for sample in X])
+        with open(os.path.join(MODELS_DIR, "transformer_vectorizer.pkl"), "wb") as f:
+            pickle.dump(trans_vec, f)
         print(
             f"   ✓ Transformer trained with {len(transformer.feature_keys)} features, saved to {model_path}"
         )
@@ -513,6 +536,13 @@ def train_all_models():
         lstm.train(X, y)
         model_path = os.path.join(MODELS_DIR, "lstm_model.pkl")
         lstm.save(model_path)
+        # Save vectorizer for this model
+        from sklearn.feature_extraction import DictVectorizer
+
+        lstm_vec = DictVectorizer(sparse=False)
+        lstm_vec.fit([{k: sample.get(k, 0) for k in lstm.feature_keys} for sample in X])
+        with open(os.path.join(MODELS_DIR, "lstm_vectorizer.pkl"), "wb") as f:
+            pickle.dump(lstm_vec, f)
         print(f"   ✓ LSTM trained with {len(lstm.feature_keys)} features, saved to {model_path}")
     except Exception as e:
         print(f"   ✗ Error: {e}")
@@ -525,6 +555,13 @@ def train_all_models():
         gnn.train(X, y)
         model_path = os.path.join(MODELS_DIR, "gnn_model.pkl")
         gnn.save(model_path)
+        # Save vectorizer for this model
+        from sklearn.feature_extraction import DictVectorizer
+
+        gnn_vec = DictVectorizer(sparse=False)
+        gnn_vec.fit([{k: sample.get(k, 0) for k in gnn.feature_keys} for sample in X])
+        with open(os.path.join(MODELS_DIR, "gnn_vectorizer.pkl"), "wb") as f:
+            pickle.dump(gnn_vec, f)
         print(f"   ✓ GNN trained with {len(gnn.feature_keys)} features, saved to {model_path}")
     except Exception as e:
         print(f"   ✗ Error: {e}")
@@ -537,6 +574,13 @@ def train_all_models():
         bayesian.train(X, y)
         model_path = os.path.join(MODELS_DIR, "bayesian_model.pkl")
         bayesian.save(model_path)
+        # Save vectorizer for this model
+        from sklearn.feature_extraction import DictVectorizer
+
+        bayes_vec = DictVectorizer(sparse=False)
+        bayes_vec.fit([{k: sample.get(k, 0) for k in bayesian.feature_keys} for sample in X])
+        with open(os.path.join(MODELS_DIR, "bayesian_vectorizer.pkl"), "wb") as f:
+            pickle.dump(bayes_vec, f)
         print(
             f"   ✓ Bayesian trained with {len(bayesian.feature_keys)} features, saved to {model_path}"
         )
@@ -551,6 +595,13 @@ def train_all_models():
         elo.train(X, y)
         model_path = os.path.join(MODELS_DIR, "elo_model.pkl")
         elo.save(model_path)
+        # Save vectorizer for this model
+        from sklearn.feature_extraction import DictVectorizer
+
+        elo_vec = DictVectorizer(sparse=False)
+        elo_vec.fit([{k: sample.get(k, 0) for k in elo.feature_keys} for sample in X])
+        with open(os.path.join(MODELS_DIR, "elo_vectorizer.pkl"), "wb") as f:
+            pickle.dump(elo_vec, f)
         print(
             f"   ✓ Elo trained with {len(elo.feature_keys)} features and {len(elo.team_ratings)} team ratings, saved to {model_path}"
         )

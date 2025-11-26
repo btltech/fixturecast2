@@ -62,12 +62,17 @@
     }
 
     function handleClickOutside(event) {
+        // Don't close if clicking inside the dropdown
         if (showLeagueDropdown && !event.target.closest('.league-selector')) {
             showLeagueDropdown = false;
         }
     }
 
-    async function changeLeague(newLeagueId) {
+    async function changeLeague(newLeagueId, event) {
+        // Stop propagation to prevent handleClickOutside from interfering
+        if (event) {
+            event.stopPropagation();
+        }
         league = newLeagueId;
         showLeagueDropdown = false;
         selectedMatch = null;
@@ -161,7 +166,7 @@
             <div class="league-selector">
                 <button
                     class="league-selector-btn"
-                    on:click={() => showLeagueDropdown = !showLeagueDropdown}
+                    on:click|stopPropagation={() => showLeagueDropdown = !showLeagueDropdown}
                 >
                     <span class="league-emoji">{currentLeague.emoji}</span>
                     <span class="league-name">{currentLeague.name}</span>
@@ -178,7 +183,7 @@
                             {#each leagues.filter(l => l.tier === 0) as l}
                                 <button
                                     class="league-option {league === l.id ? 'active' : ''}"
-                                    on:click={() => changeLeague(l.id)}
+                                    on:click|stopPropagation={() => changeLeague(l.id)}
                                 >
                                     <span>{l.emoji}</span>
                                     <span>{l.name}</span>
@@ -192,7 +197,7 @@
                             {#each leagues.filter(l => l.tier === 1) as l}
                                 <button
                                     class="league-option {league === l.id ? 'active' : ''}"
-                                    on:click={() => changeLeague(l.id)}
+                                    on:click|stopPropagation={() => changeLeague(l.id)}
                                 >
                                     <span>{l.emoji}</span>
                                     <span>{l.name}</span>
@@ -206,7 +211,7 @@
                             {#each leagues.filter(l => l.tier === 2) as l}
                                 <button
                                     class="league-option {league === l.id ? 'active' : ''}"
-                                    on:click={() => changeLeague(l.id)}
+                                    on:click|stopPropagation={() => changeLeague(l.id)}
                                 >
                                     <span>{l.emoji}</span>
                                     <span>{l.name}</span>

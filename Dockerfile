@@ -22,6 +22,10 @@ COPY data/ ./data/
 # Create necessary directories
 RUN mkdir -p ml_engine/trained_models
 
+# Copy startup script
+COPY start.sh .
+RUN chmod +x start.sh
+
 # Expose port (Railway will use PORT env variable)
 EXPOSE 8000
 
@@ -29,5 +33,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:${PORT:-8000}/health || exit 1
 
-# Run the ML API (Railway sets PORT env variable)
-CMD python backend/ml_api.py
+# Run the appropriate API based on SERVICE_TYPE env variable
+CMD ["./start.sh"]

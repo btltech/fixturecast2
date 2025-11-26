@@ -6,7 +6,7 @@
 
     const BACKEND_API = BACKEND_API_URL;
     const ML_API = ML_API_URL;
-    
+
     // All supported leagues
     const leagues = [
         // Top Leagues (Tier 1)
@@ -28,7 +28,7 @@
         { id: 3, name: "Europa League", country: "Europe", emoji: "🥈", tier: 0 },
         { id: 848, name: "Conference League", country: "Europe", emoji: "🥉", tier: 0 },
     ];
-    
+
     let matches = [];
     let selectedMatch = null;
     let prediction = null;
@@ -40,7 +40,7 @@
     let league = 39; // Default: Premier League
     let season = 2025;
     let showLeagueDropdown = false;
-    
+
     // Get current league info
     $: currentLeague = leagues.find(l => l.id === league) || leagues[0];
 
@@ -60,13 +60,13 @@
             mlApiStatus = "offline";
         }
     }
-    
+
     function handleClickOutside(event) {
         if (showLeagueDropdown && !event.target.closest('.league-selector')) {
             showLeagueDropdown = false;
         }
     }
-    
+
     async function changeLeague(newLeagueId) {
         league = newLeagueId;
         showLeagueDropdown = false;
@@ -84,19 +84,19 @@
             const response = await fetch(
                 `${BACKEND_API}/api/fixtures?league=${league}&season=2025&next=20`
             );
-            
+
             if (!response.ok) {
                 throw new Error("Failed to load fixtures");
             }
 
             const data = await response.json();
-            
+
             // Transform API response to match expected format
             if (data.response && Array.isArray(data.response)) {
                 matches = data.response
                     .filter(fixture => {
                         // Only show upcoming matches (not started)
-                        return fixture.fixture.status?.short === 'NS' || 
+                        return fixture.fixture.status?.short === 'NS' ||
                                fixture.fixture.status?.short === 'TBD';
                     })
                     .slice(0, 15); // Limit to 15 upcoming matches
@@ -118,7 +118,7 @@
 
         try {
             const fixtureId = match.fixture.id;
-            
+
             // Call the actual ML prediction API with current season
             const response = await fetch(
                 `${ML_API}/api/prediction/${fixtureId}?league=${league}&season=2025`
@@ -130,14 +130,14 @@
             }
 
             const data = await response.json();
-            
+
             // Extract the prediction data and analysis
             if (data.prediction) {
                 prediction = data.prediction;
             } else {
                 prediction = data;
             }
-            
+
             // Extract analysis if available
             if (data.analysis) {
                 analysis = data.analysis;
@@ -159,7 +159,7 @@
         <div class="header-controls">
             <!-- League Selector -->
             <div class="league-selector">
-                <button 
+                <button
                     class="league-selector-btn"
                     on:click={() => showLeagueDropdown = !showLeagueDropdown}
                 >
@@ -169,14 +169,14 @@
                         <path d="M6 9l6 6 6-6"/>
                     </svg>
                 </button>
-                
+
                 {#if showLeagueDropdown}
                     <div class="league-dropdown">
                         <!-- European Competitions -->
                         <div class="league-group">
                             <div class="league-group-title">🏆 European Competitions</div>
                             {#each leagues.filter(l => l.tier === 0) as l}
-                                <button 
+                                <button
                                     class="league-option {league === l.id ? 'active' : ''}"
                                     on:click={() => changeLeague(l.id)}
                                 >
@@ -185,12 +185,12 @@
                                 </button>
                             {/each}
                         </div>
-                        
+
                         <!-- Top Leagues -->
                         <div class="league-group">
                             <div class="league-group-title">⭐ Top Leagues</div>
                             {#each leagues.filter(l => l.tier === 1) as l}
-                                <button 
+                                <button
                                     class="league-option {league === l.id ? 'active' : ''}"
                                     on:click={() => changeLeague(l.id)}
                                 >
@@ -199,12 +199,12 @@
                                 </button>
                             {/each}
                         </div>
-                        
+
                         <!-- Second Division -->
                         <div class="league-group">
                             <div class="league-group-title">📋 Second Division</div>
                             {#each leagues.filter(l => l.tier === 2) as l}
-                                <button 
+                                <button
                                     class="league-option {league === l.id ? 'active' : ''}"
                                     on:click={() => changeLeague(l.id)}
                                 >
@@ -216,7 +216,7 @@
                     </div>
                 {/if}
             </div>
-            
+
             <div class="ml-status">
                 <div class="status-indicator {mlApiStatus}">
                     <div class="pulse"></div>
@@ -430,19 +430,19 @@
             font-size: 2rem;
         }
     }
-    
+
     .header-controls {
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
         align-items: center;
     }
-    
+
     /* League Selector Styles */
     .league-selector {
         position: relative;
     }
-    
+
     .league-selector-btn {
         display: flex;
         align-items: center;
@@ -456,28 +456,28 @@
         transition: all 0.2s ease;
         font-size: 0.875rem;
     }
-    
+
     .league-selector-btn:hover {
         background: rgba(139, 92, 246, 0.25);
         border-color: rgba(139, 92, 246, 0.5);
     }
-    
+
     .league-emoji {
         font-size: 1.1rem;
     }
-    
+
     .league-name {
         font-weight: 500;
     }
-    
+
     .dropdown-arrow {
         transition: transform 0.2s ease;
     }
-    
+
     .dropdown-arrow.open {
         transform: rotate(180deg);
     }
-    
+
     .league-dropdown {
         position: absolute;
         top: calc(100% + 8px);
@@ -492,16 +492,16 @@
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         backdrop-filter: blur(10px);
     }
-    
+
     .league-group {
         padding: 8px 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
-    
+
     .league-group:last-child {
         border-bottom: none;
     }
-    
+
     .league-group-title {
         padding: 8px 16px;
         font-size: 0.7rem;
@@ -510,7 +510,7 @@
         letter-spacing: 0.5px;
         color: rgba(255, 255, 255, 0.5);
     }
-    
+
     .league-option {
         display: flex;
         align-items: center;
@@ -525,11 +525,11 @@
         text-align: left;
         transition: background 0.15s ease;
     }
-    
+
     .league-option:hover {
         background: rgba(139, 92, 246, 0.2);
     }
-    
+
     .league-option.active {
         background: rgba(139, 92, 246, 0.3);
         color: #a78bfa;

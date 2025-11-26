@@ -2,9 +2,9 @@
   // Mobile Bottom Navigation Component
   // Fixed bottom nav bar for better mobile UX
   import { Link } from "svelte-routing";
-  
+
   export let currentPath = "/";
-  
+
   const navItems = [
     { path: "/", icon: "🏠", label: "Home", activeIcon: "🏠" },
     { path: "/fixtures", icon: "📅", label: "Fixtures", activeIcon: "📅" },
@@ -23,7 +23,7 @@
 <nav class="fixed bottom-0 inset-x-0 z-50 md:hidden bg-slate-900/95 backdrop-blur-lg border-t border-white/10 safe-bottom">
   <div class="flex justify-around items-center h-16">
     {#each navItems as item}
-      <Link 
+      <Link
         to={item.path}
         class="flex flex-col items-center justify-center flex-1 h-full py-1 btn-press {isActive(item.path) ? 'text-accent' : 'text-slate-400'}"
       >
@@ -54,6 +54,6 @@
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
-  
+
   /* Smooth indicator transitions handled by global nav-indicator class */
 </style>

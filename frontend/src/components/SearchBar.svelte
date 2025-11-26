@@ -5,7 +5,7 @@
 
   export let searchQuery = "";
   export let selectedLeague = 39; // Default to Premier League, but can be overridden
-  
+
   let teams = [];
   let filteredTeams = [];
   let fixtures = [];
@@ -47,7 +47,7 @@
     }
 
     const query = searchQuery.toLowerCase();
-    
+
     filteredTeams = teams.filter(
       (t) =>
         t.team.name.toLowerCase().includes(query) ||

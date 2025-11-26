@@ -8,7 +8,7 @@ All **four requested tasks** have been successfully completed:
 
 **Trained Models:**
 - **GBDTModel**: GradientBoostingClassifier (100 estimators, max_depth=5)
-- **CatBoostModel**: LogisticRegression (multinomial)  
+- **CatBoostModel**: LogisticRegression (multinomial)
 - **PoissonModel**: LinearRegression for lambda prediction
 - **TransformerSequenceModel**: Heuristic-based (ready for future deep learning)
 - **LSTMSequenceModel**: Heuristic-based (ready for future deep learning)

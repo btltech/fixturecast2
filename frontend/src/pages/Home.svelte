@@ -81,7 +81,7 @@
     </h1>
 
     <p class="text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-6 md:mb-8 px-2">
-      AI-powered football predictions for <strong class="text-white">today's matches</strong>. 
+      AI-powered football predictions for <strong class="text-white">today's matches</strong>.
       Get accurate forecasts generated on match day for maximum accuracy.
     </p>
 
@@ -111,7 +111,7 @@
     <div class="glass-card p-4 md:p-6 relative overflow-hidden content-enter">
       <!-- Spotlight effect -->
       <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-accent/20 blur-3xl rounded-full"></div>
-      
+
       <div class="relative">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
@@ -123,7 +123,7 @@
           </div>
         </div>
 
-        <Link 
+        <Link
           to={`/prediction/${matchOfTheDay.fixture.id}`}
           class="block bg-gradient-to-r from-accent/10 to-purple-500/10 rounded-xl p-4 md:p-6 card-interactive border border-accent/20"
         >

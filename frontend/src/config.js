@@ -1,15 +1,19 @@
 // API Configuration
 // Uses environment variables if set, otherwise uses production URLs
-const isDev = typeof window !== 'undefined' && 
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const isDev =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1");
 
-export const API_URL = isDev 
-  ? 'http://localhost:8001'
-  : (import.meta.env.VITE_API_URL || 'https://backend-api-production-c024.up.railway.app');
+export const API_URL = isDev
+  ? "http://localhost:8001"
+  : import.meta.env.VITE_API_URL ||
+    "https://backend-api-production-c024.up.railway.app";
 
 export const ML_API_URL = isDev
-  ? 'http://localhost:8000'
-  : (import.meta.env.VITE_ML_API_URL || 'https://terrific-passion-production-4d20.up.railway.app');
+  ? "http://localhost:8002"
+  : import.meta.env.VITE_ML_API_URL ||
+    "https://terrific-passion-production-4d20.up.railway.app";
 
 export const API_ENDPOINTS = {
   // Backend API (port 8001)
@@ -20,10 +24,10 @@ export const API_ENDPOINTS = {
   h2h: (homeId, awayId) => `${API_URL}/api/h2h/${homeId}/${awayId}`,
   live: `${API_URL}/api/live`,
   results: `${API_URL}/api/results`,
-  
+
   // ML API (port 8000)
   prediction: (fixtureId) => `${ML_API_URL}/api/prediction/${fixtureId}`,
   health: `${ML_API_URL}/health`,
   feedback: `${ML_API_URL}/api/feedback`,
-  performance: `${ML_API_URL}/api/feedback/performance`
+  performance: `${ML_API_URL}/api/feedback/performance`,
 };

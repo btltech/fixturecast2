@@ -20,10 +20,10 @@
   // Load prediction data for a fixture
   async function loadPrediction(fixtureId, index) {
     if (!fixtureId) return;
-    
+
     loading[index] = true;
     loading = [...loading];
-    
+
     try {
       const res = await fetch(
         `${ML_API_URL}/api/prediction/${fixtureId}?league=39&season=2025`
@@ -91,11 +91,11 @@
 {#if isOpen}
   <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
     <!-- Backdrop -->
-    <button 
+    <button
       class="absolute inset-0 bg-black/70 backdrop-blur-sm"
       on:click={closeCompare}
     ></button>
-    
+
     <!-- Panel -->
     <div class="relative w-full max-w-4xl max-h-[85vh] overflow-y-auto bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl border border-white/10 m-0 sm:m-4">
       <!-- Header -->
@@ -103,7 +103,7 @@
         <h2 class="text-lg font-bold flex items-center gap-2">
           <span>⚖️</span> Compare Predictions
         </h2>
-        <button 
+        <button
           on:click={closeCompare}
           class="p-2 hover:bg-white/10 rounded-lg transition-colors"
         >
@@ -128,9 +128,9 @@
                 {:else if predictions[index]}
                   {@const pred = predictions[index]}
                   {@const outcome = getOutcome(pred)}
-                  
+
                   <!-- Remove button -->
-                  <button 
+                  <button
                     on:click={() => removeFixture(index)}
                     class="absolute top-2 right-2 p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
                   >
@@ -140,9 +140,9 @@
                   <!-- Teams -->
                   <div class="flex items-center justify-between mb-4">
                     <div class="flex-1 text-center">
-                      <img 
-                        src={pred.fixture_details?.teams?.home?.logo} 
-                        alt="" 
+                      <img
+                        src={pred.fixture_details?.teams?.home?.logo}
+                        alt=""
                         class="w-12 h-12 mx-auto mb-1"
                       />
                       <div class="text-sm font-medium truncate">
@@ -151,9 +151,9 @@
                     </div>
                     <div class="px-2 text-slate-500 text-sm">vs</div>
                     <div class="flex-1 text-center">
-                      <img 
-                        src={pred.fixture_details?.teams?.away?.logo} 
-                        alt="" 
+                      <img
+                        src={pred.fixture_details?.teams?.away?.logo}
+                        alt=""
                         class="w-12 h-12 mx-auto mb-1"
                       />
                       <div class="text-sm font-medium truncate">
@@ -181,7 +181,7 @@
                     <div class="flex items-center gap-2">
                       <span class="w-8 text-slate-400">H</span>
                       <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           class="h-full bg-emerald-500 rounded-full"
                           style="width: {(pred.prediction?.home_win_prob || 0) * 100}%"
                         ></div>
@@ -193,7 +193,7 @@
                     <div class="flex items-center gap-2">
                       <span class="w-8 text-slate-400">D</span>
                       <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           class="h-full bg-slate-500 rounded-full"
                           style="width: {(pred.prediction?.draw_prob || 0) * 100}%"
                         ></div>
@@ -205,7 +205,7 @@
                     <div class="flex items-center gap-2">
                       <span class="w-8 text-slate-400">A</span>
                       <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           class="h-full bg-rose-500 rounded-full"
                           style="width: {(pred.prediction?.away_win_prob || 0) * 100}%"
                         ></div>
@@ -229,7 +229,7 @@
                   </div>
 
                   <!-- View Full -->
-                  <Link 
+                  <Link
                     to={`/prediction/${compareFixtures[index]}`}
                     class="block mt-4 text-center text-accent text-sm hover:underline"
                     on:click={closeCompare}
@@ -253,12 +253,12 @@
               <h3 class="font-bold mb-3 flex items-center gap-2">
                 <span>📊</span> Comparison Summary
               </h3>
-              
+
               <div class="grid grid-cols-3 gap-2 text-center text-sm">
                 <div class="font-medium truncate">{predictions[0].fixture_details?.teams?.home?.name}</div>
                 <div class="text-slate-400">Metric</div>
                 <div class="font-medium truncate">{predictions[1].fixture_details?.teams?.home?.name}</div>
-                
+
                 <!-- Confidence -->
                 <div class="py-2 {getMaxProb(predictions[0]) > getMaxProb(predictions[1]) ? 'text-accent font-bold' : ''}">
                   {(getMaxProb(predictions[0]) * 100).toFixed(0)}%

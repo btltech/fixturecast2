@@ -1,1 +1,104 @@
-/opt/homebrew/opt/python@3.12/bin/python3.12: No module named uvicorn
+INFO:     Started server process [30422]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+🚀 Dispatcher: SERVICE_TYPE=ml
+🤖 Routing to ML API (ml_api_impl.py)
+DEBUG: ml_api_impl loaded
+Loaded prediction stats: 165 total predictions
+Starting dispatched app on port 8000...
+Loading ML models...
+DEBUG: Loaded EnsemblePredictor v4 - fresh instance loading
+Loaded trained GBDTModel (state transferred to fresh instance)
+Loaded trained CatBoostModel (state transferred to fresh instance)
+Loaded trained PoissonModel (state transferred to fresh instance)
+Loaded trained TransformerSequenceModel (state transferred to fresh instance)
+Loaded trained LSTMSequenceModel (state transferred to fresh instance)
+Loaded trained GNNModel (state transferred to fresh instance)
+Loaded trained BayesianModel (state transferred to fresh instance)
+Loaded trained EloGlickoModel (state transferred to fresh instance)
+Loaded true Elo ratings for 27 teams
+Loaded trained meta-model.
+ML models loaded successfully!
+API Client initialized! Enhanced feature set (24 API calls per prediction)
+INFO:     127.0.0.1:49348 - "GET /health HTTP/1.1" 200 OK
+API: Calling fixtures with params {'id': 1379094}
+API: Making request to https://v3.football.api-sports.io/fixtures (attempt 1)
+API: Success - 1 results
+API: Calling standings with params {'league': 39, 'season': 2025}
+API: Making request to https://v3.football.api-sports.io/standings (attempt 1)
+API: Success - 1 results
+API: Calling teams/statistics with params {'team': 50, 'league': 39, 'season': 2025}
+API: Making request to https://v3.football.api-sports.io/teams/statistics (attempt 1)
+API: Success - 11 results
+API: Calling teams/statistics with params {'team': 63, 'league': 39, 'season': 2025}
+API: Making request to https://v3.football.api-sports.io/teams/statistics (attempt 1)
+API: Success - 11 results
+API: Calling fixtures with params {'season': 2025, 'last': 10, 'status': 'FT', 'team': 50, 'league': 39}
+API: Making request to https://v3.football.api-sports.io/fixtures (attempt 1)
+API: Success - 10 results
+API: Calling fixtures with params {'season': 2025, 'last': 10, 'status': 'FT', 'team': 63, 'league': 39}
+API: Making request to https://v3.football.api-sports.io/fixtures (attempt 1)
+API: Success - 10 results
+API: Calling fixtures/headtohead with params {'h2h': '50-63', 'last': 10}
+API: Making request to https://v3.football.api-sports.io/fixtures/headtohead (attempt 1)
+API: Success - 7 results
+API: Calling odds with params {'fixture': 1379094}
+API: Making request to https://v3.football.api-sports.io/odds (attempt 1)
+API: Success - 1 results
+API: Calling injuries with params {'team': 50, 'season': 2025}
+API: Making request to https://v3.football.api-sports.io/injuries (attempt 1)
+API: Success - 68 results
+API: Calling injuries with params {'team': 63, 'season': 2025}
+API: Making request to https://v3.football.api-sports.io/injuries (attempt 1)
+API: Success - 19 results
+API: Calling players with params {'team': 50, 'season': 2025}
+API: Making request to https://v3.football.api-sports.io/players (attempt 1)
+API: Success - 20 results
+API: Calling players with params {'team': 63, 'season': 2025}
+API: Making request to https://v3.football.api-sports.io/players (attempt 1)
+API: Success - 20 results
+API: Calling coachs with params {'team': 50}
+API: Making request to https://v3.football.api-sports.io/coachs (attempt 1)
+API: Success - 1 results
+API: Calling coachs with params {'team': 63}
+API: Making request to https://v3.football.api-sports.io/coachs (attempt 1)
+API: Success - 3 results
+API: Calling fixtures/statistics with params {'fixture': 1379087}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+API: Calling fixtures/statistics with params {'fixture': 1379074}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+API: Calling fixtures/statistics with params {'fixture': 1379064}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+API: Calling fixtures/statistics with params {'fixture': 1379050}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+API: Calling fixtures/statistics with params {'fixture': 1379044}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+API: Calling fixtures/statistics with params {'fixture': 1379084}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+API: Calling fixtures/statistics with params {'fixture': 1379075}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+API: Calling fixtures/statistics with params {'fixture': 1379059}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+API: Calling fixtures/statistics with params {'fixture': 1379055}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+API: Calling fixtures/statistics with params {'fixture': 1379040}
+API: Making request to https://v3.football.api-sports.io/fixtures/statistics (attempt 1)
+API: Success - 2 results
+DEBUG: predict_fixture v3 called
+DEBUG: enriched_features home_elo=1784.5, away_elo=1343.7, home_rank=3, away_rank=18
+INFO:     127.0.0.1:49348 - "GET /api/prediction/1379094?league=39&season=2025 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49653 - "GET /health HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [30422]

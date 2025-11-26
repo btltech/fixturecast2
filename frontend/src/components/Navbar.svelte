@@ -66,7 +66,7 @@
       </button>
     </div>
   </div>
-  
+
   <!-- Mobile Search (always visible on tablet) -->
   <div class="lg:hidden mt-3">
     <SearchBar />
@@ -75,8 +75,8 @@
 
 <!-- Mobile Menu Overlay -->
 {#if mobileMenuOpen}
-  <button 
-    class="mobile-overlay visible md:hidden" 
+  <button
+    class="mobile-overlay visible md:hidden"
     on:click={closeMobileMenu}
     on:keydown={(e) => e.key === 'Escape' && closeMobileMenu()}
     aria-label="Close menu"
@@ -85,7 +85,7 @@
 {/if}
 
 <!-- Mobile Menu Drawer (Secondary items only - main nav in bottom bar) -->
-<div 
+<div
   class="fixed inset-y-0 right-0 w-72 max-w-[85vw] bg-slate-900 z-50 transform md:hidden mobile-drawer {mobileMenuOpen ? 'open' : ''}"
   style="padding-top: calc(env(safe-area-inset-top) + 1rem);"
 >
@@ -107,37 +107,37 @@
     <!-- Secondary Navigation Links -->
     <nav class="flex-1 overflow-y-auto py-4">
       <div class="space-y-1 px-2">
-        <Link 
-          to="/teams" 
+        <Link
+          to="/teams"
           on:click={closeMobileMenu}
           class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 touch-target menu-item"
         >
           <span class="text-xl">🛡️</span>
           <span class="font-medium">Teams</span>
         </Link>
-        
-        <Link 
-          to="/results" 
+
+        <Link
+          to="/results"
           on:click={closeMobileMenu}
           class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 touch-target menu-item"
         >
           <span class="text-xl">📊</span>
           <span class="font-medium">Results</span>
         </Link>
-        
+
         <div class="my-3 mx-4 border-t border-white/10"></div>
-        
-        <Link 
-          to="/models" 
+
+        <Link
+          to="/models"
           on:click={closeMobileMenu}
           class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 touch-target menu-item"
         >
           <span class="text-xl">📈</span>
           <span class="font-medium">Model Stats</span>
         </Link>
-        
-        <Link 
-          to="/history" 
+
+        <Link
+          to="/history"
           on:click={closeMobileMenu}
           class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 touch-target menu-item"
         >
@@ -146,7 +146,7 @@
         </Link>
 
         <div class="my-3 mx-4 border-t border-white/10"></div>
-        
+
         <div class="px-4 py-3">
           <div class="text-xs text-slate-400 mb-2">Quick Navigation</div>
           <p class="text-xs text-slate-500">

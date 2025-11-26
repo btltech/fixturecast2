@@ -1,7 +1,7 @@
 <script>
     import { Link } from "svelte-routing";
     import { slide } from "svelte/transition";
-    
+
     export let prediction;
     export let homeTeam;
     export let awayTeam;

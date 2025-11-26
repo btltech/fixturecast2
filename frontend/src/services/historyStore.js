@@ -21,7 +21,9 @@ export const predictionHistory = writable(loadHistory());
 
 export function addToHistory(prediction) {
   predictionHistory.update((current) => {
-    const filtered = current.filter((p) => p.fixture_id !== prediction.fixture_id);
+    const filtered = current.filter(
+      (p) => p.fixture_id !== prediction.fixture_id,
+    );
     const updated = [
       {
         ...prediction,

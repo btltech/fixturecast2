@@ -8,7 +8,7 @@
 **Features Used:**
 - League position (25% weight)
 - Recent form - last 10 matches (30% weight)
-- Goals for/against (20% weight)  
+- Goals for/against (20% weight)
 - Head-to-head record (15% weight)
 - Home advantage (10% weight)
 
@@ -62,7 +62,7 @@
 **Current Ensemble:**
 ```
 40% Form-Based (varies)    - ✅ Real
-42% CatBoost (placeholder) - ❌ Static  
+42% CatBoost (placeholder) - ❌ Static
 38% Transformer (placehold)- ❌ Static
 40% LSTM (placeholder)     - ❌ Static
 39% GNN (placeholder)      - ❌ Static
@@ -117,17 +117,17 @@ weights = {
 }
 ```
 
-**Pros:** Immediate improvement  
+**Pros:** Immediate improvement
 **Cons:** Still using placeholder data
 
 ### **Option C: Remove Placeholders** (Quick - 30 min)
 Only use the 4 working models:
 - Form-Based
 - Elo
-- Bayesian  
+- Bayesian
 - Monte Carlo
 
-**Pros:** Clean, functional ensemble  
+**Pros:** Clean, functional ensemble
 **Cons:** Fewer models = potentially less robust
 
 ---
@@ -176,9 +176,9 @@ After weight adjustment, we should see:
 
 Please choose:
 
-**A) Adjust ensemble weights now** (15 min - quick win)  
-**B) Implement 4 more statistical models** (6-8 hours - comprehensive)  
-**C) Remove placeholder models** (30 min - clean solution)  
+**A) Adjust ensemble weights now** (15 min - quick win)
+**B) Implement 4 more statistical models** (6-8 hours - comprehensive)
+**C) Remove placeholder models** (30 min - clean solution)
 **D) Continue to full ML training** (1-2 weeks - professional grade)
 
 Which option would you like?

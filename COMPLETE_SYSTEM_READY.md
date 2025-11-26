@@ -110,13 +110,13 @@ GET /api/standings?league=39&season=2024
 │   Frontend   │────────▶│  Backend API │────────▶│ API-Football │
 │  (Port 5173) │         │  (Port 8001) │         │   (Remote)   │
 └──────────────┘         └──────────────┘         └──────────────┘
-       │                                                   
-       │                                                   
-       ▼                                                   
-┌──────────────┐         ┌──────────────┐                
-│   ML API     │────────▶│  ML Models   │                
-│  (Port 8000) │         │   (8 models) │                
-└──────────────┘         └──────────────┘                
+       │
+       │
+       ▼
+┌──────────────┐         ┌──────────────┐
+│   ML API     │────────▶│  ML Models   │
+│  (Port 8000) │         │   (8 models) │
+└──────────────┘         └──────────────┘
 ```
 
 **Three Running Services:**
@@ -155,11 +155,11 @@ GET /api/standings?league=39&season=2024
 
 - **MLPrediction.svelte** - Beautiful prediction card with:
   - Animated probability bars
-  - Glassmorphism design  
+  - Glassmorphism design
   - Predicted scoreline
   - BTTS & Over 2.5 predictions
   - Expandable model breakdown
-  
+
 ### 🧠 ML Models (8 Total)
 
 1. **GBDT** - Gradient Boosting (fine-tuned)
@@ -167,7 +167,7 @@ GET /api/standings?league=39&season=2024
 3. **Poisson** - Expected goals model
 4. **Transformer** - Form sequence analysis
 5. **LSTM** - Performance trends
-6. **GNN** - League context  
+6. **GNN** - League context
 7. **Bayesian** - Odds integration
 8. **Elo** - Rating system
 
@@ -219,7 +219,7 @@ curl -X POST "http://localhost:8000/predict" \
 
 ```bash
 ✅ Frontend:     npm run dev (port 5173)
-✅ Backend API:  python backend/backend_api.py (port 8001)  
+✅ Backend API:  python backend/backend_api.py (port 8001)
 ✅ ML API:       python backend/ml_api.py (port 8000)
 ```
 
@@ -332,10 +332,10 @@ Set your API-Football key in `backend/config.json`:
 
 **FixtureCast is now a fully functional, production-ready football prediction system!**
 
-✅ **ML Models:** 8 trained models with ensemble prediction  
-✅ **APIs:** Two FastAPI servers (ML + Backend)  
-✅ **Frontend:** Beautiful Svelte app with AI predictions  
-✅ **Data:** Real API-Football integration  
+✅ **ML Models:** 8 trained models with ensemble prediction
+✅ **APIs:** Two FastAPI servers (ML + Backend)
+✅ **Frontend:** Beautiful Svelte app with AI predictions
+✅ **Data:** Real API-Football integration
 ✅ **UI/UX:** Premium glassmorphism design
 
 **You have:**

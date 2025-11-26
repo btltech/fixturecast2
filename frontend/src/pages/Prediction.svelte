@@ -43,7 +43,7 @@
       );
       if (!res.ok) throw new Error("Failed to load prediction");
       data = await res.json();
-      
+
       // Add to history
       if (data && data.fixture_details) {
         addToHistory({
@@ -197,8 +197,8 @@
         {@const round = league.round || ''}
         <div class="flex justify-center mb-4">
           <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium
-            {isEuropean ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 
-             isCup ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 
+            {isEuropean ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+             isCup ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
              'bg-accent/20 text-accent border border-accent/30'}">
             {#if league.logo}
               <img src={league.logo} alt="" class="w-4 h-4" />

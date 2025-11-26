@@ -1,0 +1,149 @@
+# FixtureCast Docker Compose Configuration
+# Usage: docker-compose up -d
+
+version: '3.8'
+
+services:
+  # ==========================================
+  # Backend API Service
+  # ==========================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fixturecast-backend
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - REDIS_URL=redis://redis:6379
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./data:/app/data:ro
+      - ./backend/config.json:/app/backend/config.json:ro
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - fixturecast-network
+
+  # ==========================================
+  # ML API Service
+  # ==========================================
+  ml-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fixturecast-ml
+    command: ["python", "backend/ml_api.py"]
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+      - SERVICE_TYPE=ml
+      - REDIS_URL=redis://redis:6379
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./ml_engine/trained_models:/app/ml_engine/trained_models:ro
+      - ./data:/app/data:ro
+    depends_on:
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - fixturecast-network
+
+  # ==========================================
+  # Frontend Service (Nginx)
+  # ==========================================
+  frontend:
+    image: nginx:alpine
+    container_name: fixturecast-frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+      - ml-api
+    restart: unless-stopped
+    networks:
+      - fixturecast-network
+
+  # ==========================================
+  # Redis Cache
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: fixturecast-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - fixturecast-network
+
+  # ==========================================
+  # Prometheus Metrics Collection
+  # ==========================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fixturecast-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: unless-stopped
+    networks:
+      - fixturecast-network
+
+  # ==========================================
+  # Grafana Dashboard (Optional)
+  # ==========================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fixturecast-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - fixturecast-network
+
+volumes:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  fixturecast-network:
+    driver: bridge

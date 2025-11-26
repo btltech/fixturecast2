@@ -1,18 +1,18 @@
 <script>
   import { onMount } from 'svelte';
-  
+
   let showBanner = false;
   let showPreferences = false;
-  
+
   const COOKIE_KEY = 'fixturecast_cookie_consent';
-  
+
   onMount(() => {
     const consent = localStorage.getItem(COOKIE_KEY);
     if (!consent) {
       showBanner = true;
     }
   });
-  
+
   function acceptAll() {
     localStorage.setItem(COOKIE_KEY, JSON.stringify({
       essential: true,
@@ -21,7 +21,7 @@
     }));
     showBanner = false;
   }
-  
+
   function acceptEssential() {
     localStorage.setItem(COOKIE_KEY, JSON.stringify({
       essential: true,
@@ -30,11 +30,11 @@
     }));
     showBanner = false;
   }
-  
+
   function openPreferences() {
     showPreferences = true;
   }
-  
+
   function closePreferences() {
     showPreferences = false;
   }
@@ -52,13 +52,13 @@
           </p>
         </div>
         <div class="flex gap-2 shrink-0">
-          <button 
+          <button
             on:click={acceptEssential}
             class="px-4 py-2 text-sm border border-slate-600 text-slate-300 rounded-lg hover:bg-slate-800 transition-colors"
           >
             Essential Only
           </button>
-          <button 
+          <button
             on:click={acceptAll}
             class="px-4 py-2 text-sm bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors"
           >
@@ -77,7 +77,7 @@
         <h2 class="text-xl font-bold text-white">Cookie Preferences</h2>
         <button on:click={closePreferences} class="text-slate-400 hover:text-white text-2xl">&times;</button>
       </div>
-      
+
       <div class="space-y-4 mb-6">
         <div class="p-4 bg-slate-700/50 rounded-lg">
           <div class="flex justify-between items-center">
@@ -88,7 +88,7 @@
             <span class="text-sm text-cyan-400">Always On</span>
           </div>
         </div>
-        
+
         <div class="p-4 bg-slate-700/50 rounded-lg">
           <div class="flex justify-between items-center">
             <div>
@@ -99,15 +99,15 @@
           </div>
         </div>
       </div>
-      
+
       <div class="flex gap-2 justify-end">
-        <button 
+        <button
           on:click={() => { acceptEssential(); closePreferences(); }}
           class="px-4 py-2 text-sm border border-slate-600 text-slate-300 rounded-lg hover:bg-slate-700"
         >
           Essential Only
         </button>
-        <button 
+        <button
           on:click={() => { acceptAll(); closePreferences(); }}
           class="px-4 py-2 text-sm bg-cyan-600 text-white rounded-lg hover:bg-cyan-700"
         >

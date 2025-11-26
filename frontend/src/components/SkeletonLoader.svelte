@@ -10,7 +10,7 @@
 
 {#if type === "text"}
   {#each Array(count) as _, i}
-    <div 
+    <div
       class="skeleton-pulse rounded {className}"
       style="width: {width}; height: {height}; margin-bottom: {i < count - 1 ? '0.5rem' : '0'}"
     ></div>
@@ -128,7 +128,7 @@
       background-position: -200% 0;
     }
   }
-  
+
   /* Respect reduced motion */
   @media (prefers-reduced-motion: reduce) {
     .skeleton-pulse {

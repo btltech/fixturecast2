@@ -34,7 +34,7 @@
 - ✅ Shows match details: teams, logos, dates
 - ✅ Can switch between leagues (La Liga tested successfully)
 
-#### Teams Page 
+#### Teams Page
 - ✅ **NOW FIXED** - Was calling wrong API port
 - ✅ Should now display 20 teams for Premier League
 - ✅ League dropdown works
@@ -108,7 +108,7 @@ http://localhost:8001/api/teams?league=${leagueId}&season=2024
 ✅ GET /api/fixtures?league=39&next=20
    Returns: 20 upcoming Premier League matches
 
-✅ GET /api/teams?league=39&season=2024  
+✅ GET /api/teams?league=39&season=2024
    Returns: 20 Premier League teams
 
 ✅ GET /api/team/{id}/stats?league=39
@@ -159,7 +159,7 @@ http://localhost:8001/api/teams?league=${leagueId}&season=2024
 ### Load Times (Approximate)
 - Dashboard: < 500ms
 - Fixtures: ~1-2s (API fetch)
-- Teams: ~1-2s (API fetch)  
+- Teams: ~1-2s (API fetch)
 - Predictions: ~500ms (ML inference)
 
 ### API Response Times

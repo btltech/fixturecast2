@@ -37,7 +37,7 @@ export function exportPredictionsToCSV(predictions) {
   link.setAttribute("href", url);
   link.setAttribute(
     "download",
-    `fixturecast_predictions_${new Date().toISOString().split("T")[0]}.csv`
+    `fixturecast_predictions_${new Date().toISOString().split("T")[0]}.csv`,
   );
   link.style.visibility = "hidden";
 
@@ -89,7 +89,7 @@ export function exportPredictionsToPDF(predictions) {
           <td>${pred.predicted_scoreline || "N/A"}</td>
           <td>${((pred.confidence || 0) * 100).toFixed(0)}%</td>
         </tr>
-      `
+      `,
         )
         .join("")}
     </tbody>
@@ -103,13 +103,15 @@ export function exportPredictionsToPDF(predictions) {
   `;
 
   const printWindow = window.open("", "_blank");
-  
+
   // Handle popup blocker
   if (!printWindow) {
-    alert("Please allow popups to export PDF. Check your browser's popup blocker settings.");
+    alert(
+      "Please allow popups to export PDF. Check your browser's popup blocker settings.",
+    );
     return;
   }
-  
+
   printWindow.document.write(content);
   printWindow.document.close();
   printWindow.focus();

@@ -1,11 +1,12 @@
 import os
 import sys
+
 import uvicorn
 
 # Add current directory to path
 sys.path.append(os.path.dirname(__file__))
 # Add parent directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 service_type = os.environ.get("SERVICE_TYPE", "ml")
 

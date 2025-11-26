@@ -11,15 +11,15 @@ function createCompareStore() {
 
   return {
     subscribe,
-    
+
     // Add a fixture to compare (max 2)
     addFixture: (fixtureId) => {
-      update(state => {
+      update((state) => {
         if (state.fixtures.includes(fixtureId)) {
           // Already in compare, remove it
           return {
             ...state,
-            fixtures: state.fixtures.filter(id => id !== fixtureId),
+            fixtures: state.fixtures.filter((id) => id !== fixtureId),
           };
         }
         if (state.fixtures.length >= 2) {
@@ -38,10 +38,13 @@ function createCompareStore() {
 
     // Remove a fixture from compare
     removeFixture: (fixtureId) => {
-      update(state => ({
+      update((state) => ({
         ...state,
-        fixtures: state.fixtures.filter(id => id !== fixtureId),
-        isOpen: state.fixtures.filter(id => id !== fixtureId).length > 0 ? state.isOpen : false,
+        fixtures: state.fixtures.filter((id) => id !== fixtureId),
+        isOpen:
+          state.fixtures.filter((id) => id !== fixtureId).length > 0
+            ? state.isOpen
+            : false,
       }));
     },
 
@@ -52,7 +55,7 @@ function createCompareStore() {
 
     // Toggle compare panel
     togglePanel: () => {
-      update(state => ({
+      update((state) => ({
         ...state,
         isOpen: !state.isOpen,
       }));
@@ -60,7 +63,7 @@ function createCompareStore() {
 
     // Open compare panel
     openPanel: () => {
-      update(state => ({
+      update((state) => ({
         ...state,
         isOpen: true,
       }));
@@ -73,7 +76,7 @@ function createCompareStore() {
 
     // Clear fixtures
     clear: () => {
-      update(state => ({
+      update((state) => ({
         ...state,
         fixtures: [],
       }));

@@ -7,11 +7,11 @@
   export let showIcon = true;
 
   $: confidencePercent = confidence * 100;
-  
+
   $: level = confidencePercent >= 70 ? "high" : confidencePercent >= 50 ? "medium" : "low";
-  
+
   $: labelText = level === "high" ? "High Confidence" : level === "medium" ? "Medium" : "Low Confidence";
-  
+
   $: icon = level === "high" ? "🎯" : level === "medium" ? "📊" : "⚠️";
 
   $: sizeClasses = {

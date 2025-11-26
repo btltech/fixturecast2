@@ -146,13 +146,13 @@ async function getPrediction(match) {
   // Replace placeholder stats with real data from your backend
   const homeStats = await fetch(`/api/teams/${match.teams.home.id}/stats`);
   const awayStats = await fetch(`/api/teams/${match.teams.away.id}/stats`);
-  
+
   const features = mlClient.buildFeatures(
     match,
     await homeStats.json(),
     await awayStats.json()
   );
-  
+
   prediction = await mlClient.getPrediction(features);
 }
 ```

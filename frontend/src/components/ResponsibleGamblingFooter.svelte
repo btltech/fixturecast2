@@ -23,7 +23,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Main Footer -->
   <div class="container mx-auto px-4 py-6">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -34,7 +34,7 @@
           AI-powered football match predictions using an 8-model ML ensemble.
         </p>
       </div>
-      
+
       <!-- Quick Links -->
       <div>
         <h4 class="font-medium text-white mb-3">Quick Links</h4>
@@ -45,7 +45,7 @@
           <li><Link to="/standings" class="text-slate-400 hover:text-cyan-400">Standings</Link></li>
         </ul>
       </div>
-      
+
       <!-- Legal -->
       <div>
         <h4 class="font-medium text-white mb-3">Legal</h4>
@@ -55,7 +55,7 @@
           <li><Link to="/cookies" class="text-slate-400 hover:text-cyan-400">Cookie Policy</Link></li>
         </ul>
       </div>
-      
+
       <!-- Support -->
       <div>
         <h4 class="font-medium text-white mb-3">Gambling Support</h4>
@@ -78,15 +78,15 @@
         </ul>
       </div>
     </div>
-    
+
     <!-- Disclaimer -->
     <div class="border-t border-slate-700 pt-4">
       <p class="text-xs text-slate-500 text-center mb-4">
-        <strong>Disclaimer:</strong> FixtureCast provides match predictions for entertainment and informational purposes only. 
-        These predictions do not constitute betting advice and should not be relied upon for gambling decisions. 
+        <strong>Disclaimer:</strong> FixtureCast provides match predictions for entertainment and informational purposes only.
+        These predictions do not constitute betting advice and should not be relied upon for gambling decisions.
         Past performance does not guarantee future results. Always gamble responsibly.
       </p>
-      
+
       <div class="flex flex-wrap justify-center items-center gap-4 text-xs text-slate-500">
         <span>&copy; 2025 FixtureCast ML</span>
         <span>|</span>

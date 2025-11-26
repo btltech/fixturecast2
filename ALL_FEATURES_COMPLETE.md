@@ -97,7 +97,7 @@
 - Mobile-responsive (below nav on small screens)
 
 ### 12. **Light/Dark Mode Toggle** 🌙☀️
-**Files:** 
+**Files:**
 - `frontend/src/services/themeStore.js` - Theme management
 - `frontend/src/app.css` - Theme CSS variables
 - Navbar integration
@@ -112,7 +112,7 @@ Features:
 - Dark theme: Dark backgrounds, light text
 
 ### 13. **Prediction History** 📚
-**Files:** 
+**Files:**
 - `frontend/src/services/historyStore.js` - History management
 - `frontend/src/pages/History.svelte` - History page
 

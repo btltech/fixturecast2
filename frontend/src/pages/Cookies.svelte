@@ -1,6 +1,6 @@
 <script>
   import { Link } from "svelte-routing";
-  
+
   function resetCookieConsent() {
     localStorage.removeItem('fixturecast_cookie_consent');
     window.location.reload();
@@ -31,7 +31,7 @@
 
       <section>
         <h2 class="text-xl font-semibold text-white mb-3">2. Cookies We Use</h2>
-        
+
         <h3 class="text-lg font-medium text-white mt-4 mb-2">Essential Cookies</h3>
         <p>These are necessary for the website to function and cannot be disabled.</p>
         <div class="overflow-x-auto mt-3">
@@ -57,7 +57,7 @@
             </tbody>
           </table>
         </div>
-        
+
         <h3 class="text-lg font-medium text-white mt-6 mb-2">Analytics Cookies (Optional)</h3>
         <p>These help us understand how visitors use our site. They are only set if you consent.</p>
         <div class="overflow-x-auto mt-3">
@@ -93,9 +93,9 @@
           <li><strong>Reset Preferences:</strong> Click the button below to reset your cookie choices</li>
           <li><strong>Browser Settings:</strong> Most browsers allow you to block or delete cookies in settings</li>
         </ul>
-        
+
         <div class="mt-4">
-          <button 
+          <button
             on:click={resetCookieConsent}
             class="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 transition-colors btn-interact"
           >

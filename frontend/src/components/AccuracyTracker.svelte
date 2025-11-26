@@ -33,7 +33,7 @@
       recent_form: data?.recent_form?.last_10?.accuracy ?? defaultAccuracy.recent_form,
       by_league: {}
     };
-    
+
     // Transform league data
     if (data?.by_league) {
       for (const [leagueId, stats] of Object.entries(data.by_league)) {
@@ -44,12 +44,12 @@
         };
       }
     }
-    
+
     // If no league data, use defaults
     if (Object.keys(result.by_league).length === 0) {
       result.by_league = defaultAccuracy.by_league;
     }
-    
+
     return result;
   }
 
@@ -129,7 +129,7 @@
           </span>
         </div>
         <div class="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
-          <div 
+          <div
             class="h-full rounded-full bar-fill {getAccuracyBg(overallAccuracy)}"
             style="width: {overallAccuracy * 100}%"
           ></div>
@@ -145,7 +145,7 @@
           </span>
         </div>
         <div class="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
-          <div 
+          <div
             class="h-full rounded-full bar-fill {getAccuracyBg(highConfAccuracy)}"
             style="width: {highConfAccuracy * 100}%"
           ></div>

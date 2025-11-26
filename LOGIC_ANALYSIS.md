@@ -123,7 +123,7 @@ Your `validate_prediction_consistency()` function catches:
 ```python
 home_lambda = home_attack * away_defense * league_avg * home_advantage
 home_lambda *= home_elo_mod           # Modifier 1
-home_lambda *= (2 - away_elo_mod)     # Modifier 2  
+home_lambda *= (2 - away_elo_mod)     # Modifier 2
 home_lambda *= home_form_mult         # Modifier 3
 home_lambda = 0.8 * home_lambda + 0.2 * h2h_home_goals  # Blend
 ```
@@ -181,16 +181,16 @@ def _analyze_h2h(self, h2h_response, home_id, away_id):
     home_wins = times current home team won (regardless of venue)
     """
     stats = {'home_wins': 0, 'draws': 0, 'away_wins': 0, 'total': 0, 'avg_goals': 0}
-    
+
     for f in h2h_response['response']:
         # ...
-        
+
         # Determine who won from current home team's perspective
-        current_home_scored = (f['goals']['home'] if f['teams']['home']['id'] == home_id 
+        current_home_scored = (f['goals']['home'] if f['teams']['home']['id'] == home_id
                                else f['goals']['away'])
-        current_away_scored = (f['goals']['away'] if f['teams']['home']['id'] == home_id 
+        current_away_scored = (f['goals']['away'] if f['teams']['home']['id'] == home_id
                                else f['goals']['home'])
-        
+
         if current_home_scored > current_away_scored:
             stats['home_wins'] += 1  # Current home team won
         elif current_home_scored == current_away_scored:
@@ -223,14 +223,14 @@ Add form calculation for last 5 matches:
 def _analyze_form(self, fixtures_response, team_id, last_n=10):
     """Analyze recent form from last N matches"""
     # ... existing code ...
-    
+
     # Also calculate last 5
     form5 = {
         'wins': 0, 'points': 0
     }
     for f in fixtures_response['response'][:5]:
         # ... similar logic ...
-    
+
     form['form_last5'] = form5['points']  # Add to return value
     return form
 ```
@@ -282,7 +282,7 @@ def find_optimal_temperature(predictions, outcomes):
     """
     import numpy as np
     from scipy.optimize import minimize_scalar
-    
+
     def brier_score(T):
         score = 0
         for pred, outcome in zip(predictions, outcomes):
@@ -293,15 +293,15 @@ def find_optimal_temperature(predictions, outcomes):
             # Normalize
             total = sum(calibrated.values())
             calibrated = {k: v/total for k, v in calibrated.items()}
-            
+
             # Calculate Brier score component
-            actual = [1 if outcome['result'] == k.replace('_prob', '') else 0 
+            actual = [1 if outcome['result'] == k.replace('_prob', '') else 0
                      for k in pred.keys()]
             predicted = list(calibrated.values())
             score += sum((a - p)**2 for a, p in zip(actual, predicted))
-        
+
         return score / len(predictions)
-    
+
     result = minimize_scalar(brier_score, bounds=(0.8, 1.5), method='bounded')
     return result.x  # Optimal temperature
 ```
@@ -396,11 +396,11 @@ features.update({
 # In safe_feature_builder.py
 def _extract_season_stats(self, stats_response):
     # ... existing code ...
-    
+
     # Add xG if available in API
     xg_for = resp.get('goals', {}).get('for', {}).get('expected', None)
     xg_against = resp.get('goals', {}).get('against', {}).get('expected', None)
-    
+
     return {
         # ... existing stats ...
         'xg_for_avg': self._safe_float(xg_for) if xg_for else None,
@@ -427,7 +427,7 @@ def calculate_confidence_interval(self, prediction, model_breakdown):
     Calculate 95% confidence interval using model variance.
     """
     import numpy as np
-    
+
     # Get all model predictions
     model_probs = []
     for model_name, preds in model_breakdown.items():
@@ -437,12 +437,12 @@ def calculate_confidence_interval(self, prediction, model_breakdown):
                 preds['draw'],
                 preds['away_win']
             ])
-    
+
     model_probs = np.array(model_probs)
-    
+
     # Calculate standard deviation across models
     std = np.std(model_probs, axis=0)
-    
+
     # 95% CI = ±1.96 * std
     return {
         'home_win_ci': (
@@ -473,16 +473,16 @@ Home Win: 74.8% (70.2% - 79.4%)
 def calculate_betting_value(prediction_prob, betting_odds):
     """
     Calculate expected value of a bet.
-    
+
     EV = (prediction_prob * payout) - 1
-    
+
     Example:
     - Prediction: 60% home win
     - Odds: 2.00 (50% implied)
     - EV = (0.6 * 2.0) - 1 = 0.2 = +20% value
     """
     implied_prob = 1 / betting_odds
-    
+
     if prediction_prob > implied_prob:
         ev = (prediction_prob * betting_odds) - 1
         return {
@@ -490,7 +490,7 @@ def calculate_betting_value(prediction_prob, betting_odds):
             'expected_value': ev,
             'recommendation': f'Value bet: +{ev*100:.1f}% expected return'
         }
-    
+
     return {'has_value': False}
 ```
 
@@ -522,19 +522,19 @@ def calculate_match_importance(features):
     High importance = more unpredictable.
     """
     importance = 0
-    
+
     # Same city (derby)
     if features.get('home_city') == features.get('away_city'):
         importance += 0.3
-    
+
     # Both in top 4 race (within 5 points of 4th)
     if features.get('home_league_pos') <= 7 and features.get('away_league_pos') <= 7:
         importance += 0.2
-    
+
     # Relegation battle (both in bottom 5)
     if features.get('home_league_pos') >= 16 and features.get('away_league_pos') >= 16:
         importance += 0.2
-    
+
     return min(1.0, importance)
 ```
 

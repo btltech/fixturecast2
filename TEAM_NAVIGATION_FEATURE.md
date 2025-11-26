@@ -49,7 +49,7 @@ Enhanced with comprehensive statistics and information:
   - Goals conceded (with total and average)
   - Color-coded with emerald (for) and rose (against)
 
-- ✅ **Recent Form Section**: 
+- ✅ **Recent Form Section**:
   - Shows up to 10 recent matches
   - Each match is clickable (links to prediction page)
   - Result badges (W/D/L) with color coding
@@ -95,7 +95,7 @@ All team links include league context:
 
 ### Home Page
 ✅ Team logos clickable and navigate to team page
-✅ Team names clickable and navigate to team page  
+✅ Team names clickable and navigate to team page
 ✅ Hover effects working (scale and color change)
 ✅ "View Prediction" button still works
 

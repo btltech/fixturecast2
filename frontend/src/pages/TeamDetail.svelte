@@ -12,9 +12,58 @@
   let injuries = [];
   let currentInjuries = [];
   let standings = null;
+  let squad = [];
+  let coach = null;
   let loading = true;
   let error = null;
   let league = 39; // Default to Premier League
+
+  // Player filtering & sorting
+  let playerSearch = "";
+  let sortBy = "name"; // name, age, rating, goals, appearances
+  let sortOrder = "asc";
+  let selectedPosition = "all"; // all, Goalkeeper, Defender, Midfielder, Attacker
+
+  // Computed filtered players
+  $: filteredSquad = squad
+    .filter(player => {
+      // Search filter
+      const name = player.player?.name?.toLowerCase() || "";
+      const matchesSearch = name.includes(playerSearch.toLowerCase());
+
+      // Position filter
+      const position = player.statistics?.[0]?.games?.position || "";
+      const matchesPosition = selectedPosition === "all" || position === selectedPosition;
+
+      return matchesSearch && matchesPosition;
+    })
+    .sort((a, b) => {
+      const aStats = a.statistics?.[0] || {};
+      const bStats = b.statistics?.[0] || {};
+
+      let comparison = 0;
+      switch (sortBy) {
+        case "name":
+          comparison = (a.player?.name || "").localeCompare(b.player?.name || "");
+          break;
+        case "age":
+          comparison = (a.player?.age || 0) - (b.player?.age || 0);
+          break;
+        case "rating":
+          comparison = (parseFloat(bStats.games?.rating) || 0) - (parseFloat(aStats.games?.rating) || 0);
+          break;
+        case "goals":
+          comparison = (bStats.goals?.total || 0) - (aStats.goals?.total || 0);
+          break;
+        case "appearances":
+          comparison = (bStats.games?.appearences || 0) - (aStats.games?.appearences || 0);
+          break;
+        default:
+          comparison = 0;
+      }
+
+      return sortOrder === "asc" ? comparison : -comparison;
+    });
 
   onMount(async () => {
     try {
@@ -39,7 +88,7 @@
         `${API_URL}/api/standings?league=${league}&season=2025`,
       );
       const standingsData = await standingsRes.json();
-      
+
       if (standingsData.response && standingsData.response[0]) {
         const leagueStandings = standingsData.response[0].league.standings[0];
         standings = leagueStandings.find(s => s.team.id == id);
@@ -83,6 +132,26 @@
           const fixtureDate = new Date(injury.fixture.date);
           return fixtureDate >= now;
         });
+      }
+
+      // Fetch Squad
+      const squadRes = await fetch(
+        `${API_URL}/api/team/${id}/squad?season=2025`,
+      );
+      const squadData = await squadRes.json();
+
+      if (squadData.response) {
+        squad = squadData.response;
+      }
+
+      // Fetch Coach
+      const coachRes = await fetch(
+        `${API_URL}/api/team/${id}/coach`,
+      );
+      const coachData = await coachRes.json();
+
+      if (coachData.response && coachData.response.length > 0) {
+        coach = coachData.response[0];
       }
 
       loading = false;
@@ -159,9 +228,9 @@
       </div>
     </div>
 
-    <!-- Additional Club Info -->
+    <!-- Key Stats Bar - Optimized -->
     {#if stats}
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 element-enter stagger-1">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 element-enter stagger-1">
         <!-- Win Rate -->
         <div class="glass-card p-4 text-center">
           <div class="text-3xl font-bold text-emerald-400 mb-1">
@@ -186,28 +255,12 @@
           <div class="text-slate-400 text-xs">Failed to Score</div>
         </div>
 
-        <!-- Penalty Scored -->
+        <!-- Goal Difference -->
         <div class="glass-card p-4 text-center">
-          <div class="text-3xl font-bold text-purple-400 mb-1">
-            {stats.penalty?.scored?.total || 0}
+          <div class="text-3xl font-bold text-accent mb-1">
+            {(stats.goals?.for?.total?.total || 0) - (stats.goals?.against?.total?.total || 0) >= 0 ? '+' : ''}{(stats.goals?.for?.total?.total || 0) - (stats.goals?.against?.total?.total || 0)}
           </div>
-          <div class="text-slate-400 text-xs">Penalties Scored</div>
-        </div>
-
-        <!-- Yellow Cards -->
-        <div class="glass-card p-4 text-center">
-          <div class="text-3xl font-bold text-amber-400 mb-1">
-            {(stats.cards?.yellow?.['0-15']?.total || 0) + (stats.cards?.yellow?.['16-30']?.total || 0) + (stats.cards?.yellow?.['31-45']?.total || 0) + (stats.cards?.yellow?.['46-60']?.total || 0) + (stats.cards?.yellow?.['61-75']?.total || 0) + (stats.cards?.yellow?.['76-90']?.total || 0)}
-          </div>
-          <div class="text-slate-400 text-xs">Yellow Cards</div>
-        </div>
-
-        <!-- Red Cards -->
-        <div class="glass-card p-4 text-center">
-          <div class="text-3xl font-bold text-red-500 mb-1">
-            {(stats.cards?.red?.['0-15']?.total || 0) + (stats.cards?.red?.['16-30']?.total || 0) + (stats.cards?.red?.['31-45']?.total || 0) + (stats.cards?.red?.['46-60']?.total || 0) + (stats.cards?.red?.['61-75']?.total || 0) + (stats.cards?.red?.['76-90']?.total || 0)}
-          </div>
-          <div class="text-slate-400 text-xs">Red Cards</div>
+          <div class="text-slate-400 text-xs">Goal Difference</div>
         </div>
       </div>
 
@@ -308,44 +361,8 @@
         </div>
       </div>
 
-      <!-- Scoring Statistics -->
-      <div class="glass-card p-6">
-        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
-          <span class="w-1 h-6 bg-gradient-to-b from-emerald-400 to-rose-400 rounded-full"></span>
-          Goal Timing Analysis
-        </h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {#each [
-            { label: '0-15', key: '0-15' },
-            { label: '16-30', key: '16-30' },
-            { label: '31-45', key: '31-45' },
-            { label: '46-60', key: '46-60' },
-            { label: '61-75', key: '61-75' },
-            { label: '76-90', key: '76-90' }
-          ] as period}
-            <div class="text-center p-3 rounded-lg bg-white/5">
-              <div class="text-xs text-slate-400 mb-2">{period.label} min</div>
-              <div class="flex justify-around">
-                <div class="flex flex-col items-center">
-                  <div class="text-sm font-bold text-emerald-400">
-                    {stats.goals?.for?.minute?.[period.key]?.total || 0}
-                  </div>
-                  <div class="text-xs text-slate-500">For</div>
-                </div>
-                <div class="flex flex-col items-center">
-                  <div class="text-sm font-bold text-rose-400">
-                    {stats.goals?.against?.minute?.[period.key]?.total || 0}
-                  </div>
-                  <div class="text-xs text-slate-500">Agst</div>
-                </div>
-              </div>
-            </div>
-          {/each}
-        </div>
-      </div>
-
-      <!-- Biggest Wins/Losses -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Biggest Wins/Losses - Streamlined -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 element-enter stagger-3">
         <div class="glass-card p-6 text-center bg-gradient-to-br from-emerald-500/10 to-emerald-500/5">
           <div class="text-sm text-slate-400 mb-2">Biggest Win</div>
           <div class="text-3xl font-bold text-emerald-400 mb-1">
@@ -364,14 +381,6 @@
           <div class="text-xs text-slate-500">
             {stats.biggest?.loses?.home ? 'Home' : stats.biggest?.loses?.away ? 'Away' : ''}
           </div>
-        </div>
-
-        <div class="glass-card p-6 text-center bg-gradient-to-br from-accent/10 to-blue-500/5">
-          <div class="text-sm text-slate-400 mb-2">Goal Difference</div>
-          <div class="text-3xl font-bold text-accent mb-1">
-            {(stats.goals?.for?.total?.total || 0) - (stats.goals?.against?.total?.total || 0) >= 0 ? '+' : ''}{(stats.goals?.for?.total?.total || 0) - (stats.goals?.against?.total?.total || 0)}
-          </div>
-          <div class="text-xs text-slate-500">Overall</div>
         </div>
       </div>
     {/if}
@@ -530,6 +539,192 @@
             </Link>
           {/each}
         </div>
+      </div>
+    {/if}
+
+    <!-- Manager/Coach Section -->
+    {#if coach}
+      <div class="glass-card p-6 element-enter stagger-3">
+        <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <span class="w-1 h-6 bg-emerald-400 rounded-full"></span>
+          Manager
+        </h3>
+        <div class="flex items-center gap-6 p-4 rounded-lg bg-white/5 border border-white/10">
+          <img
+            src={coach.photo}
+            alt={coach.name}
+            class="w-20 h-20 rounded-full object-cover border-2 border-emerald-400/30"
+          />
+          <div class="flex-1">
+            <div class="text-2xl font-bold text-white mb-1">{coach.name}</div>
+            <div class="flex flex-wrap gap-4 text-sm text-slate-400">
+              {#if coach.nationality}
+                <span class="flex items-center gap-2">
+                  <span>🌍</span>
+                  {coach.nationality}
+                </span>
+              {/if}
+              {#if coach.age}
+                <span>•</span>
+                <span>Age: {coach.age}</span>
+              {/if}
+              {#if coach.birth?.date}
+                <span>•</span>
+                <span>Born: {new Date(coach.birth.date).toLocaleDateString()}</span>
+              {/if}
+            </div>
+            {#if coach.career && coach.career.length > 0}
+              <div class="mt-3 text-xs text-slate-500">
+                <span class="font-semibold">Current Role:</span>
+                {coach.career[0].team.name || team.team.name}
+                {#if coach.career[0].start}
+                  (Since {coach.career[0].start})
+                {/if}
+              </div>
+            {/if}
+          </div>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Squad Section -->
+    {#if squad.length > 0}
+      <div class="glass-card p-6 element-enter stagger-4" role="region" aria-labelledby="squad-heading">
+        <h3 id="squad-heading" class="text-xl font-bold mb-4 flex items-center gap-2">
+          <span class="w-1 h-6 bg-blue-400 rounded-full" aria-hidden="true"></span>
+          Team Squad ({filteredSquad.length} of {squad.length} Players)
+        </h3>
+
+        <!-- Filter Controls -->
+        <div class="mb-6 p-4 rounded-lg bg-white/5 border border-white/10">
+          <div class="flex flex-wrap gap-4 items-center">
+            <!-- Search -->
+            <div class="flex-1 min-w-48">
+              <label for="player-search" class="sr-only">Search players</label>
+              <input
+                id="player-search"
+                type="text"
+                bind:value={playerSearch}
+                placeholder="Search players..."
+                class="w-full px-4 py-2 rounded-lg bg-black/30 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                aria-describedby="search-help"
+              />
+              <span id="search-help" class="sr-only">Type to filter players by name</span>
+            </div>
+
+            <!-- Position Filter -->
+            <div>
+              <label for="position-filter" class="sr-only">Filter by position</label>
+              <select
+                id="position-filter"
+                bind:value={selectedPosition}
+                class="px-4 py-2 rounded-lg bg-black/30 border border-white/20 text-white focus:outline-none focus:border-accent cursor-pointer"
+              >
+                <option value="all">All Positions</option>
+                <option value="Goalkeeper">Goalkeepers</option>
+                <option value="Defender">Defenders</option>
+                <option value="Midfielder">Midfielders</option>
+                <option value="Attacker">Attackers</option>
+              </select>
+            </div>
+
+            <!-- Sort By -->
+            <div>
+              <label for="sort-by" class="sr-only">Sort players by</label>
+              <select
+                id="sort-by"
+                bind:value={sortBy}
+                class="px-4 py-2 rounded-lg bg-black/30 border border-white/20 text-white focus:outline-none focus:border-accent cursor-pointer"
+              >
+                <option value="name">Sort by Name</option>
+                <option value="age">Sort by Age</option>
+                <option value="rating">Sort by Rating</option>
+                <option value="goals">Sort by Goals</option>
+                <option value="appearances">Sort by Appearances</option>
+              </select>
+            </div>
+
+            <!-- Sort Order Toggle -->
+            <button
+              on:click={() => sortOrder = sortOrder === "asc" ? "desc" : "asc"}
+              class="px-4 py-2 rounded-lg bg-accent/20 text-accent hover:bg-accent/30 transition-colors flex items-center gap-2"
+              aria-label={`Sort ${sortOrder === "asc" ? "ascending" : "descending"}, click to toggle`}
+            >
+              {#if sortOrder === "asc"}
+                <span aria-hidden="true">↑</span> Asc
+              {:else}
+                <span aria-hidden="true">↓</span> Desc
+              {/if}
+            </button>
+          </div>
+        </div>
+
+        <!-- Player Grid (filtered) -->
+        {#if filteredSquad.length > 0}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3" role="list">
+            {#each filteredSquad as player (player.player.id)}
+              <div
+                class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10 hover:border-accent/30 transition-all"
+                role="listitem"
+              >
+                <img
+                  src={player.player.photo}
+                  alt=""
+                  class="w-12 h-12 rounded-full object-cover"
+                  loading="lazy"
+                />
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-white text-sm truncate">
+                    {player.player.name}
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-slate-400">
+                    {#if player.statistics && player.statistics[0]}
+                      {@const stats = player.statistics[0]}
+                      {#if stats.games?.number}
+                        <span class="font-mono font-bold text-accent">#{stats.games.number}</span>
+                      {/if}
+                      <span aria-hidden="true">•</span>
+                      <span>{player.player.age || 'N/A'} yrs</span>
+                      {#if stats.games?.rating}
+                        <span aria-hidden="true">•</span>
+                        <span class="text-emerald-400" aria-label="Rating {parseFloat(stats.games.rating).toFixed(1)}">★ {parseFloat(stats.games.rating).toFixed(1)}</span>
+                      {/if}
+                    {/if}
+                  </div>
+                  {#if player.statistics && player.statistics[0]}
+                    {@const stats = player.statistics[0]}
+                    <div class="flex gap-2 text-xs text-slate-500 mt-1">
+                      {#if stats.games?.position}
+                        <span class="px-1.5 py-0.5 rounded bg-accent/20 text-accent text-[10px] uppercase">
+                          {stats.games.position.slice(0, 3)}
+                        </span>
+                      {/if}
+                      {#if stats.goals?.total}
+                        <span class="text-emerald-400" aria-label="{stats.goals.total} goals">⚽ {stats.goals.total}</span>
+                      {/if}
+                      {#if stats.goals?.assists}
+                        <span class="text-blue-400" aria-label="{stats.goals.assists} assists">🎯 {stats.goals.assists}</span>
+                      {/if}
+                      {#if stats.games?.appearences}
+                        <span aria-label="{stats.games.appearences} appearances">📋 {stats.games.appearences}</span>
+                      {/if}
+                    </div>
+                  {/if}
+                </div>
+              </div>
+            {/each}
+          </div>
+        {:else}
+          <div class="text-center py-8 text-slate-400">
+            <p>No players match your search criteria.</p>
+            <button
+              on:click={() => { playerSearch = ""; selectedPosition = "all"; }}
+              class="mt-2 text-accent hover:underline"
+            >
+              Clear filters
+            </button>
+          </div>
+        {/if}
       </div>
     {/if}
 

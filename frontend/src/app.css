@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,14 +12,14 @@
   --text-secondary: #94a3b8;
   --safe-area-inset-top: env(safe-area-inset-top);
   --safe-area-inset-bottom: env(safe-area-inset-bottom);
-  
+
   /* Animation timing tokens */
   --duration-instant: 70ms;
   --duration-fast: 100ms;
   --duration-normal: 150ms;
   --duration-slow: 300ms;
   --duration-page: 120ms;
-  
+
   /* Easing curves - GPU-optimized */
   --ease-out-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --ease-out-smooth: cubic-bezier(0.22, 1, 0.36, 1);
@@ -74,13 +73,27 @@ body {
   animation: itemEnter var(--duration-normal) var(--ease-out-smooth) forwards;
 }
 
-.stagger-enter > *:nth-child(1) { animation-delay: 0ms; }
-.stagger-enter > *:nth-child(2) { animation-delay: 30ms; }
-.stagger-enter > *:nth-child(3) { animation-delay: 60ms; }
-.stagger-enter > *:nth-child(4) { animation-delay: 90ms; }
-.stagger-enter > *:nth-child(5) { animation-delay: 120ms; }
-.stagger-enter > *:nth-child(6) { animation-delay: 150ms; }
-.stagger-enter > *:nth-child(n+7) { animation-delay: 180ms; }
+.stagger-enter > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger-enter > *:nth-child(2) {
+  animation-delay: 30ms;
+}
+.stagger-enter > *:nth-child(3) {
+  animation-delay: 60ms;
+}
+.stagger-enter > *:nth-child(4) {
+  animation-delay: 90ms;
+}
+.stagger-enter > *:nth-child(5) {
+  animation-delay: 120ms;
+}
+.stagger-enter > *:nth-child(6) {
+  animation-delay: 150ms;
+}
+.stagger-enter > *:nth-child(n + 7) {
+  animation-delay: 180ms;
+}
 
 @keyframes itemEnter {
   to {
@@ -118,9 +131,10 @@ body {
   @apply backdrop-blur-sm border rounded-xl;
   background: rgba(30, 41, 59, 0.5);
   border-color: rgba(255, 255, 255, 0.05);
-  transition: transform var(--duration-fast) var(--ease-out-soft),
-              background-color var(--duration-fast) var(--ease-out-soft),
-              box-shadow var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-fast) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft);
 }
 
 .glass-card:hover {
@@ -133,9 +147,10 @@ body {
 
 /* Button press effect */
 .btn-press {
-  transition: transform var(--duration-instant) var(--ease-out-soft),
-              background-color var(--duration-fast) var(--ease-out-soft),
-              box-shadow var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-instant) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft);
   will-change: transform;
 }
 
@@ -149,9 +164,10 @@ body {
 
 /* Interactive card hover */
 .card-interactive {
-  transition: transform var(--duration-fast) var(--ease-out-soft),
-              background-color var(--duration-fast) var(--ease-out-soft),
-              box-shadow var(--duration-normal) var(--ease-out-soft);
+  transition:
+    transform var(--duration-fast) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-normal) var(--ease-out-soft);
   will-change: transform;
 }
 
@@ -166,9 +182,10 @@ body {
 
 /* Tab/nav item indicator animation */
 .nav-indicator {
-  transition: transform var(--duration-normal) var(--ease-out-smooth),
-              opacity var(--duration-normal) var(--ease-out-soft),
-              background-color var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-normal) var(--ease-out-smooth),
+    opacity var(--duration-normal) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft);
 }
 
 /* Icon scale on hover */
@@ -182,8 +199,9 @@ body {
 
 /* Glow effect for primary buttons */
 .btn-glow {
-  transition: box-shadow var(--duration-fast) var(--ease-out-soft),
-              transform var(--duration-instant) var(--ease-out-soft);
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out-soft),
+    transform var(--duration-instant) var(--ease-out-soft);
 }
 
 .btn-glow:hover {
@@ -210,8 +228,12 @@ body {
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* Skeleton fade-out when data loads */
@@ -250,7 +272,9 @@ body {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Progress pulse for loading states */
@@ -259,8 +283,13 @@ body {
 }
 
 @keyframes loadingPulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* =====================================================
@@ -293,9 +322,17 @@ body {
 }
 
 @keyframes numberPop {
-  0% { transform: scale(0.8); opacity: 0; }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* =====================================================
@@ -304,8 +341,9 @@ body {
 
 /* Fixture card hover */
 .fixture-card {
-  transition: transform var(--duration-fast) var(--ease-out-soft),
-              box-shadow var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft);
   will-change: transform;
 }
 
@@ -316,8 +354,9 @@ body {
 
 /* Team card hover with lift */
 .team-card {
-  transition: transform var(--duration-fast) var(--ease-out-soft),
-              box-shadow var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft);
   will-change: transform;
 }
 
@@ -328,8 +367,9 @@ body {
 
 /* Result card subtle hover */
 .result-card {
-  transition: transform var(--duration-fast) var(--ease-out-soft),
-              background-color var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-fast) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft);
 }
 
 .result-card:hover {
@@ -338,8 +378,9 @@ body {
 
 /* Live match card pulse effect */
 .live-match-card {
-  transition: transform var(--duration-fast) var(--ease-out-soft),
-              box-shadow var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft);
 }
 
 .live-match-card:hover {
@@ -349,9 +390,10 @@ body {
 
 /* Button interaction refined */
 .btn-interact {
-  transition: transform var(--duration-instant) var(--ease-out-soft),
-              background-color var(--duration-fast) var(--ease-out-soft),
-              box-shadow var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-instant) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft);
   will-change: transform;
 }
 
@@ -376,12 +418,24 @@ body {
 }
 
 /* Stagger delays */
-.stagger-1 { animation-delay: 30ms; }
-.stagger-2 { animation-delay: 60ms; }
-.stagger-3 { animation-delay: 90ms; }
-.stagger-4 { animation-delay: 120ms; }
-.stagger-5 { animation-delay: 150ms; }
-.stagger-6 { animation-delay: 180ms; }
+.stagger-1 {
+  animation-delay: 30ms;
+}
+.stagger-2 {
+  animation-delay: 60ms;
+}
+.stagger-3 {
+  animation-delay: 90ms;
+}
+.stagger-4 {
+  animation-delay: 120ms;
+}
+.stagger-5 {
+  animation-delay: 150ms;
+}
+.stagger-6 {
+  animation-delay: 180ms;
+}
 
 /* Navigation link smooth transition */
 .nav-link {
@@ -406,8 +460,9 @@ body {
 
 /* Search input focus */
 .search-input {
-  transition: background-color var(--duration-fast) var(--ease-out-soft),
-              box-shadow var(--duration-fast) var(--ease-out-soft);
+  transition:
+    background-color var(--duration-fast) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft);
 }
 
 /* Search results dropdown */
@@ -473,8 +528,9 @@ body {
 /* Mobile card styles with better touch feedback */
 .mobile-card {
   @apply glass-card p-4;
-  transition: transform var(--duration-instant) var(--ease-out-soft),
-              background-color var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-instant) var(--ease-out-soft),
+    background-color var(--duration-fast) var(--ease-out-soft);
 }
 
 .mobile-card:active {
@@ -512,17 +568,19 @@ body {
   h3 {
     @apply text-lg;
   }
-  
+
   /* Larger tap targets on mobile */
-  button, a, [role="button"] {
+  button,
+  a,
+  [role="button"] {
     min-height: 44px;
   }
-  
+
   /* Better spacing for mobile */
   .mobile-p {
     @apply px-4 py-3;
   }
-  
+
   .mobile-gap {
     @apply gap-3;
   }
@@ -576,8 +634,9 @@ body {
   @apply flex items-center justify-center;
   @apply bg-accent text-white;
   padding-bottom: calc(env(safe-area-inset-bottom) / 2);
-  transition: transform var(--duration-instant) var(--ease-out-soft),
-              box-shadow var(--duration-fast) var(--ease-out-soft);
+  transition:
+    transform var(--duration-instant) var(--ease-out-soft),
+    box-shadow var(--duration-fast) var(--ease-out-soft);
 }
 
 .fab:hover {
@@ -594,8 +653,9 @@ body {
   backdrop-filter: blur(4px);
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--duration-normal) var(--ease-out-soft),
-              visibility var(--duration-normal) var(--ease-out-soft);
+  transition:
+    opacity var(--duration-normal) var(--ease-out-soft),
+    visibility var(--duration-normal) var(--ease-out-soft);
 }
 
 .mobile-overlay.visible {
@@ -647,4 +707,3 @@ body {
   transition: transform var(--duration-fast) var(--ease-out-soft);
   will-change: transform;
 }
-

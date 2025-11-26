@@ -1,15 +1,16 @@
 {
-    "name": "fixturecast-system",
-    "version": "1.0.0",
-    "description": "FixtureCast ML System",
-    "scripts": {
-        "frontend": "cd frontend && npm run dev",
-        "backend": "cd backend && ../venv/bin/uvicorn main:app --reload --host 0.0.0.0 --port 8000",
-        "ml": "venv/bin/python -m ml_engine.train_all",
-        "start": "concurrently \"npm run backend\" \"npm run frontend\"",
-        "install-all": "cd frontend && npm install && cd .. && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
-    },
-    "devDependencies": {
-        "concurrently": "^8.2.2"
-    }
+  "name": "fixturecast-system",
+  "version": "1.0.0",
+  "description": "FixtureCast ML System",
+  "scripts": {
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && ../venv/bin/uvicorn main:app --reload --host 0.0.0.0 --port 8001",
+    "ml-api": "cd backend && ../venv/bin/uvicorn ml_api_impl:app --reload --host 0.0.0.0 --port 8002",
+    "ml": "venv/bin/python -m ml_engine.train_all",
+    "start": "concurrently \"npm run backend\" \"npm run ml-api\" \"npm run frontend\"",
+    "install-all": "cd frontend && npm install && cd .. && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
 }

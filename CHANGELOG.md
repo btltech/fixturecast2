@@ -57,7 +57,7 @@ curl "http://localhost:8000/api/fixtures?league=39&next=5"
 ### After Changes
 ```bash
 curl "http://localhost:8000/api/fixtures?league=39&next=5"
-# Result: {"results": 61, "response": [...]} 
+# Result: {"results": 61, "response": [...]}
 # Sample fixtures:
 # 1. Manchester United vs Everton - 2025-11-24
 # 2. Manchester City vs Leeds - 2025-11-29
@@ -66,10 +66,10 @@ curl "http://localhost:8000/api/fixtures?league=39&next=5"
 
 ## Key Improvements
 
-✅ **Live Data Only** - No more mock data, everything comes from API-Football  
-✅ **Current Season** - Automatically uses 2025 season for current fixtures  
-✅ **Better Date Handling** - Uses date ranges instead of unreliable `next` parameter  
-✅ **Cleaner Code** - Removed ~50 lines of mock data code  
+✅ **Live Data Only** - No more mock data, everything comes from API-Football
+✅ **Current Season** - Automatically uses 2025 season for current fixtures
+✅ **Better Date Handling** - Uses date ranges instead of unreliable `next` parameter
+✅ **Cleaner Code** - Removed ~50 lines of mock data code
 ✅ **Better Logging** - Simplified API call logging for easier debugging
 
 ## Testing

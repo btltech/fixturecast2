@@ -266,11 +266,11 @@ Add confidence interval display:
 // In MLPrediction.svelte
 {#if prediction.confidence_intervals}
   <div class="confidence-info">
-    <p>95% Confidence: 
+    <p>95% Confidence:
       {(prediction.confidence_intervals.home_win_ci[0] * 100).toFixed(1)}% -
       {(prediction.confidence_intervals.home_win_ci[1] * 100).toFixed(1)}%
     </p>
-    <p>Model Agreement: 
+    <p>Model Agreement:
       {(prediction.confidence_intervals.model_agreement * 100).toFixed(0)}%
     </p>
   </div>

@@ -1,9 +1,11 @@
 import json
 import os
+
 from ml_engine.ensemble_predictor import EnsemblePredictor
 
 # Load data (same as in train_meta_model)
 DATA_DIR = os.path.join(os.path.dirname(__file__), "../data/historical")
+
 
 def load_data():
     matches = []
@@ -11,8 +13,9 @@ def load_data():
         if filename.startswith("season_") and filename.endswith(".json"):
             with open(os.path.join(DATA_DIR, filename)) as f:
                 matches.extend(json.load(f))
-    matches.sort(key=lambda x: x['fixture']['date'])
+    matches.sort(key=lambda x: x["fixture"]["date"])
     return matches
+
 
 matches = load_data()
 print(f"Loaded {len(matches)} matches for training all models.")

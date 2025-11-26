@@ -53,19 +53,19 @@
   let deduplicatedFixtures = [];
   let loading = false;
   let showLeagueSelector = false;
-  
+
   // Predictions state - on demand
   let predictions = {}; // fixture_id -> prediction data
   let loadingPredictions = {}; // fixture_id -> boolean
   let searchQuery = "";
-  
+
   // UK timezone helpers
   function getUKDate() {
     const now = new Date();
     const ukTime = new Date(now.toLocaleString("en-US", { timeZone: "Europe/London" }));
     return ukTime;
   }
-  
+
   function formatUKDate(date) {
     return new Date(date).toLocaleDateString("en-GB", {
       timeZone: "Europe/London",
@@ -74,7 +74,7 @@
       month: "short"
     });
   }
-  
+
   function formatUKTime(date) {
     return new Date(date).toLocaleTimeString("en-GB", {
       timeZone: "Europe/London",
@@ -82,7 +82,7 @@
       minute: "2-digit"
     });
   }
-  
+
   function getUKMidnightInfo() {
     const ukNow = getUKDate();
     const hours = ukNow.getHours();
@@ -97,22 +97,22 @@
   function deduplicateFixtures(fixtureList) {
     const seenTeams = new Set();
     const result = [];
-    
-    const sorted = [...fixtureList].sort((a, b) => 
+
+    const sorted = [...fixtureList].sort((a, b) =>
       new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
     );
-    
+
     for (const fixture of sorted) {
       const homeId = fixture.teams.home.id;
       const awayId = fixture.teams.away.id;
-      
+
       if (!seenTeams.has(homeId) && !seenTeams.has(awayId)) {
         result.push(fixture);
         seenTeams.add(homeId);
         seenTeams.add(awayId);
       }
     }
-    
+
     return result;
   }
 
@@ -121,18 +121,18 @@
     fixtures = [];
     deduplicatedFixtures = [];
     predictions = {};
-    
+
     try {
       const res = await fetch(
         `${API_URL}/api/fixtures?league=${selectedLeague}&season=2025&next=40`
       );
       const data = await res.json();
-      
+
       if (data.response && Array.isArray(data.response)) {
-        fixtures = data.response.filter(f => 
+        fixtures = data.response.filter(f =>
           f.fixture.status?.short === 'NS' || f.fixture.status?.short === 'TBD'
         );
-        
+
         deduplicatedFixtures = deduplicateFixtures(fixtures);
       }
     } catch (e) {
@@ -152,15 +152,15 @@
     if (predictions[fixtureId] || loadingPredictions[fixtureId]) {
       return;
     }
-    
+
     loadingPredictions[fixtureId] = true;
     loadingPredictions = {...loadingPredictions};
-    
+
     try {
       const res = await fetch(
         `${ML_API_URL}/api/prediction/${fixtureId}?league=${selectedLeague}&season=2025`
       );
-      
+
       if (res.ok) {
         const data = await res.json();
         predictions[fixtureId] = data.prediction;
@@ -176,11 +176,11 @@
 
   function getPredictionSummary(pred) {
     if (!pred) return null;
-    
+
     const homeProb = pred.home_win_prob * 100;
     const drawProb = pred.draw_prob * 100;
     const awayProb = pred.away_win_prob * 100;
-    
+
     if (homeProb > awayProb && homeProb > drawProb) {
       return { winner: "home", prob: homeProb, label: "Home Win" };
     } else if (awayProb > homeProb && awayProb > drawProb) {
@@ -225,10 +225,10 @@
           <div class="text-xs text-slate-400">One game per team • UK Time</div>
         </div>
       </div>
-      <svg 
-        class="w-5 h-5 text-slate-400 transition-transform {showLeagueSelector ? 'rotate-180' : ''}" 
-        fill="none" 
-        stroke="currentColor" 
+      <svg
+        class="w-5 h-5 text-slate-400 transition-transform {showLeagueSelector ? 'rotate-180' : ''}"
+        fill="none"
+        stroke="currentColor"
         viewBox="0 0 24 24"
       >
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -400,7 +400,7 @@
           <h2 class="text-xl lg:text-2xl font-bold">{currentLeague.emoji} {currentLeague.name} Fixtures</h2>
           <p class="text-sm text-slate-400">One game per team • Predictions on demand</p>
         </div>
-        <button 
+        <button
           on:click={loadFixtures}
           class="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
           title="Refresh fixtures"
@@ -442,7 +442,7 @@
           {@const fixtureId = fixture.fixture.id}
           {@const pred = predictions[fixtureId]}
           {@const summary = getPredictionSummary(pred)}
-          
+
           <div class="glass-card p-4 relative overflow-hidden group fixture-card">
             <!-- Compare Button (top right) -->
             <button
@@ -504,18 +504,18 @@
                   <span class="text-accent font-bold">{summary.prob.toFixed(0)}%</span>
                 </div>
                 <div class="flex gap-1 h-2 rounded-full overflow-hidden bg-slate-700">
-                  <div 
-                    class="bg-green-500 transition-all" 
+                  <div
+                    class="bg-green-500 transition-all"
                     style="width: {pred.home_win_prob * 100}%"
                     title="Home: {(pred.home_win_prob * 100).toFixed(1)}%"
                   ></div>
-                  <div 
-                    class="bg-slate-400 transition-all" 
+                  <div
+                    class="bg-slate-400 transition-all"
                     style="width: {pred.draw_prob * 100}%"
                     title="Draw: {(pred.draw_prob * 100).toFixed(1)}%"
                   ></div>
-                  <div 
-                    class="bg-red-500 transition-all" 
+                  <div
+                    class="bg-red-500 transition-all"
                     style="width: {pred.away_win_prob * 100}%"
                     title="Away: {(pred.away_win_prob * 100).toFixed(1)}%"
                   ></div>

@@ -16,20 +16,11 @@ from analysis_llm import AnalysisLLM
 
 app = FastAPI()
 
-# CORS - Production domains
+# CORS - Production domains (allow all origins for API access)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:8000",
-        "http://localhost:8001",
-        "https://fixturecast.com",
-        "https://www.fixturecast.com",
-        "https://fixturecast.pages.dev",
-        "https://terrific-passion-production-4d20.up.railway.app",
-        "https://backend-api-production-c024.up.railway.app",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

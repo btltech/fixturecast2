@@ -219,10 +219,19 @@ class PredictionStatsTracker:
 # Initialize stats tracker
 stats_tracker = PredictionStatsTracker()
 
-# Enable CORS
+# Enable CORS - Production domains
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:8000",
+        "http://localhost:8001",
+        "https://fixturecast.com",
+        "https://www.fixturecast.com",
+        "https://fixturecast.pages.dev",
+        "https://terrific-passion-production-4d20.up.railway.app",
+        "https://backend-api-production-c024.up.railway.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

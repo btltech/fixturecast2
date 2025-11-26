@@ -45,6 +45,14 @@ predictor.load_artifacts("ml_engine/artifacts")
 def read_root():
     return {"status": "FixtureCast Backend Running", "mode": "API-Football Live Data"}
 
+@app.get("/api/status")
+def get_api_status():
+    """
+    Get API-Football quota status.
+    Returns requests used today, limit, and remaining.
+    """
+    return api_client.get_api_status()
+
 @app.get("/api/fixtures")
 def get_fixtures(league: int, season: int = 2025, next: int = 10):
     if league not in config["allowed_competitions"]:

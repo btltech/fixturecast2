@@ -4,8 +4,18 @@ import requests
 import json
 import os
 from datetime import datetime, timedelta
+from threading import Lock
 
 class ApiClient:
+    """
+    API-Football client with best practices:
+    - In-memory caching with TTLs
+    - Rate limiting with retry logic (429 handling)
+    - Quota monitoring via /status endpoint
+    - Exponential backoff on errors
+    - Request throttling (respects 450/min Ultra plan limit)
+    """
+    
     def __init__(self, config):
         self.config = config
         self.api_key = os.environ.get("API_FOOTBALL_KEY", config.get("api_key"))
@@ -17,6 +27,23 @@ class ApiClient:
         
         # Simple in-memory cache: { key: { "data": ..., "expires_at": ... } }
         self.cache = {}
+        
+        # Rate limiting - Ultra plan: 450 requests/minute
+        self.rate_limit = 450
+        self.rate_window = 60  # seconds
+        self.request_times = []
+        self.rate_lock = Lock()
+        
+        # Quota tracking
+        self.quota_info = {
+            "requests_today": 0,
+            "requests_limit": 7500,  # Ultra plan daily limit
+            "last_checked": None
+        }
+        
+        # Retry configuration
+        self.max_retries = 3
+        self.retry_delay = 1  # Base delay in seconds
         
         # TTLs in seconds
         self.ttls = {
@@ -33,6 +60,7 @@ class ApiClient:
             "coachs": 86400,  # Cache coach info for a day
             "sidelined": 3600,  # Cache sidelined players for 1 hour
             "rounds": 3600,  # Cache round info for 1 hour
+            "status": 60,  # Cache status for 1 min
         }
     
     def get_competition_info(self, league_id):
@@ -99,6 +127,59 @@ class ApiClient:
             "data": data,
             "expires_at": time.time() + ttl
         }
+    
+    def _wait_for_rate_limit(self):
+        """
+        Rate limiting: Ensure we don't exceed 450 requests/minute (Ultra plan).
+        Uses a sliding window approach.
+        """
+        with self.rate_lock:
+            now = time.time()
+            # Remove requests older than the rate window
+            self.request_times = [t for t in self.request_times if now - t < self.rate_window]
+            
+            if len(self.request_times) >= self.rate_limit:
+                # Calculate wait time
+                oldest = self.request_times[0]
+                wait_time = self.rate_window - (now - oldest) + 0.1
+                if wait_time > 0:
+                    print(f"API: Rate limit approaching, waiting {wait_time:.2f}s")
+                    time.sleep(wait_time)
+            
+            self.request_times.append(time.time())
+    
+    def get_api_status(self):
+        """
+        Check API quota status. Call this to monitor usage.
+        Returns: { requests_today, requests_limit, requests_remaining }
+        """
+        key = "status"
+        cached = self._get_from_cache(key)
+        if cached:
+            return cached
+        
+        headers = {
+            'x-rapidapi-host': "v3.football.api-sports.io",
+            'x-rapidapi-key': self.api_key
+        }
+        try:
+            response = requests.get(f"{self.base_url}/status", headers=headers)
+            data = response.json()
+            
+            if data.get("response"):
+                status = data["response"]
+                self.quota_info = {
+                    "requests_today": status.get("requests", {}).get("current", 0),
+                    "requests_limit": status.get("requests", {}).get("limit_day", 7500),
+                    "requests_remaining": status.get("requests", {}).get("limit_day", 7500) - status.get("requests", {}).get("current", 0),
+                    "last_checked": datetime.now().isoformat()
+                }
+                self._set_cache(key, self.quota_info, "status")
+                return self.quota_info
+        except Exception as e:
+            print(f"API: Failed to get status: {e}")
+        
+        return self.quota_info
 
     def _call_api(self, endpoint, params, ttl_type):
         print(f"API: Calling {endpoint} with params {params}")
@@ -115,26 +196,62 @@ class ApiClient:
             print(f"API: Returning cached data for {key}")
             return cached
         
-        # Real API Call
+        # Rate limiting
+        self._wait_for_rate_limit()
+        
+        # Real API Call with retry logic
         headers = {
             'x-rapidapi-host': "v3.football.api-sports.io",
             'x-rapidapi-key': self.api_key
         }
-        try:
-            print(f"API: Making request to {self.base_url}/{endpoint}")
-            response = requests.get(f"{self.base_url}/{endpoint}", headers=headers, params=params)
-            data = response.json()
-            
-            if "errors" in data and data["errors"]:
-                print(f"API ERROR: {data['errors']}")
-            else:
-                print(f"API: Success - {data.get('results', 0)} results")
-            
-            self._set_cache(key, data, ttl_type)
-            return data
-        except Exception as e:
-            print(f"API Error: {e}")
-            return {"errors": [str(e)]}
+        
+        last_error = None
+        for attempt in range(self.max_retries):
+            try:
+                print(f"API: Making request to {self.base_url}/{endpoint} (attempt {attempt + 1})")
+                response = requests.get(f"{self.base_url}/{endpoint}", headers=headers, params=params, timeout=30)
+                
+                # Handle rate limiting (429)
+                if response.status_code == 429:
+                    retry_after = int(response.headers.get("Retry-After", self.retry_delay * (2 ** attempt)))
+                    print(f"API: Rate limited (429), waiting {retry_after}s before retry")
+                    time.sleep(retry_after)
+                    continue
+                
+                # Handle server errors with retry
+                if response.status_code >= 500:
+                    wait_time = self.retry_delay * (2 ** attempt)  # Exponential backoff
+                    print(f"API: Server error {response.status_code}, retrying in {wait_time}s")
+                    time.sleep(wait_time)
+                    continue
+                
+                data = response.json()
+                
+                if "errors" in data and data["errors"]:
+                    print(f"API ERROR: {data['errors']}")
+                else:
+                    print(f"API: Success - {data.get('results', 0)} results")
+                
+                self._set_cache(key, data, ttl_type)
+                return data
+                
+            except requests.exceptions.Timeout:
+                last_error = "Request timeout"
+                wait_time = self.retry_delay * (2 ** attempt)
+                print(f"API: Timeout, retrying in {wait_time}s")
+                time.sleep(wait_time)
+            except requests.exceptions.ConnectionError as e:
+                last_error = str(e)
+                wait_time = self.retry_delay * (2 ** attempt)
+                print(f"API: Connection error, retrying in {wait_time}s")
+                time.sleep(wait_time)
+            except Exception as e:
+                last_error = str(e)
+                print(f"API Error: {e}")
+                break
+        
+        print(f"API: All retries failed for {endpoint}")
+        return {"errors": [last_error or "Request failed after retries"]}
 
     # Public methods matching requirements
     def get_fixtures(self, league_id=None, season=None, date=None, next_n=None):

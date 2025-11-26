@@ -35,37 +35,7 @@ app.add_middleware(
 # Initialize API client
 api_client = None
 
-# Big teams for "Match of the Day" ranking (by popularity/following)
-BIG_TEAMS = {
-    # Premier League
-    33: {"name": "Manchester United", "rank": 1},
-    40: {"name": "Liverpool", "rank": 2},
-    49: {"name": "Chelsea", "rank": 3},
-    50: {"name": "Manchester City", "rank": 4},
-    42: {"name": "Arsenal", "rank": 5},
-    47: {"name": "Tottenham", "rank": 6},
-    # La Liga
-    529: {"name": "Barcelona", "rank": 1},
-    541: {"name": "Real Madrid", "rank": 2},
-    530: {"name": "Atletico Madrid", "rank": 7},
-    # Serie A
-    489: {"name": "AC Milan", "rank": 8},
-    505: {"name": "Inter Milan", "rank": 9},
-    496: {"name": "Juventus", "rank": 10},
-    # Bundesliga
-    157: {"name": "Bayern Munich", "rank": 3},
-    165: {"name": "Borussia Dortmund", "rank": 11},
-    # Ligue 1
-    85: {"name": "Paris Saint-Germain", "rank": 6},
-    # Other notable teams
-    529: {"name": "Barcelona", "rank": 1},
-    211: {"name": "Benfica", "rank": 15},
-    212: {"name": "FC Porto", "rank": 16},
-    194: {"name": "Ajax", "rank": 14},
-}
-
-# Initialize API client
-api_client = None
+print("🚀 DEBUG: BACKEND_API MODULE LOADED")
 
 @app.on_event("startup")
 async def startup_event():
@@ -364,6 +334,7 @@ async def get_live_scores():
 
 if __name__ == "__main__":
     import uvicorn
-    print("Starting FixtureCast Backend API server on port 8001...")
-    print(" API docs will be available at http://localhost:8001/docs")
-    uvicorn.run(app, host="0.0.0.0", port=8001, log_level="info")
+    port = int(os.environ.get("PORT", 8001))
+    print(f"Starting FixtureCast Backend API server on port {port}...")
+    print(f" API docs will be available at http://localhost:{port}/docs")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

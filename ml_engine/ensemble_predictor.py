@@ -1,4 +1,3 @@
-
 import json
 import os
 import numpy as np
@@ -17,6 +16,7 @@ from .confidence_intervals import calculate_confidence_intervals
 
 class EnsemblePredictor:
     def __init__(self, load_trained=True):
+        print("DEBUG: Loaded EnsemblePredictor v3")
         models_dir = os.path.join(os.path.dirname(__file__), "trained_models")
         
         # Initialize models - load from disk if available, else create fresh
@@ -86,14 +86,12 @@ class EnsemblePredictor:
         # Load all models from specified directory
         pass
 
-    def predict_fixture(self, features):
-        import numpy as np
-        
-        # Helper function to handle sklearn models that need feature arrays
-        def safe_predict(model, features_dict):
-            # Check if it's an sklearn model (has fit/predict_proba but not from our wrappers)
-            if hasattr(model, 'feature_keys') and hasattr(model, 'predict_proba'):
-                # It's a trained sklearn model with feature_keys attached
+    def _safe_predict(self, model, features_dict):
+        """Helper to handle sklearn models that need feature arrays"""
+        # Check if it's an sklearn model (has fit/predict_proba but not from our wrappers)
+        if hasattr(model, 'feature_keys') and hasattr(model, 'predict_proba'):
+            # It's a trained sklearn model with feature_keys attached
+            try:
                 X = np.array([[features_dict.get(k, 0) for k in model.feature_keys]])
                 probs = model.predict_proba(X)[0]
                 # Return in expected format
@@ -104,12 +102,18 @@ class EnsemblePredictor:
                         "draw": round(float(probs[1]), 4),
                         "away_win": round(float(probs[0]), 4)
                     }
-            # Not sklearn or doesn't have feature_keys, use model's own predict
-            return model.predict(features_dict)
+            except Exception as e:
+                print(f"Error in _safe_predict for {type(model)}: {e}")
+                return {"home_win": 0.33, "draw": 0.34, "away_win": 0.33}
+        # Not sklearn or doesn't have feature_keys, use model's own predict
+        return model.predict(features_dict)
+
+    def predict_fixture(self, features):
+        print("DEBUG: predict_fixture v3 called")
         
         # 1. Get predictions from all models
-        p_gbdt = safe_predict(self.gbdt, features)
-        p_cat = safe_predict(self.catboost, features)
+        p_gbdt = self._safe_predict(self.gbdt, features)
+        p_cat = self._safe_predict(self.catboost, features)
         p_trans = self.transformer.predict(features)
         p_lstm = self.lstm.predict(features)
         p_gnn = self.gnn.predict(features)

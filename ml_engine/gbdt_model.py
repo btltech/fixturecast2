@@ -24,7 +24,6 @@ class GBDTModel:
     def train(self, X, y):
         print("Training GBDT Model with GradientBoostingClassifier...")
         from sklearn.ensemble import GradientBoostingClassifier
-        import numpy as np
         if not X:
             raise ValueError("Training data X cannot be empty")
         # Filter out non-numeric features (team_id, team_name)
@@ -44,7 +43,6 @@ class GBDTModel:
         """
         # If we have a trained sklearn model, use it
         if hasattr(self, 'model') and hasattr(self, 'feature_keys'):
-            import numpy as np
             # Convert features dict to array using stored feature_keys
             X = np.array([[features.get(k, 0) for k in self.feature_keys]])
             # Get probabilities for each class [home_win, draw, away_win]

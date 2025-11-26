@@ -13,7 +13,6 @@ class CatBoostModel:
     def train(self, X, y):
         print("Training CatBoost Model (using LogisticRegression as proxy)...")
         from sklearn.linear_model import LogisticRegression
-        import numpy as np
         if not X:
             raise ValueError("Training data X cannot be empty")
         # Filter out non-numeric features

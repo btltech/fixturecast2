@@ -14,7 +14,6 @@ class PoissonModel:
     def train(self, X, y):
         print("Training Poisson Model (simple linear regression for lambda)...")
         from sklearn.linear_model import LinearRegression
-        import numpy as np
         # Expect X as list of feature dicts, y as list of dicts with 'home_lambda','away_lambda'
         if not X:
             print("No training data provided.")

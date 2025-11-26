@@ -1,0 +1,6 @@
+# Railway configuration
+# This file is for the ML API service (default)
+# The backend-api service should use Dockerfile.backend
+
+[build]
+dockerfilePath = "Dockerfile"

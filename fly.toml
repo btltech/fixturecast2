@@ -1,19 +1,22 @@
+# Fly.io configuration for FixtureCast
+app = "fixturecast"
+primary_region = "lhr"
+
 [build]
-  command = "pip install -r requirements.txt"
+  dockerfile = "Dockerfile"
 
 [env]
+  PORT = "8001"
   PYTHON_VERSION = "3.11"
 
-[[services]]
-  internal_port = 8000
-  protocol = "tcp"
+[http_service]
+  internal_port = 8001
+  force_https = true
   auto_stop_machines = true
   auto_start_machines = true
+  min_machines_running = 0
 
-  [[services.ports]]
-    handlers = ["http"]
-    port = 80
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 443
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

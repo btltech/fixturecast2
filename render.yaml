@@ -1,0 +1,45 @@
+services:
+  # Backend API
+  - type: web
+    name: fixturecast-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && python main.py
+    envVars:
+      - key: PORT
+        value: 8001
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: API_FOOTBALL_KEY
+        sync: false
+
+  # ML API
+  - type: web
+    name: fixturecast-ml
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && SERVICE_TYPE=ml PORT=8002 python ml_api.py
+    envVars:
+      - key: PORT
+        value: 8002
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: SERVICE_TYPE
+        value: ml
+
+  # Frontend (Static Site)
+  - type: web
+    name: fixturecast-frontend
+    runtime: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=31536000
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

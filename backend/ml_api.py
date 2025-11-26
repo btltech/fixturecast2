@@ -1039,6 +1039,7 @@ async def update_results_from_backend():
 
 if __name__ == "__main__":
     import uvicorn
-    print("Starting FixtureCast ML API server...")
-    print("API docs will be available at http://localhost:8000/docs")
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Starting FixtureCast ML API server on port {port}...")
+    print(f"API docs will be available at http://localhost:{port}/docs")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")

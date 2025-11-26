@@ -9,11 +9,10 @@ export const ML_API_URL = isDev
   ? 'http://localhost:8000'
   : (import.meta.env.VITE_ML_API_URL || 'https://terrific-passion-production-4d20.up.railway.app');
 
-// Backend Data API (Football data)
-// Update BACKEND_API_URL with your deployed backend URL
+// Backend Data API (Football data on Railway)
 export const BACKEND_API_URL = isDev
   ? 'http://localhost:8001'
-  : (import.meta.env.VITE_BACKEND_API_URL || 'https://fixturecast-backend.onrender.com');
+  : (import.meta.env.VITE_BACKEND_API_URL || 'https://backend-api-production-c024.up.railway.app');
 
 // Export a helper to get full API URLs
 export const getMLApiUrl = (path) => `${ML_API_URL}${path}`;

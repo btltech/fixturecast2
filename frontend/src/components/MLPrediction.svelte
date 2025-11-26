@@ -279,11 +279,17 @@
         );
         border: 1px solid rgba(139, 92, 246, 0.2);
         border-radius: 16px;
-        padding: 24px;
+        padding: 20px;
         backdrop-filter: blur(20px);
         box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
         transition: transform var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
                     box-shadow var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
+    }
+
+    @media (min-width: 640px) {
+        .ml-prediction-card {
+            padding: 24px;
+        }
     }
 
     .ml-prediction-card:hover {
@@ -403,10 +409,17 @@
         gap: 20px;
     }
 
+    @media (min-width: 640px) {
+        .prediction-main {
+            gap: 24px;
+        }
+    }
+
     .outcome-bars {
         display: flex;
         flex-direction: column;
         gap: 12px;
+        min-height: 180px; /* Reserve space to prevent layout shift */
     }
 
     .outcome-bar {
@@ -415,6 +428,7 @@
         border-radius: 12px;
         padding: 12px;
         overflow: hidden;
+        min-height: 52px; /* Fixed height for each bar */
     }
 
     .bar-label {
@@ -429,6 +443,10 @@
     .team-name {
         font-weight: 600;
         font-size: 0.95rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 180px; /* Limit width to prevent bar overflow */
     }
 
     .team-link {
@@ -453,8 +471,9 @@
         left: 0;
         height: 100%;
         border-radius: 12px;
-        transition: width var(--duration-slow, 300ms) var(--ease-out-smooth, cubic-bezier(0.22, 1, 0.36, 1));
+        transition: width var(--duration-slow, 300ms) var(--ease-out-smooth, cubic-bezier(0.22, 1, 0.36, 1)) 50ms; /* Slight delay to ensure layout is ready */
         opacity: 0.3;
+        width: 0; /* Start at 0, animate to target */
     }
 
     .outcome-bar.home .bar-fill {

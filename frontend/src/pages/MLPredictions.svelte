@@ -1,5 +1,6 @@
 <script>
     import { onMount } from "svelte";
+    import { slide } from "svelte/transition";
     import { mlClient } from "../services/mlPredictionClient.js";
     import { ML_API_URL, BACKEND_API_URL } from "../services/apiConfig.js";
     import MLPrediction from "../components/MLPrediction.svelte";
@@ -40,6 +41,7 @@
     let league = 39; // Default: Premier League
     let season = 2025;
     let showLeagueDropdown = false;
+    let showAnalysis = false; // For collapsible analysis section
 
     // Get current league info
     $: currentLeague = leagues.find(l => l.id === league) || leagues[0];
@@ -364,15 +366,29 @@
                     />
 
                     {#if analysis}
-                        <div class="analysis-section">
-                            <h3>AI Analysis</h3>
-                            <div class="analysis-content">
-                                {#each analysis.split('\n') as line}
-                                    {#if line.trim()}
-                                        <p>{line.trim()}</p>
-                                    {/if}
-                                {/each}
-                            </div>
+                        <div class="analysis-section" class:expanded={showAnalysis}>
+                            <button class="analysis-toggle" on:click={() => showAnalysis = !showAnalysis}>
+                                <h3>
+                                    <span class="analysis-icon">🤖</span>
+                                    AI Analysis
+                                </h3>
+                                <svg class="toggle-arrow" class:open={showAnalysis} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M6 9l6 6 6-6"/>
+                                </svg>
+                            </button>
+                            {#if showAnalysis}
+                                <div class="analysis-content" transition:slide>
+                                    {#each analysis.split('\n') as line}
+                                        {#if line.trim()}
+                                            <p>{line.trim()}</p>
+                                        {/if}
+                                    {/each}
+                                </div>
+                            {:else}
+                                <p class="analysis-preview">
+                                    {analysis.split('\n').find(l => l.trim())?.slice(0, 120)}...
+                                </p>
+                            {/if}
                         </div>
                     {/if}
 
@@ -637,6 +653,13 @@
         .matches-panel,
         .prediction-panel {
             border-radius: 16px;
+            padding: 20px;
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .matches-panel,
+        .prediction-panel {
             padding: 24px;
         }
     }
@@ -657,7 +680,7 @@
     .matches-list {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
         max-height: 60vh;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
@@ -665,7 +688,7 @@
 
     @media (min-width: 640px) {
         .matches-list {
-            gap: 12px;
+            gap: 10px;
             max-height: none;
         }
     }
@@ -676,16 +699,20 @@
         border-radius: 10px;
         padding: 12px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
         text-align: left;
         width: 100%;
-        min-height: 44px;
+        min-height: 88px; /* Fixed minimum height for consistency */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     @media (min-width: 640px) {
         .match-card {
             border-radius: 12px;
             padding: 16px;
+            min-height: 96px; /* Slightly taller on desktop */
         }
     }
 
@@ -737,6 +764,7 @@
     .team {
         flex: 1;
         min-width: 0;
+        max-width: 45%; /* Prevent overflow */
     }
 
     .team-name {
@@ -746,6 +774,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        max-width: 100%;
     }
 
     @media (min-width: 640px) {
@@ -1003,22 +1032,44 @@
 
     .analysis-section {
         margin-top: 16px;
-        padding: 16px;
+        padding: 0;
         background: rgba(139, 92, 246, 0.05);
         border: 1px solid rgba(139, 92, 246, 0.2);
         border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .analysis-section.expanded {
+        background: rgba(139, 92, 246, 0.08);
     }
 
     @media (min-width: 640px) {
         .analysis-section {
             margin-top: 24px;
-            padding: 20px;
             border-radius: 12px;
         }
     }
 
-    .analysis-section h3 {
-        margin: 0 0 12px 0;
+    .analysis-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: inherit;
+        transition: background 0.15s ease;
+    }
+
+    .analysis-toggle:hover {
+        background: rgba(139, 92, 246, 0.1);
+    }
+
+    .analysis-toggle h3 {
+        margin: 0;
         font-size: 1rem;
         font-weight: 700;
         color: var(--primary-300, #c4b5fd);
@@ -1027,25 +1078,47 @@
         gap: 8px;
     }
 
-    @media (min-width: 640px) {
-        .analysis-section h3 {
-            margin: 0 0 16px 0;
-            font-size: 1.125rem;
-        }
-    }
-
-    .analysis-section h3::before {
-        content: "🤖";
+    .analysis-icon {
         font-size: 1.125rem;
     }
 
+    .toggle-arrow {
+        color: var(--primary-400, #a78bfa);
+        transition: transform 0.2s ease;
+    }
+
+    .toggle-arrow.open {
+        transform: rotate(180deg);
+    }
+
+    .analysis-preview {
+        padding: 0 16px 16px;
+        margin: 0;
+        font-size: 0.8125rem;
+        opacity: 0.7;
+        line-height: 1.5;
+    }
+
     @media (min-width: 640px) {
-        .analysis-section h3::before {
+        .analysis-toggle {
+            padding: 20px;
+        }
+
+        .analysis-toggle h3 {
+            font-size: 1.125rem;
+        }
+
+        .analysis-icon {
             font-size: 1.25rem;
+        }
+
+        .analysis-preview {
+            padding: 0 20px 20px;
         }
     }
 
     .analysis-content {
+        padding: 0 16px 16px;
         line-height: 1.7;
         color: rgba(255, 255, 255, 0.85);
     }

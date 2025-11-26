@@ -250,10 +250,14 @@
                   <!-- View Full -->
                   <Link
                     to={`/prediction/${compareFixtures[index]}`}
-                    class="block mt-4 text-center text-accent text-sm hover:underline"
+                    class="view-analysis-btn-sm"
                     on:click={closePanel}
                   >
-                    View Full Analysis →
+                    <span>🔮</span>
+                    <span>View Full Analysis</span>
+                    <svg class="arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
                   </Link>
                 {:else}
                   <!-- Empty slot -->
@@ -335,5 +339,42 @@
       transform: scale(1);
       opacity: 1;
     }
+  }
+
+  :global(.view-analysis-btn-sm) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.15));
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 10px;
+    color: #c4b5fd;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  :global(.view-analysis-btn-sm:hover) {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.25));
+    border-color: rgba(139, 92, 246, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+  }
+
+  :global(.view-analysis-btn-sm:active) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  :global(.view-analysis-btn-sm .arrow-icon) {
+    transition: transform 0.2s ease;
+  }
+
+  :global(.view-analysis-btn-sm:hover .arrow-icon) {
+    transform: translateX(2px);
   }
 </style>

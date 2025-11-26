@@ -525,8 +525,12 @@
                   <span>D: {(pred.draw_prob * 100).toFixed(0)}%</span>
                   <span>A: {(pred.away_win_prob * 100).toFixed(0)}%</span>
                 </div>
-                <Link to={`/prediction/${fixtureId}`} class="block mt-2 text-center text-xs text-accent hover:underline">
-                  View Full Analysis →
+                <Link to={`/prediction/${fixtureId}`} class="view-analysis-btn">
+                  <span>🔮</span>
+                  <span>View Full Analysis</span>
+                  <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
                 </Link>
               </div>
             {:else}
@@ -573,3 +577,42 @@
     {/if}
   </div>
 </div>
+
+<style>
+    :global(.view-analysis-btn) {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 12px;
+        padding: 10px 16px;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.15));
+        border: 1px solid rgba(139, 92, 246, 0.4);
+        border-radius: 10px;
+        color: #c4b5fd;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    :global(.view-analysis-btn:hover) {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(236, 72, 153, 0.25));
+        border-color: rgba(139, 92, 246, 0.6);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
+    }
+
+    :global(.view-analysis-btn:active) {
+        transform: translateY(0) scale(0.98);
+    }
+
+    :global(.view-analysis-btn .arrow-icon) {
+        transition: transform 0.2s ease;
+    }
+
+    :global(.view-analysis-btn:hover .arrow-icon) {
+        transform: translateX(3px);
+    }
+</style>

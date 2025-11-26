@@ -35,17 +35,17 @@
 
     <!-- Desktop Navigation -->
     <div class="hidden md:flex gap-3 lg:gap-4 text-sm font-medium text-slate-300 items-center">
-      <Link to="/" class="hover:text-white transition-colors py-2">Home</Link>
-      <Link to="/fixtures" class="hover:text-white transition-colors py-2">Fixtures</Link>
-      <Link to="/standings" class="hover:text-white transition-colors py-2">Standings</Link>
-      <Link to="/live" class="hover:text-white transition-colors flex items-center gap-1 py-2">
+      <Link to="/" class="hover:text-white py-2 nav-link">Home</Link>
+      <Link to="/fixtures" class="hover:text-white py-2 nav-link">Fixtures</Link>
+      <Link to="/standings" class="hover:text-white py-2 nav-link">Standings</Link>
+      <Link to="/live" class="hover:text-white flex items-center gap-1 py-2 nav-link">
         <span class="relative flex h-2 w-2">
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
         </span>
         <span>Live</span>
       </Link>
-      <Link to="/predictions" class="hover:text-white transition-colors flex items-center gap-1 py-2">
+      <Link to="/predictions" class="hover:text-white flex items-center gap-1 py-2 nav-link">
         <span>🧠</span>
         <span>AI</span>
       </Link>
@@ -56,7 +56,7 @@
       <!-- More menu for secondary items -->
       <button
         on:click={toggleMobileMenu}
-        class="p-2 rounded-lg hover:bg-white/10 transition-all touch-target"
+        class="p-2 rounded-lg hover:bg-white/10 touch-target btn-press"
         aria-label="More options"
         aria-expanded={mobileMenuOpen}
       >
@@ -86,7 +86,7 @@
 
 <!-- Mobile Menu Drawer (Secondary items only - main nav in bottom bar) -->
 <div 
-  class="fixed inset-y-0 right-0 w-72 max-w-[85vw] bg-slate-900 z-50 transform transition-transform duration-300 ease-out md:hidden {mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}"
+  class="fixed inset-y-0 right-0 w-72 max-w-[85vw] bg-slate-900 z-50 transform md:hidden mobile-drawer {mobileMenuOpen ? 'open' : ''}"
   style="padding-top: calc(env(safe-area-inset-top) + 1rem);"
 >
   <div class="flex flex-col h-full">
@@ -95,7 +95,7 @@
       <span class="font-bold text-lg">More Options</span>
       <button
         on:click={closeMobileMenu}
-        class="p-2 rounded-lg hover:bg-white/10 transition-all touch-target"
+        class="p-2 rounded-lg hover:bg-white/10 touch-target btn-press"
         aria-label="Close menu"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -110,7 +110,7 @@
         <Link 
           to="/teams" 
           on:click={closeMobileMenu}
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors touch-target"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 touch-target menu-item"
         >
           <span class="text-xl">🛡️</span>
           <span class="font-medium">Teams</span>
@@ -119,7 +119,7 @@
         <Link 
           to="/results" 
           on:click={closeMobileMenu}
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors touch-target"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 touch-target menu-item"
         >
           <span class="text-xl">📊</span>
           <span class="font-medium">Results</span>
@@ -130,7 +130,7 @@
         <Link 
           to="/models" 
           on:click={closeMobileMenu}
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors touch-target"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 touch-target menu-item"
         >
           <span class="text-xl">📈</span>
           <span class="font-medium">Model Stats</span>
@@ -139,7 +139,7 @@
         <Link 
           to="/history" 
           on:click={closeMobileMenu}
-          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 transition-colors touch-target"
+          class="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/10 touch-target menu-item"
         >
           <span class="text-xl">📚</span>
           <span class="font-medium">History</span>

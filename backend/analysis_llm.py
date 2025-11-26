@@ -198,7 +198,46 @@ class AnalysisLLM:
         
         # ========== NEW ENHANCED INSIGHTS ==========
         
-        # Top Scorer Analysis
+        # 1. Key Player Dependency
+        home_scorer = features.get('home_top_scorer_name')
+        home_scorer_goals = features.get('home_top_scorer_goals', 0)
+        home_dependency = features.get('home_top_scorer_dependency', 0)
+        
+        if home_scorer and home_dependency > 0.35: # >35% of team goals
+            analysis_points.append(
+                f"⭐ **Key Player:** {home_scorer} is crucial for {home_name}, scoring {home_scorer_goals} goals "
+                f"({home_dependency:.0%} of team total). Stopping him is the key."
+            )
+            
+        # 2. Managerial Context
+        home_coach_new = features.get('home_coach_is_new', False)
+        away_coach_new = features.get('away_coach_is_new', False)
+        
+        if home_coach_new:
+            days = features.get('home_coach_tenure_days', 0)
+            analysis_points.append(
+                f"👔 **New Manager:** {home_name} have a new coach (appointed {days} days ago). "
+                f"Expect the 'new manager bounce' or potential tactical unpredictability."
+            )
+        elif away_coach_new:
+             days = features.get('away_coach_tenure_days', 0)
+             analysis_points.append(
+                f"👔 **New Manager:** {away_name} have a new coach (appointed {days} days ago). "
+                f"This adds a layer of unpredictability to their setup."
+            )
+
+        # 3. Fatigue / Schedule (if we had date data, but we can use squad rotation proxy)
+        # (Placeholder for future schedule congestion logic)
+        
+        # 4. Discipline Issues
+        home_reds = features.get('home_red_cards_last5', 0)
+        if home_reds >= 2:
+             analysis_points.append(
+                f"⚠️ **Discipline:** {home_name} have seen {home_reds} red cards in their last 5 games. "
+                f"Discipline issues could cost them."
+            )
+
+        # ===========================================        # Top Scorer Analysis
         home_top_scorer = features.get('home_top_scorer_name')
         home_top_goals = features.get('home_top_scorer_goals', 0)
         away_top_scorer = features.get('away_top_scorer_name')

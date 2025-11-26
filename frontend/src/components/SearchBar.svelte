@@ -76,7 +76,7 @@
       on:input={handleSearch}
       on:focus={handleSearch}
       placeholder="Search teams or fixtures..."
-      class="w-full px-4 py-3 pl-12 bg-white/10 rounded-lg focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent transition-all"
+      class="w-full px-4 py-3 pl-12 bg-white/10 rounded-lg focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-accent search-input"
     />
     <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
       🔍
@@ -84,7 +84,7 @@
     {#if searchQuery}
       <button
         on:click={clearSearch}
-        class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+        class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white btn-press"
       >
         ✕
       </button>
@@ -93,7 +93,7 @@
 
   {#if showResults}
     <div
-      class="absolute top-full mt-2 w-full bg-slate-900 border border-white/20 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50"
+      class="absolute top-full mt-2 w-full bg-slate-900 border border-white/20 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50 search-results"
     >
       {#if filteredTeams.length === 0 && filteredFixtures.length === 0}
         <div class="p-4 text-center text-slate-400">No results found</div>
@@ -106,7 +106,7 @@
               <Link
                 to="/team/{team.team.id}?league={selectedLeague}"
                 on:click={clearSearch}
-                class="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-lg transition-colors"
+                class="flex items-center gap-3 px-3 py-2 hover:bg-white/10 rounded-lg search-item"
               >
                 <img
                   src={team.team.logo}
@@ -134,7 +134,7 @@
               <Link
                 to="/prediction/{fixture.fixture.id}"
                 on:click={clearSearch}
-                class="block px-3 py-2 hover:bg-white/10 rounded-lg transition-colors"
+                class="block px-3 py-2 hover:bg-white/10 rounded-lg search-item"
               >
                 <div class="flex items-center justify-between gap-4">
                   <div class="flex items-center gap-2 flex-1">

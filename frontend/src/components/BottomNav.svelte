@@ -25,9 +25,9 @@
     {#each navItems as item}
       <Link 
         to={item.path}
-        class="flex flex-col items-center justify-center flex-1 h-full py-1 transition-all {isActive(item.path) ? 'text-accent' : 'text-slate-400'}"
+        class="flex flex-col items-center justify-center flex-1 h-full py-1 btn-press {isActive(item.path) ? 'text-accent' : 'text-slate-400'}"
       >
-        <span class="relative text-xl mb-0.5">
+        <span class="relative text-xl mb-0.5 icon-hover">
           {item.icon}
           {#if item.pulse && !isActive(item.path)}
             <span class="absolute -top-0.5 -right-0.5 flex h-2 w-2">
@@ -36,11 +36,11 @@
             </span>
           {/if}
         </span>
-        <span class="text-[10px] font-medium {isActive(item.path) ? 'text-accent' : 'text-slate-500'}">
+        <span class="text-[10px] font-medium transition-colors {isActive(item.path) ? 'text-accent' : 'text-slate-500'}">
           {item.label}
         </span>
         {#if isActive(item.path)}
-          <span class="absolute bottom-0 w-12 h-0.5 bg-accent rounded-t-full"></span>
+          <span class="absolute bottom-0 w-12 h-0.5 bg-accent rounded-t-full nav-indicator"></span>
         {/if}
       </Link>
     {/each}
@@ -54,4 +54,6 @@
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
+  
+  /* Smooth indicator transitions handled by global nav-indicator class */
 </style>

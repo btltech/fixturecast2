@@ -54,7 +54,7 @@
   }
 </script>
 
-<div class="space-y-6 md:space-y-8 animate-fade-in">
+<div class="space-y-6 md:space-y-8 page-enter">
   <!-- Hero Section -->
   <div
     class="glass-card p-6 md:p-8 lg:p-12 text-center relative overflow-hidden group"
@@ -63,7 +63,7 @@
       class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"
     ></div>
     <div
-      class="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-10 transition-opacity duration-500"
+      class="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-10 transition-opacity duration-300"
     ></div>
 
     <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-3 md:mb-4 tracking-tight">
@@ -87,13 +87,13 @@
     <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
       <Link
         to="/fixtures"
-        class="px-6 sm:px-8 py-3 rounded-full bg-accent text-white font-bold hover:bg-accent/80 active:scale-95 transition-all shadow-lg shadow-accent/20 touch-target"
+        class="px-6 sm:px-8 py-3 rounded-full bg-accent text-white font-bold btn-glow touch-target"
       >
         Today's Fixtures
       </Link>
       <Link
         to="/predictions"
-        class="px-6 sm:px-8 py-3 rounded-full bg-white/10 text-white font-bold hover:bg-white/20 active:scale-95 transition-all backdrop-blur-sm border border-white/10 touch-target"
+        class="px-6 sm:px-8 py-3 rounded-full bg-white/10 text-white font-bold btn-press backdrop-blur-sm border border-white/10 touch-target"
       >
         AI Predictions
       </Link>
@@ -103,11 +103,11 @@
   <!-- Match of the Day Section -->
   {#if loading}
     <div class="glass-card p-8 text-center">
-      <div class="inline-block w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-      <p class="mt-4 text-slate-400">Loading today's matches...</p>
+      <div class="inline-block w-10 h-10 border-4 border-accent border-t-transparent rounded-full loading-spin"></div>
+      <p class="mt-4 text-slate-400 loading-pulse">Loading today's matches...</p>
     </div>
   {:else if matchOfTheDay}
-    <div class="glass-card p-4 md:p-6 relative overflow-hidden">
+    <div class="glass-card p-4 md:p-6 relative overflow-hidden content-enter">
       <!-- Spotlight effect -->
       <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-accent/20 blur-3xl rounded-full"></div>
       
@@ -124,7 +124,7 @@
 
         <Link 
           to={`/prediction/${matchOfTheDay.fixture.id}`}
-          class="block bg-gradient-to-r from-accent/10 to-purple-500/10 rounded-xl p-4 md:p-6 hover:from-accent/20 hover:to-purple-500/20 transition-all border border-accent/20"
+          class="block bg-gradient-to-r from-accent/10 to-purple-500/10 rounded-xl p-4 md:p-6 card-interactive border border-accent/20"
         >
           <div class="flex items-center justify-between">
             <!-- Home Team -->
@@ -160,7 +160,7 @@
           </div>
 
           <div class="mt-4 text-center">
-            <span class="inline-flex items-center gap-2 px-4 py-2 bg-accent/20 rounded-full text-sm text-accent font-medium">
+            <span class="inline-flex items-center gap-2 px-4 py-2 bg-accent/20 rounded-full text-sm text-accent font-medium btn-press">
               🧠 Get AI Prediction
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -171,7 +171,7 @@
       </div>
     </div>
   {:else if !error}
-    <div class="glass-card p-6 text-center">
+    <div class="glass-card p-6 text-center content-enter">
       <div class="text-4xl mb-3">📅</div>
       <h3 class="font-bold text-lg mb-2">No Matches Today</h3>
       <p class="text-slate-400 text-sm">Check back tomorrow for match predictions!</p>
@@ -180,17 +180,17 @@
 
   <!-- Today's Other Matches -->
   {#if todaysMatches.length > 1}
-    <div class="glass-card p-4 md:p-6">
+    <div class="glass-card p-4 md:p-6 content-enter">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg md:text-xl font-bold">Today's Matches</h2>
         <span class="text-sm text-slate-400">{todaysMatches.length} matches</span>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 stagger-enter">
         {#each todaysMatches.slice(1, 7) as fixture}
           <Link
             to={`/prediction/${fixture.fixture.id}`}
-            class="bg-white/5 rounded-lg p-3 hover:bg-white/10 transition-all flex items-center justify-between gap-2"
+            class="bg-white/5 rounded-lg p-3 card-interactive flex items-center justify-between gap-2"
           >
             <div class="flex items-center gap-2 flex-1 min-w-0">
               <img src={fixture.teams.home.logo} alt="" class="w-6 h-6 flex-shrink-0" />
@@ -209,7 +209,7 @@
         <div class="mt-4 text-center">
           <Link
             to="/fixtures"
-            class="inline-flex items-center gap-2 text-accent hover:text-accent/80 text-sm font-medium"
+            class="inline-flex items-center gap-2 text-accent hover:text-accent/80 text-sm font-medium btn-press"
           >
             View all {todaysMatches.length} matches
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -222,13 +222,13 @@
   {/if}
 
   <!-- Quick Access Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 stagger-enter">
     <Link
       to="/fixtures"
-      class="glass-card p-5 md:p-6 hover:bg-white/5 active:bg-white/10 transition-all group touch-target"
+      class="glass-card p-5 md:p-6 card-interactive group touch-target"
     >
       <div
-        class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 mb-3 md:mb-4 group-hover:scale-110 transition-transform text-xl md:text-2xl"
+        class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 mb-3 md:mb-4 icon-hover text-xl md:text-2xl"
       >
         📅
       </div>
@@ -240,10 +240,10 @@
 
     <Link
       to="/teams"
-      class="glass-card p-5 md:p-6 hover:bg-white/5 active:bg-white/10 transition-all group touch-target"
+      class="glass-card p-5 md:p-6 card-interactive group touch-target"
     >
       <div
-        class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3 md:mb-4 group-hover:scale-110 transition-transform text-xl md:text-2xl"
+        class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3 md:mb-4 icon-hover text-xl md:text-2xl"
       >
         🛡️
       </div>
@@ -255,10 +255,10 @@
 
     <Link
       to="/predictions"
-      class="glass-card p-5 md:p-6 hover:bg-white/5 active:bg-white/10 transition-all group touch-target sm:col-span-2 lg:col-span-1"
+      class="glass-card p-5 md:p-6 card-interactive group touch-target sm:col-span-2 lg:col-span-1"
     >
       <div
-        class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 mb-3 md:mb-4 group-hover:scale-110 transition-transform text-xl md:text-2xl"
+        class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 mb-3 md:mb-4 icon-hover text-xl md:text-2xl"
       >
         🧠
       </div>
@@ -271,10 +271,10 @@
   </div>
 
   <!-- Additional Features Grid -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 stagger-enter">
     <Link
       to="/standings"
-      class="glass-card p-4 hover:bg-white/5 active:bg-white/10 transition-all text-center touch-target"
+      class="glass-card p-4 card-interactive text-center touch-target"
     >
       <div class="text-2xl md:text-3xl mb-1 md:mb-2">🏆</div>
       <h4 class="font-bold text-sm md:text-base">Standings</h4>
@@ -282,7 +282,7 @@
 
     <Link
       to="/results"
-      class="glass-card p-4 hover:bg-white/5 active:bg-white/10 transition-all text-center touch-target"
+      class="glass-card p-4 card-interactive text-center touch-target"
     >
       <div class="text-2xl md:text-3xl mb-1 md:mb-2">📊</div>
       <h4 class="font-bold text-sm md:text-base">Results</h4>
@@ -290,7 +290,7 @@
 
     <Link
       to="/live"
-      class="glass-card p-4 hover:bg-white/5 active:bg-white/10 transition-all text-center touch-target"
+      class="glass-card p-4 card-interactive text-center touch-target"
     >
       <div class="text-2xl md:text-3xl mb-1 md:mb-2">🔴</div>
       <h4 class="font-bold text-sm md:text-base">Live Scores</h4>
@@ -298,7 +298,7 @@
 
     <Link
       to="/models"
-      class="glass-card p-4 hover:bg-white/5 active:bg-white/10 transition-all text-center touch-target"
+      class="glass-card p-4 card-interactive text-center touch-target"
     >
       <div class="text-2xl md:text-3xl mb-1 md:mb-2">📈</div>
       <h4 class="font-bold text-sm md:text-base">Model Stats</h4>
@@ -307,17 +307,5 @@
 </div>
 
 <style>
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
-  }
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+  /* Page-specific animations handled by global CSS */
 </style>

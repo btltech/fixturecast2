@@ -13,7 +13,7 @@
     error = null;
     try {
       const response = await fetch(
-        `http://localhost:8001/api/h2h/${homeTeam.id}/${awayTeam.id}`
+        `http://localhost:8001/api/h2h/${homeTeam.id}/${awayTeam.id}`,
       );
       if (!response.ok) throw new Error("Failed to fetch H2H data");
       const data = await response.json();
@@ -35,14 +35,17 @@
     const isHome = match.teams.home.id === teamId;
 
     if (homeScore === awayScore) return { text: "D", color: "bg-yellow-500" };
-    if ((isHome && homeScore > awayScore) || (!isHome && awayScore > homeScore)) {
+    if (
+      (isHome && homeScore > awayScore) ||
+      (!isHome && awayScore > homeScore)
+    ) {
       return { text: "W", color: "bg-green-500" };
     }
     return { text: "L", color: "bg-red-500" };
   }
 </script>
 
-<div class="glass-card p-6">
+<div class="glass-card p-6 element-enter">
   <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
     <span>⚔️</span>
     <span>Head-to-Head</span>
@@ -51,7 +54,7 @@
   {#if loading}
     <div class="text-center py-8">
       <div
-        class="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin"
+        class="inline-block w-8 h-8 border-4 border-accent border-t-transparent rounded-full loading-spin"
       ></div>
       <p class="mt-2 text-sm text-slate-400">Loading H2H data...</p>
     </div>
@@ -82,34 +85,48 @@
         </div>
         {#each h2hData.recent_matches as match}
           <div
-            class="bg-white/5 rounded-lg p-3 flex items-center justify-between"
+            class="bg-white/5 rounded-lg p-3 grid grid-cols-[1fr_auto_1fr] gap-2 items-center"
           >
-            <div class="flex items-center gap-2 flex-1">
+            <!-- Home Team -->
+            <div class="flex items-center gap-2 min-w-0">
               <img
                 src={match.teams.home.logo}
                 alt={match.teams.home.name}
-                class="w-6 h-6"
+                class="w-6 h-6 flex-shrink-0"
               />
-              <span class="text-sm">{match.teams.home.name}</span>
+              <span class="text-sm truncate" title={match.teams.home.name}>
+                {match.teams.home.name}
+              </span>
             </div>
-            <div class="flex items-center gap-2 font-bold">
-              <span>{match.goals?.home ?? '-'}</span>
-              <span class="text-slate-500">-</span>
-              <span>{match.goals?.away ?? '-'}</span>
+
+            <!-- Score & Date -->
+            <div class="flex flex-col items-center justify-center px-2">
+              <div class="flex items-center gap-2 font-bold whitespace-nowrap">
+                <span>{match.goals?.home ?? "-"}</span>
+                <span class="text-slate-500">-</span>
+                <span>{match.goals?.away ?? "-"}</span>
+              </div>
+              <div class="text-[10px] text-slate-500 whitespace-nowrap">
+                {new Date(match.fixture.date).toLocaleDateString("en-US", {
+                  month: "short",
+                  year: "2-digit",
+                })}
+              </div>
             </div>
-            <div class="flex items-center gap-2 flex-1 justify-end">
-              <span class="text-sm">{match.teams.away.name}</span>
+
+            <!-- Away Team -->
+            <div class="flex items-center gap-2 justify-end min-w-0">
+              <span
+                class="text-sm truncate text-right"
+                title={match.teams.away.name}
+              >
+                {match.teams.away.name}
+              </span>
               <img
                 src={match.teams.away.logo}
                 alt={match.teams.away.name}
-                class="w-6 h-6"
+                class="w-6 h-6 flex-shrink-0"
               />
-            </div>
-            <div class="ml-4 text-xs text-slate-400">
-              {new Date(match.fixture.date).toLocaleDateString("en-US", {
-                month: "short",
-                year: "numeric",
-              })}
             </div>
           </div>
         {/each}

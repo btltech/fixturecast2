@@ -141,17 +141,17 @@
 {:else if error}
   <div class="text-center text-danger py-10">Error: {error}</div>
 {:else if data}
-  <div class="max-w-5xl mx-auto space-y-6 md:space-y-8 animate-fade-in px-1">
+  <div class="max-w-5xl mx-auto space-y-6 md:space-y-8 page-enter px-1">
     <!-- Confidence Badge (prominent) -->
-    <div class="flex justify-center">
+    <div class="flex justify-center element-enter">
       <ConfidenceBadge confidence={maxConfidence} size="lg" />
     </div>
 
     <!-- Action Buttons - Scrollable on mobile -->
-    <div class="flex gap-2 md:gap-3 justify-start md:justify-center overflow-x-auto pb-2 hide-scrollbar -mx-1 px-1">
+    <div class="flex gap-2 md:gap-3 justify-start md:justify-center overflow-x-auto pb-2 hide-scrollbar -mx-1 px-1 element-enter stagger-1">
       <button
         on:click={toggleFavorite}
-        class="flex-shrink-0 px-3 md:px-4 py-2 rounded-lg transition-all text-sm touch-target {isFixtureFavorite(parseInt(id), currentFavorites)
+        class="flex-shrink-0 px-3 md:px-4 py-2 rounded-lg text-sm touch-target btn-interact {isFixtureFavorite(parseInt(id), currentFavorites)
           ? 'bg-accent text-white'
           : 'bg-white/10 hover:bg-white/20 active:bg-white/30'}"
       >
@@ -159,7 +159,7 @@
       </button>
       <button
         on:click={toggleCompare}
-        class="flex-shrink-0 px-3 md:px-4 py-2 rounded-lg transition-all text-sm touch-target {isInCompare()
+        class="flex-shrink-0 px-3 md:px-4 py-2 rounded-lg text-sm touch-target btn-interact {isInCompare()
           ? 'bg-purple-500 text-white'
           : 'bg-white/10 hover:bg-white/20 active:bg-white/30'}"
       >
@@ -167,20 +167,20 @@
       </button>
       <button
         on:click={exportCSV}
-        class="flex-shrink-0 px-3 md:px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 active:bg-white/30 transition-all text-sm touch-target"
+        class="flex-shrink-0 px-3 md:px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 active:bg-white/30 text-sm touch-target btn-interact"
       >
         📊 CSV
       </button>
       <button
         on:click={exportPDF}
-        class="flex-shrink-0 px-3 md:px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 active:bg-white/30 transition-all text-sm touch-target"
+        class="flex-shrink-0 px-3 md:px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 active:bg-white/30 text-sm touch-target btn-interact"
       >
         📄 PDF
       </button>
     </div>
 
     <!-- Match Header -->
-    <div class="glass-card p-4 md:p-8 text-center relative overflow-hidden group">
+    <div class="glass-card p-4 md:p-8 text-center relative overflow-hidden group element-enter stagger-2">
       <div
         class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"
       ></div>
@@ -320,7 +320,7 @@
     </div>
 
     <!-- Analysis & Stats Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 element-enter stagger-3">
       <!-- AI Analysis -->
       <div class="lg:col-span-2 glass-card p-4 md:p-8 relative overflow-hidden">
         <div class="absolute top-0 right-0 p-4 opacity-10 hidden md:block">
@@ -468,19 +468,3 @@
     </div>
   </div>
 {/if}
-
-<style>
-  .animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
-  }
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-</style>

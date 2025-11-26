@@ -210,12 +210,12 @@
 
 <svelte:window on:click={handleClickOutside} />
 
-<div class="flex flex-col lg:flex-row gap-4 lg:gap-8">
+<div class="page-enter flex flex-col lg:flex-row gap-4 lg:gap-8">
   <!-- Mobile League Selector Button -->
-  <div class="lg:hidden league-selector">
+  <div class="lg:hidden league-selector element-enter">
     <button
       on:click={() => showLeagueSelector = !showLeagueSelector}
-      class="w-full glass-card p-4 flex items-center justify-between touch-target"
+      class="w-full glass-card p-4 flex items-center justify-between touch-target btn-interact"
     >
       <div class="flex items-center gap-3">
         <span class="text-xl">{currentLeague.emoji}</span>
@@ -294,7 +294,7 @@
   </div>
 
   <!-- Desktop Sidebar -->
-  <aside class="hidden lg:block w-64 flex-shrink-0 league-selector">
+  <aside class="hidden lg:block w-64 flex-shrink-0 league-selector element-enter stagger-1">
     <div class="glass-card p-4 sticky top-24">
       <h3 class="text-lg font-bold mb-4 text-slate-300">Select League</h3>
       <p class="text-xs text-slate-500 mb-4">🕐 Current UK Time: {ukTimeNow}</p>
@@ -392,7 +392,7 @@
   </aside>
 
   <!-- Main Content -->
-  <div class="flex-grow">
+  <div class="flex-grow element-enter stagger-2">
     <div class="flex flex-col gap-3 mb-4 lg:mb-6">
       <div class="flex items-center justify-between gap-3">
         <div>
@@ -442,7 +442,7 @@
           {@const pred = predictions[fixtureId]}
           {@const summary = getPredictionSummary(pred)}
           
-          <div class="glass-card p-4 relative overflow-hidden group">
+          <div class="glass-card p-4 relative overflow-hidden group fixture-card">
             <!-- Compare Button (top right) -->
             <button
               on:click|stopPropagation={() => toggleCompare(fixtureId)}
@@ -533,7 +533,7 @@
               <button
                 on:click={() => loadPrediction(fixtureId)}
                 disabled={loadingPredictions[fixtureId]}
-                class="w-full py-3 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                class="w-full py-3 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50 btn-interact"
               >
                 {#if loadingPredictions[fixtureId]}
                   <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -112,12 +112,12 @@
   .skeleton-pulse {
     background: linear-gradient(
       90deg,
-      rgba(255, 255, 255, 0.05) 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0.05) 100%
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.04) 100%
     );
     background-size: 200% 100%;
-    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    animation: skeleton-shimmer 1.3s linear infinite;
   }
 
   @keyframes skeleton-shimmer {
@@ -126,6 +126,14 @@
     }
     100% {
       background-position: -200% 0;
+    }
+  }
+  
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-pulse {
+      animation: none;
+      background: rgba(255, 255, 255, 0.06);
     }
   }
 </style>

@@ -100,9 +100,9 @@
     <p class="mt-4 text-slate-400">Loading team details...</p>
   </div>
 {:else if team}
-  <div class="max-w-6xl mx-auto space-y-8">
+  <div class="max-w-6xl mx-auto space-y-8 page-enter">
     <!-- Header -->
-    <div class="glass-card p-8">
+    <div class="glass-card p-8 element-enter">
       <div class="flex flex-col md:flex-row items-center gap-8">
         <img
           src={team.team.logo}
@@ -160,7 +160,7 @@
 
     <!-- Additional Club Info -->
     {#if stats}
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 element-enter stagger-1">
         <!-- Win Rate -->
         <div class="glass-card p-4 text-center">
           <div class="text-3xl font-bold text-emerald-400 mb-1">
@@ -211,7 +211,7 @@
       </div>
 
       <!-- Home vs Away Performance -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 element-enter stagger-2">
         <div class="glass-card p-6">
           <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
             <span class="text-2xl">🏠</span>

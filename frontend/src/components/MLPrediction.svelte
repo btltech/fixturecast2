@@ -282,9 +282,8 @@
         padding: 24px;
         backdrop-filter: blur(20px);
         box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
-        transition:
-            transform 0.3s ease,
-            box-shadow 0.3s ease;
+        transition: transform var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
+                    box-shadow var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
     }
 
     .ml-prediction-card:hover {
@@ -385,12 +384,17 @@
         padding: 6px;
         cursor: pointer;
         color: var(--primary-400, #a78bfa);
-        transition: all 0.2s ease;
+        transition: background-color var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
+                    transform var(--duration-instant, 70ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
     }
 
     .info-btn:hover {
         background: rgba(139, 92, 246, 0.2);
         transform: scale(1.05);
+    }
+
+    .info-btn:active {
+        transform: scale(0.97);
     }
 
     .prediction-main {
@@ -430,7 +434,7 @@
     .team-link {
         color: inherit;
         text-decoration: none;
-        transition: color 0.2s ease;
+        transition: color var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
     }
 
     .team-link:hover {
@@ -449,7 +453,7 @@
         left: 0;
         height: 100%;
         border-radius: 12px;
-        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: width var(--duration-slow, 300ms) var(--ease-out-smooth, cubic-bezier(0.22, 1, 0.36, 1));
         opacity: 0.3;
     }
 
@@ -515,7 +519,8 @@
         flex-direction: column;
         align-items: center;
         gap: 6px;
-        transition: transform 0.2s ease;
+        transition: transform var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
+                    background-color var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
     }
 
     .prediction-pill:hover {
@@ -564,13 +569,13 @@
         margin-top: 24px;
         padding-top: 24px;
         border-top: 1px solid rgba(139, 92, 246, 0.2);
-        animation: fadeIn 0.3s ease;
+        animation: breakdownEnter var(--duration-fast, 100ms) var(--ease-out-smooth, cubic-bezier(0.22, 1, 0.36, 1));
     }
 
-    @keyframes fadeIn {
+    @keyframes breakdownEnter {
         from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-8px);
         }
         to {
             opacity: 1;

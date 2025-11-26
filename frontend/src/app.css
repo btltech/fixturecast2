@@ -3,6 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =====================================================
+   ANIMATION TOKENS & CSS VARIABLES
+   ===================================================== */
 :root {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
@@ -10,6 +13,31 @@
   --text-secondary: #94a3b8;
   --safe-area-inset-top: env(safe-area-inset-top);
   --safe-area-inset-bottom: env(safe-area-inset-bottom);
+  
+  /* Animation timing tokens */
+  --duration-instant: 70ms;
+  --duration-fast: 100ms;
+  --duration-normal: 150ms;
+  --duration-slow: 300ms;
+  --duration-page: 120ms;
+  
+  /* Easing curves - GPU-optimized */
+  --ease-out-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-out-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 body {
@@ -21,7 +49,65 @@ body {
   overscroll-behavior: contain;
 }
 
-/* Glassmorphism utilities */
+/* =====================================================
+   PAGE TRANSITION ANIMATIONS
+   ===================================================== */
+.page-enter {
+  animation: pageEnter var(--duration-page) var(--ease-out-smooth) forwards;
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Staggered entrance for lists */
+.stagger-enter > * {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: itemEnter var(--duration-normal) var(--ease-out-smooth) forwards;
+}
+
+.stagger-enter > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-enter > *:nth-child(2) { animation-delay: 30ms; }
+.stagger-enter > *:nth-child(3) { animation-delay: 60ms; }
+.stagger-enter > *:nth-child(4) { animation-delay: 90ms; }
+.stagger-enter > *:nth-child(5) { animation-delay: 120ms; }
+.stagger-enter > *:nth-child(6) { animation-delay: 150ms; }
+.stagger-enter > *:nth-child(n+7) { animation-delay: 180ms; }
+
+@keyframes itemEnter {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Content fade-in with slide */
+.content-enter {
+  animation: contentEnter var(--duration-page) var(--ease-out-smooth) forwards;
+}
+
+@keyframes contentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =====================================================
+   GLASSMORPHISM UTILITIES
+   ===================================================== */
 .glass {
   @apply backdrop-blur-md border;
   background: rgba(255, 255, 255, 0.1);
@@ -32,6 +118,317 @@ body {
   @apply backdrop-blur-sm border rounded-xl;
   background: rgba(30, 41, 59, 0.5);
   border-color: rgba(255, 255, 255, 0.05);
+  transition: transform var(--duration-fast) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft);
+}
+
+.glass-card:hover {
+  background: rgba(30, 41, 59, 0.6);
+}
+
+/* =====================================================
+   MICRO-INTERACTION ANIMATIONS
+   ===================================================== */
+
+/* Button press effect */
+.btn-press {
+  transition: transform var(--duration-instant) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft);
+  will-change: transform;
+}
+
+.btn-press:hover {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Interactive card hover */
+.card-interactive {
+  transition: transform var(--duration-fast) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-normal) var(--ease-out-soft);
+  will-change: transform;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+.card-interactive:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Tab/nav item indicator animation */
+.nav-indicator {
+  transition: transform var(--duration-normal) var(--ease-out-smooth),
+              opacity var(--duration-normal) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft);
+}
+
+/* Icon scale on hover */
+.icon-hover {
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.icon-hover:hover {
+  transform: scale(1.1);
+}
+
+/* Glow effect for primary buttons */
+.btn-glow {
+  transition: box-shadow var(--duration-fast) var(--ease-out-soft),
+              transform var(--duration-instant) var(--ease-out-soft);
+}
+
+.btn-glow:hover {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+}
+
+.btn-glow:active {
+  transform: scale(0.97);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+/* =====================================================
+   SKELETON LOADER ANIMATIONS
+   ===================================================== */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.3s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Skeleton fade-out when data loads */
+.skeleton-exit {
+  animation: skeletonExit 100ms var(--ease-out-soft) forwards;
+}
+
+@keyframes skeletonExit {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+/* =====================================================
+   PREDICTION PANEL ANIMATIONS
+   ===================================================== */
+.prediction-reveal {
+  animation: predictionReveal 130ms var(--ease-out-smooth) forwards;
+}
+
+@keyframes predictionReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Loading spinner refined */
+.loading-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Progress pulse for loading states */
+.loading-pulse {
+  animation: loadingPulse 1.5s var(--ease-in-out) infinite;
+}
+
+@keyframes loadingPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* =====================================================
+   DATA TRANSITION ANIMATIONS
+   ===================================================== */
+/* For when real data replaces skeleton */
+.data-appear {
+  animation: dataAppear 100ms var(--ease-out-soft) forwards;
+}
+
+@keyframes dataAppear {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Probability bar fill animation */
+.bar-fill {
+  transition: width var(--duration-slow) var(--ease-out-smooth);
+}
+
+/* Score/number counter effect */
+.number-pop {
+  animation: numberPop var(--duration-fast) var(--ease-spring);
+}
+
+@keyframes numberPop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* =====================================================
+   CARD INTERACTION UTILITIES (GPU-ACCELERATED)
+   ===================================================== */
+
+/* Fixture card hover */
+.fixture-card {
+  transition: transform var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft);
+  will-change: transform;
+}
+
+.fixture-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* Team card hover with lift */
+.team-card {
+  transition: transform var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft);
+  will-change: transform;
+}
+
+.team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+}
+
+/* Result card subtle hover */
+.result-card {
+  transition: transform var(--duration-fast) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft);
+}
+
+.result-card:hover {
+  transform: translateX(4px);
+}
+
+/* Live match card pulse effect */
+.live-match-card {
+  transition: transform var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft);
+}
+
+.live-match-card:hover {
+  transform: scale(1.01);
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);
+}
+
+/* Button interaction refined */
+.btn-interact {
+  transition: transform var(--duration-instant) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft);
+  will-change: transform;
+}
+
+.btn-interact:active {
+  transform: scale(0.97);
+}
+
+/* Element entrance animation */
+.element-enter {
+  animation: elementEnter var(--duration-fast) var(--ease-out-smooth) forwards;
+}
+
+@keyframes elementEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger delays */
+.stagger-1 { animation-delay: 30ms; }
+.stagger-2 { animation-delay: 60ms; }
+.stagger-3 { animation-delay: 90ms; }
+.stagger-4 { animation-delay: 120ms; }
+.stagger-5 { animation-delay: 150ms; }
+.stagger-6 { animation-delay: 180ms; }
+
+/* Navigation link smooth transition */
+.nav-link {
+  transition: color var(--duration-fast) var(--ease-out-soft);
+}
+
+/* Mobile drawer slide animation */
+.mobile-drawer {
+  transform: translateX(100%);
+  transition: transform var(--duration-normal) var(--ease-out-smooth);
+  will-change: transform;
+}
+
+.mobile-drawer.open {
+  transform: translateX(0);
+}
+
+/* Menu item hover */
+.menu-item {
+  transition: background-color var(--duration-fast) var(--ease-out-soft);
+}
+
+/* Search input focus */
+.search-input {
+  transition: background-color var(--duration-fast) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft);
+}
+
+/* Search results dropdown */
+.search-results {
+  animation: searchReveal var(--duration-fast) var(--ease-out-smooth);
+}
+
+@keyframes searchReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Search item hover */
+.search-item {
+  transition: background-color var(--duration-fast) var(--ease-out-soft);
 }
 
 /* =====================================================
@@ -76,12 +473,13 @@ body {
 /* Mobile card styles with better touch feedback */
 .mobile-card {
   @apply glass-card p-4;
-  transition: transform 0.15s ease, background-color 0.15s ease;
+  transition: transform var(--duration-instant) var(--ease-out-soft),
+              background-color var(--duration-fast) var(--ease-out-soft);
 }
 
 .mobile-card:active {
   transform: scale(0.98);
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 /* Bottom sheet overlay for mobile */
@@ -92,7 +490,7 @@ body {
   max-height: 85vh;
   overflow-y: auto;
   transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform var(--duration-slow) var(--ease-out-smooth);
 }
 
 .bottom-sheet.open {
@@ -134,7 +532,7 @@ body {
 .pull-indicator {
   @apply flex items-center justify-center h-12 text-slate-400 text-sm;
   transform: translateY(-100%);
-  transition: transform 0.2s ease;
+  transition: transform var(--duration-normal) var(--ease-out-soft);
 }
 
 .pull-indicator.visible {
@@ -143,11 +541,11 @@ body {
 
 /* Mobile navigation transitions */
 .slide-up {
-  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: slideUp var(--duration-slow) var(--ease-out-smooth);
 }
 
 .slide-down {
-  animation: slideDown 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: slideDown var(--duration-slow) var(--ease-out-smooth);
 }
 
 @keyframes slideUp {
@@ -178,6 +576,12 @@ body {
   @apply flex items-center justify-center;
   @apply bg-accent text-white;
   padding-bottom: calc(env(safe-area-inset-bottom) / 2);
+  transition: transform var(--duration-instant) var(--ease-out-soft),
+              box-shadow var(--duration-fast) var(--ease-out-soft);
+}
+
+.fab:hover {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
 }
 
 .fab:active {
@@ -190,7 +594,8 @@ body {
   backdrop-filter: blur(4px);
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease;
+  transition: opacity var(--duration-normal) var(--ease-out-soft),
+              visibility var(--duration-normal) var(--ease-out-soft);
 }
 
 .mobile-overlay.visible {
@@ -210,5 +615,36 @@ body {
 
 .mobile-grid-2 {
   @apply grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3;
+}
+
+/* =====================================================
+   UTILITY ANIMATION CLASSES
+   ===================================================== */
+
+/* Fade in */
+.animate-fade-in {
+  animation: fadeIn var(--duration-page) var(--ease-out-smooth);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Smooth transition helper */
+.transition-smooth {
+  transition: all var(--duration-fast) var(--ease-out-soft);
+}
+
+/* GPU-accelerated transform transitions */
+.transition-transform-gpu {
+  transition: transform var(--duration-fast) var(--ease-out-soft);
+  will-change: transform;
 }
 

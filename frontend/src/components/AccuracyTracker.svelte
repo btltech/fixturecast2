@@ -94,7 +94,7 @@
 </script>
 
 {#if loading}
-  <div class="animate-pulse {compact ? 'h-4' : 'h-16'} bg-white/5 rounded-lg"></div>
+  <div class="skeleton-shimmer {compact ? 'h-4' : 'h-16'} bg-white/5 rounded-lg"></div>
 {:else if compact}
   <!-- Compact inline version -->
   <div class="inline-flex items-center gap-2 text-xs">
@@ -112,7 +112,7 @@
   </div>
 {:else}
   <!-- Full card version -->
-  <div class="glass-card p-4">
+  <div class="glass-card p-4 element-enter">
     <div class="flex items-center gap-2 mb-3">
       <span class="text-lg">📈</span>
       <h4 class="font-bold text-sm">Model Performance</h4>
@@ -129,7 +129,7 @@
         </div>
         <div class="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
           <div 
-            class="h-full rounded-full {getAccuracyBg(overallAccuracy)}"
+            class="h-full rounded-full bar-fill {getAccuracyBg(overallAccuracy)}"
             style="width: {overallAccuracy * 100}%"
           ></div>
         </div>
@@ -145,7 +145,7 @@
         </div>
         <div class="mt-2 h-1.5 bg-white/10 rounded-full overflow-hidden">
           <div 
-            class="h-full rounded-full {getAccuracyBg(highConfAccuracy)}"
+            class="h-full rounded-full bar-fill {getAccuracyBg(highConfAccuracy)}"
             style="width: {highConfAccuracy * 100}%"
           ></div>
         </div>

@@ -152,8 +152,8 @@
 
 <svelte:window on:click={handleClickOutside} />
 
-<div class="prediction-page">
-    <div class="page-header">
+<div class="prediction-page page-enter">
+    <div class="page-header element-enter">
         <h1>AI Match Predictions</h1>
         <div class="header-controls">
             <!-- League Selector -->
@@ -225,7 +225,7 @@
         </div>
     </div>
 
-    <div class="content-grid">
+    <div class="content-grid element-enter stagger-1">
         <!-- Match List -->
         <div class="matches-panel">
             <h2>{currentLeague.emoji} {currentLeague.name} Fixtures</h2>
@@ -941,13 +941,13 @@
     }
 
     .prediction-display {
-        animation: fadeIn 0.5s ease;
+        animation: fadeSlideIn 100ms var(--ease-smooth, cubic-bezier(0.25, 0.46, 0.45, 0.94)) forwards;
     }
 
-    @keyframes fadeIn {
+    @keyframes fadeSlideIn {
         from {
             opacity: 0;
-            transform: translateY(20px);
+            transform: translateY(6px);
         }
         to {
             opacity: 1;

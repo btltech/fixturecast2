@@ -62,9 +62,9 @@
   }
 </script>
 
-<div class="space-y-6">
+<div class="space-y-6 page-enter">
   <!-- Header -->
-  <div class="glass-card p-6">
+  <div class="glass-card p-6 element-enter">
     <h1 class="text-3xl font-bold mb-4">League Standings</h1>
 
     <!-- League Selector -->
@@ -75,7 +75,7 @@
             selectedLeague = league.id;
             fetchStandings();
           }}
-          class="px-4 py-2 rounded-lg transition-all {selectedLeague ===
+          class="px-4 py-2 rounded-lg btn-interact {selectedLeague ===
           league.id
             ? 'bg-accent text-white'
             : 'bg-white/5 hover:bg-white/10'}"
@@ -100,7 +100,7 @@
     </div>
   {:else if standings.length > 0}
     <!-- Standings Table -->
-    <div class="glass-card overflow-hidden">
+    <div class="glass-card overflow-hidden element-enter stagger-1">
       <!-- League Info -->
       {#if leagueInfo}
         <div class="p-4 border-b border-white/10 flex items-center gap-3">

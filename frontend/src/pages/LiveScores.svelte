@@ -33,8 +33,8 @@
   }
 </script>
 
-<div class="space-y-6">
-  <div class="glass-card p-6">
+<div class="space-y-6 page-enter">
+  <div class="glass-card p-6 element-enter">
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-3xl font-bold mb-2 flex items-center gap-2">
@@ -48,7 +48,7 @@
       </div>
       <button
         on:click={fetchLiveScores}
-        class="px-4 py-2 bg-accent/20 text-accent rounded-lg hover:bg-accent/30 transition-all flex items-center gap-2"
+        class="px-4 py-2 bg-accent/20 text-accent rounded-lg hover:bg-accent/30 flex items-center gap-2 btn-interact"
       >
         <span>🔄</span>
         <span>Refresh</span>
@@ -76,9 +76,9 @@
       </p>
     </div>
   {:else}
-    <div class="space-y-4">
+    <div class="space-y-4 element-enter stagger-1">
       {#each liveMatches as match}
-        <div class="glass-card p-6 border-l-4 border-red-500">
+        <div class="glass-card p-6 border-l-4 border-red-500 live-match-card">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
               <span class="relative flex h-2 w-2">

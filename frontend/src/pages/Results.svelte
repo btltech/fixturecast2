@@ -43,8 +43,8 @@
   }
 </script>
 
-<div class="space-y-6">
-  <div class="glass-card p-6">
+<div class="space-y-6 page-enter">
+  <div class="glass-card p-6 element-enter">
     <h1 class="text-3xl font-bold mb-4">Recent Results</h1>
     <div class="flex flex-wrap gap-2">
       {#each leagues as league}
@@ -53,7 +53,7 @@
             selectedLeague = league.id;
             fetchResults();
           }}
-          class="px-4 py-2 rounded-lg transition-all {selectedLeague ===
+          class="px-4 py-2 rounded-lg btn-interact {selectedLeague ===
           league.id
             ? 'bg-accent text-white'
             : 'bg-white/5 hover:bg-white/10'}"
@@ -77,9 +77,9 @@
       <p class="text-red-400">❌ {error}</p>
     </div>
   {:else if results.length > 0}
-    <div class="space-y-4">
+    <div class="space-y-4 element-enter stagger-1">
       {#each results as match}
-        <div class="glass-card p-6 hover:bg-white/5 transition-all">
+        <div class="glass-card p-6 hover:bg-white/5 result-card">
           <div class="flex items-center justify-between mb-4">
             <div class="text-sm text-slate-400">
               {new Date(match.fixture.date).toLocaleDateString("en-US", {

@@ -1,5 +1,6 @@
 <script>
   import { Link } from "svelte-routing";
+  import { API_URL } from "../config.js";
 
   export let homeTeam;
   export let awayTeam;
@@ -13,7 +14,7 @@
     error = null;
     try {
       const response = await fetch(
-        `http://localhost:8001/api/h2h/${homeTeam.id}/${awayTeam.id}`,
+        `${API_URL}/api/h2h/${homeTeam.id}/${awayTeam.id}`,
       );
       if (!response.ok) throw new Error("Failed to fetch H2H data");
       const data = await response.json();

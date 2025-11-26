@@ -1,10 +1,11 @@
 <script>
     import { onMount } from "svelte";
     import { mlClient } from "../services/mlPredictionClient.js";
+    import { ML_API_URL, BACKEND_API_URL } from "../services/apiConfig.js";
     import MLPrediction from "../components/MLPrediction.svelte";
 
-    const BACKEND_API = "http://localhost:8001";
-    const ML_API = "http://localhost:8000";
+    const BACKEND_API = BACKEND_API_URL;
+    const ML_API = ML_API_URL;
     
     // All supported leagues
     const leagues = [

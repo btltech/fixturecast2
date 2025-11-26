@@ -5,6 +5,7 @@
   import { Link } from "svelte-routing";
   import ConfidenceBadge from "./ConfidenceBadge.svelte";
   import SkeletonLoader from "./SkeletonLoader.svelte";
+  import { ML_API_URL } from "../config.js";
 
   // Import shared compare store from services
   import { compareStore } from "../services/compareStore.js";
@@ -25,7 +26,7 @@
     
     try {
       const res = await fetch(
-        `http://localhost:8000/api/prediction/${fixtureId}?league=39&season=2025`
+        `${ML_API_URL}/api/prediction/${fixtureId}?league=39&season=2025`
       );
       if (res.ok) {
         predictions[index] = await res.json();

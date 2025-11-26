@@ -1,6 +1,7 @@
 <script>
   import { Link } from "svelte-routing";
   import { onMount } from "svelte";
+  import { API_URL } from "../config.js";
 
   export let searchQuery = "";
   export let selectedLeague = 39; // Default to Premier League, but can be overridden
@@ -16,8 +17,8 @@
   async function loadData(leagueId) {
     try {
       const [teamsRes, fixturesRes] = await Promise.all([
-        fetch(`http://localhost:8001/api/teams?league=${leagueId}&season=2025`),
-        fetch(`http://localhost:8001/api/fixtures?league=${leagueId}&next=50&season=2025`),
+        fetch(`${API_URL}/api/teams?league=${leagueId}&season=2025`),
+        fetch(`${API_URL}/api/fixtures?league=${leagueId}&next=50&season=2025`),
       ]);
       const teamsData = await teamsRes.json();
       const fixturesData = await fixturesRes.json();

@@ -6,6 +6,7 @@
   export let compact = false;
 
   import { onMount } from "svelte";
+  import { ML_API_URL } from "../config.js";
 
   let accuracyData = null;
   let loading = true;
@@ -55,7 +56,7 @@
   onMount(async () => {
     try {
       // Try to fetch from feedback API
-      const res = await fetch("http://localhost:8000/api/feedback/performance");
+      const res = await fetch(`${ML_API_URL}/api/feedback/performance`);
       if (res.ok) {
         const data = await res.json();
         // Check if we have meaningful data (more than 0 predictions)

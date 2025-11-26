@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
+  import { API_URL, ML_API_URL } from "../config.js";
   import SkeletonLoader from "../components/SkeletonLoader.svelte";
   import SearchBar from "../components/SearchBar.svelte";
   import ConfidenceBadge from "../components/ConfidenceBadge.svelte";
@@ -123,7 +124,7 @@
     
     try {
       const res = await fetch(
-        `http://localhost:8001/api/fixtures?league=${selectedLeague}&season=2025&next=40`
+        `${API_URL}/api/fixtures?league=${selectedLeague}&season=2025&next=40`
       );
       const data = await res.json();
       
@@ -157,7 +158,7 @@
     
     try {
       const res = await fetch(
-        `http://localhost:8000/api/prediction/${fixtureId}?league=${selectedLeague}&season=2025`
+        `${ML_API_URL}/api/prediction/${fixtureId}?league=${selectedLeague}&season=2025`
       );
       
       if (res.ok) {

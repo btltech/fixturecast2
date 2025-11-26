@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
+  import { API_URL } from "../config.js";
   import SearchBar from "../components/SearchBar.svelte";
 
   let teams = [];
@@ -13,7 +14,7 @@
     selectedLeague = leagueId;
     try {
       const res = await fetch(
-        `http://localhost:8001/api/teams?league=${leagueId}&season=2025`,
+        `${API_URL}/api/teams?league=${leagueId}&season=2025`,
       );
       const data = await res.json();
       // Force Svelte reactivity by creating a new array reference

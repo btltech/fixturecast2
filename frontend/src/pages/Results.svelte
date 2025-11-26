@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
+  import { API_URL } from "../config.js";
 
   let selectedLeague = 39;
   let results = [];
@@ -20,7 +21,7 @@
     error = null;
     try {
       const response = await fetch(
-        `http://localhost:8001/api/results?league=${selectedLeague}&last=20&season=2025`
+        `${API_URL}/api/results?league=${selectedLeague}&last=20&season=2025`
       );
       if (!response.ok) throw new Error("Failed to fetch results");
       const data = await response.json();

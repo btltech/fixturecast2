@@ -1,6 +1,7 @@
 <script>
   import { Link } from "svelte-routing";
   import { onMount } from "svelte";
+  import { API_URL } from "../config.js";
 
   let matchOfTheDay = null;
   let todaysMatches = [];
@@ -32,7 +33,7 @@
   onMount(async () => {
     try {
       // Fetch today's fixtures
-      const res = await fetch("http://localhost:8001/api/fixtures/today");
+      const res = await fetch(`${API_URL}/api/fixtures/today`);
       if (res.ok) {
         const data = await res.json();
         todaysMatches = data.response || [];

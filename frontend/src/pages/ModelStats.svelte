@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+  import { ML_API_URL } from "../config.js";
 
   let stats = null;
   let loading = true;
@@ -80,7 +81,7 @@
 
   onMount(async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/model-stats");
+      const response = await fetch(`${ML_API_URL}/api/model-stats`);
       if (response.ok) {
         stats = await response.json();
         apiAvailable = true;

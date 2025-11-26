@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
+  import { API_URL } from "../config.js";
 
   let liveMatches = [];
   let loading = true;
@@ -9,7 +10,7 @@
 
   async function fetchLiveScores() {
     try {
-      const response = await fetch("http://localhost:8001/api/live");
+      const response = await fetch(`${API_URL}/api/live`);
       if (!response.ok) throw new Error("Failed to fetch live scores");
       const data = await response.json();
       liveMatches = data.response || [];

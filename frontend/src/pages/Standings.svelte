@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
+  import { API_URL } from "../config.js";
 
   let selectedLeague = 39; // Premier League default
   let standings = [];
@@ -27,7 +28,7 @@
     error = null;
     try {
       const response = await fetch(
-        `http://localhost:8001/api/standings?league=${selectedLeague}&season=2025`
+        `${API_URL}/api/standings?league=${selectedLeague}&season=2025`
       );
       if (!response.ok) throw new Error("Failed to fetch standings");
       const data = await response.json();

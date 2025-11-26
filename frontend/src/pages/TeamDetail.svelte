@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
+  import { API_URL } from "../config.js";
 
   export let id;
 
@@ -24,7 +25,7 @@
 
       // Fetch Stats
       const statsRes = await fetch(
-        `http://localhost:8001/api/team/${id}/stats?league=${league}&season=2025`,
+        `${API_URL}/api/team/${id}/stats?league=${league}&season=2025`,
       );
       const statsData = await statsRes.json();
 
@@ -35,7 +36,7 @@
 
       // Fetch Standings to get league position
       const standingsRes = await fetch(
-        `http://localhost:8001/api/standings?league=${league}&season=2025`,
+        `${API_URL}/api/standings?league=${league}&season=2025`,
       );
       const standingsData = await standingsRes.json();
       
@@ -46,7 +47,7 @@
 
       // Fetch Recent Fixtures (last 5 games)
       const fixturesRes = await fetch(
-        `http://localhost:8001/api/team/${id}/fixtures?league=${league}&season=2025&last=5`,
+        `${API_URL}/api/team/${id}/fixtures?league=${league}&season=2025&last=5`,
       );
       const fixturesData = await fixturesRes.json();
 
@@ -56,7 +57,7 @@
 
       // Fetch Upcoming Matches (next 2 games)
       const upcomingRes = await fetch(
-        `http://localhost:8001/api/team/${id}/upcoming?league=${league}&season=2025&next=2`,
+        `${API_URL}/api/team/${id}/upcoming?league=${league}&season=2025&next=2`,
       );
       const upcomingData = await upcomingRes.json();
 
@@ -66,7 +67,7 @@
 
       // Fetch Injuries
       const injuriesRes = await fetch(
-        `http://localhost:8001/api/team/${id}/injuries?season=2025`,
+        `${API_URL}/api/team/${id}/injuries?season=2025`,
       );
       const injuriesData = await injuriesRes.json();
 

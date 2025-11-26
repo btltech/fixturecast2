@@ -1,6 +1,15 @@
 // API Configuration
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-export const ML_API_URL = import.meta.env.VITE_ML_API_URL || 'http://localhost:8000';
+// Uses environment variables if set, otherwise uses production URLs
+const isDev = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+export const API_URL = isDev 
+  ? 'http://localhost:8001'
+  : (import.meta.env.VITE_API_URL || 'https://backend-api-production-c024.up.railway.app');
+
+export const ML_API_URL = isDev
+  ? 'http://localhost:8000'
+  : (import.meta.env.VITE_ML_API_URL || 'https://terrific-passion-production-4d20.up.railway.app');
 
 export const API_ENDPOINTS = {
   // Backend API (port 8001)

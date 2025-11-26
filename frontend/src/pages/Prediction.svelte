@@ -9,6 +9,7 @@
   import { addToHistory } from "../services/historyStore.js";
   import { exportPredictionsToCSV, exportPredictionsToPDF } from "../services/exportService.js";
   import { compareStore } from "../services/compareStore.js";
+  import { ML_API_URL } from "../config.js";
 
   export let id; // Fixture ID from router
 
@@ -38,7 +39,7 @@
   onMount(async () => {
     try {
       const res = await fetch(
-        `http://localhost:8000/api/prediction/${id}?league=39&season=2025`,
+        `${ML_API_URL}/api/prediction/${id}?league=39&season=2025`,
       );
       if (!res.ok) throw new Error("Failed to load prediction");
       data = await res.json();

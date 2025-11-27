@@ -2,18 +2,34 @@
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
   import { API_URL } from "../config.js";
+  import { getCurrentSeason } from "../services/season.js";
+  import { getSavedLeague, saveLeague } from "../services/preferences.js";
 
-  let selectedLeague = 39;
+  let selectedLeague = getSavedLeague(39);
   let results = [];
   let loading = true;
   let error = null;
+  const season = getCurrentSeason();
 
   const leagues = [
-    { id: 39, name: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
-    { id: 140, name: "La Liga", flag: "🇪🇸" },
-    { id: 135, name: "Serie A", flag: "🇮🇹" },
-    { id: 78, name: "Bundesliga", flag: "🇩🇪" },
-    { id: 61, name: "Ligue 1", flag: "🇫🇷" },
+    // European Competitions
+    { id: 2, name: "Champions League", flag: "🏆", tier: 0 },
+    { id: 3, name: "Europa League", flag: "🥈", tier: 0 },
+    { id: 848, name: "Conference League", flag: "🥉", tier: 0 },
+    // Top Leagues
+    { id: 39, name: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: 1 },
+    { id: 140, name: "La Liga", flag: "🇪🇸", tier: 1 },
+    { id: 135, name: "Serie A", flag: "🇮🇹", tier: 1 },
+    { id: 78, name: "Bundesliga", flag: "🇩🇪", tier: 1 },
+    { id: 61, name: "Ligue 1", flag: "🇫🇷", tier: 1 },
+    { id: 88, name: "Eredivisie", flag: "🇳🇱", tier: 1 },
+    { id: 94, name: "Primeira Liga", flag: "🇵🇹", tier: 1 },
+    // Second Division
+    { id: 40, name: "Championship", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: 2 },
+    { id: 141, name: "Segunda División", flag: "🇪🇸", tier: 2 },
+    { id: 136, name: "Serie B", flag: "🇮🇹", tier: 2 },
+    { id: 79, name: "2. Bundesliga", flag: "🇩🇪", tier: 2 },
+    { id: 62, name: "Ligue 2", flag: "🇫🇷", tier: 2 },
   ];
 
   async function fetchResults() {
@@ -21,7 +37,7 @@
     error = null;
     try {
       const response = await fetch(
-        `${API_URL}/api/results?league=${selectedLeague}&last=20&season=2025`
+        `${API_URL}/api/results?league=${selectedLeague}&last=20&season=${season}`
       );
       if (!response.ok) throw new Error("Failed to fetch results");
       const data = await response.json();
@@ -37,6 +53,12 @@
     fetchResults();
   });
 
+  function changeLeague(leagueId) {
+    selectedLeague = leagueId;
+    saveLeague(leagueId);
+    fetchResults();
+  }
+
   function getResultBadge(homeScore, awayScore) {
     if (homeScore > awayScore) return { text: "W", color: "bg-green-500" };
     if (homeScore < awayScore) return { text: "L", color: "bg-red-500" };
@@ -47,22 +69,53 @@
 <div class="space-y-6 page-enter">
   <div class="glass-card p-6 element-enter">
     <h1 class="text-3xl font-bold mb-4">Recent Results</h1>
-    <div class="flex flex-wrap gap-2">
-      {#each leagues as league}
-        <button
-          on:click={() => {
-            selectedLeague = league.id;
-            fetchResults();
-          }}
-          class="px-4 py-2 rounded-lg btn-interact {selectedLeague ===
-          league.id
-            ? 'bg-accent text-white'
-            : 'bg-white/5 hover:bg-white/10'}"
-        >
-          <span class="mr-2">{league.flag}</span>
-          {league.name}
-        </button>
-      {/each}
+
+    <!-- European Competitions -->
+    <div class="mb-3">
+      <div class="text-xs text-slate-400 mb-2 font-bold">🏆 EUROPEAN</div>
+      <div class="flex flex-wrap gap-2">
+        {#each leagues.filter(l => l.tier === 0) as league}
+          <button
+            on:click={() => changeLeague(league.id)}
+            class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id ? 'bg-accent text-white' : 'bg-white/5 hover:bg-white/10'}"
+          >
+            <span class="mr-1">{league.flag}</span>
+            {league.name}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Top Leagues -->
+    <div class="mb-3">
+      <div class="text-xs text-slate-400 mb-2 font-bold">⭐ TOP LEAGUES</div>
+      <div class="flex flex-wrap gap-2">
+        {#each leagues.filter(l => l.tier === 1) as league}
+          <button
+            on:click={() => changeLeague(league.id)}
+            class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id ? 'bg-accent text-white' : 'bg-white/5 hover:bg-white/10'}"
+          >
+            <span class="mr-1">{league.flag}</span>
+            {league.name}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Second Division -->
+    <div>
+      <div class="text-xs text-slate-400 mb-2 font-bold">📋 SECOND DIVISION</div>
+      <div class="flex flex-wrap gap-2">
+        {#each leagues.filter(l => l.tier === 2) as league}
+          <button
+            on:click={() => changeLeague(league.id)}
+            class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id ? 'bg-accent text-white' : 'bg-white/5 hover:bg-white/10'}"
+          >
+            <span class="mr-1">{league.flag}</span>
+            {league.name}
+          </button>
+        {/each}
+      </div>
     </div>
   </div>
 

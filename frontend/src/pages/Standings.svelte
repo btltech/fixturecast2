@@ -2,12 +2,15 @@
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
   import { API_URL } from "../config.js";
+  import { getCurrentSeason } from "../services/season.js";
+  import { getSavedLeague, saveLeague, getSavedSeason, saveSeason } from "../services/preferences.js";
 
-  let selectedLeague = 39; // Premier League default
+  let selectedLeague = getSavedLeague(39); // Premier League default (persisted)
   let standings = [];
   let loading = true;
   let error = null;
   let leagueInfo = null;
+  const season = getSavedSeason(getCurrentSeason());
 
   const leagues = [
     { id: 39, name: "Premier League", country: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
@@ -28,7 +31,7 @@
     error = null;
     try {
       const response = await fetch(
-        `${API_URL}/api/standings?league=${selectedLeague}&season=2025`
+        `${API_URL}/api/standings?league=${selectedLeague}&season=${season}`
       );
       if (!response.ok) throw new Error("Failed to fetch standings");
       const data = await response.json();
@@ -45,6 +48,7 @@
   }
 
   onMount(() => {
+    saveSeason(season);
     fetchStandings();
   });
 
@@ -74,6 +78,7 @@
         <button
           on:click={() => {
             selectedLeague = league.id;
+            saveLeague(selectedLeague);
             fetchStandings();
           }}
           class="px-4 py-2 rounded-lg btn-interact {selectedLeague ===
@@ -149,7 +154,7 @@
                 </td>
                 <td class="p-3">
                   <Link
-                    to="/team/{team.team.id}?league={selectedLeague}"
+                    to="/team/{team.team.id}?league={selectedLeague}&season={season}"
                     class="flex items-center gap-2 hover:text-accent transition-colors"
                   >
                     <img

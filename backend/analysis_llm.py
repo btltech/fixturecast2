@@ -43,17 +43,24 @@ class AnalysisLLM:
         else:
             favorite = "Draw"
             favorite_prob = draw_prob
+        stronger_team = favorite
+        draw_heavy = draw_prob >= 20
+        upset_live = min(home_prob, away_prob) >= 30
 
         # Build deep analysis sections
         analysis_points = []
+        analysis_points.extend(self._logic_insights(prediction, features))
 
         # Model consensus - handle both field names
         model_breakdown = prediction.get("model_breakdown") or prediction.get(
             "model_probabilities", {}
         )
+        model_range_text = None
         if model_breakdown:
             models_favoring_home = 0
             models_favoring_away = 0
+            model_home_values = []
+            model_away_values = []
             for m, p in model_breakdown.items():
                 # Handle both key styles: 'home'/'away' and 'home_win'/'away_win'
                 home_p = p.get("home_win", p.get("home", 0))
@@ -63,21 +70,37 @@ class AnalysisLLM:
                     models_favoring_home += 1
                 elif away_p > home_p and away_p > draw_p:
                     models_favoring_away += 1
+                model_home_values.append(home_p * 100)
+                model_away_values.append(away_p * 100)
 
             total_models = len(model_breakdown)
             if total_models > 0:
                 if models_favoring_home >= total_models * 0.6:
-                    analysis_points.append(
-                        f"⚖️ **Model Consensus:** {models_favoring_home} of {total_models} models back {home_name} — solid agreement supports the prediction."
-                    )
+                    consensus_text = f"⚖️ **Model Consensus:** {models_favoring_home} of {total_models} models lean {home_name}"
+                    if favorite == home_name:
+                        consensus_text += " — majority aligns with the probability edge."
+                    else:
+                        consensus_text += (
+                            f", while probabilities lean {favorite}. Expect volatility."
+                        )
+                    analysis_points.append(consensus_text)
                 elif models_favoring_away >= total_models * 0.6:
-                    analysis_points.append(
-                        f"⚖️ **Model Consensus:** {models_favoring_away} of {total_models} models back {away_name} — solid agreement supports the prediction."
-                    )
+                    consensus_text = f"⚖️ **Model Consensus:** {models_favoring_away} of {total_models} models lean {away_name}"
+                    if favorite == away_name:
+                        consensus_text += " — majority aligns with the probability edge."
+                    else:
+                        consensus_text += (
+                            f", while probabilities lean {favorite}. Expect volatility."
+                        )
+                    analysis_points.append(consensus_text)
                 else:
                     analysis_points.append(
                         f"⚖️ **Model Consensus:** Models are split ({models_favoring_home} for {home_name}, {models_favoring_away} for {away_name}) — prediction carries higher uncertainty."
                     )
+                if model_home_values and model_away_values:
+                    home_min, home_max = min(model_home_values), max(model_home_values)
+                    away_min, away_max = min(model_away_values), max(model_away_values)
+                    model_range_text = f"Model spread: {home_name} {home_min:.0f}–{home_max:.0f}% vs {away_name} {away_min:.0f}–{away_max:.0f}%"
 
         # Competition Context - NEW
         competition_type = features.get("competition_type", "domestic_league")
@@ -129,8 +152,10 @@ class AnalysisLLM:
         away_elo = features.get("away_elo", 0)
         home_rank = features.get("home_rank", 0)
         away_rank = features.get("away_rank", 0)
+        elo_diff_value = 0
         if home_elo and away_elo:
             elo_diff = home_elo - away_elo
+            elo_diff_value = elo_diff
             if abs(elo_diff) > 50:
                 stronger = home_name if elo_diff > 0 else away_name
                 elo_text = f"📈 **Elo & League:** {home_name} ({home_elo:.0f}) vs {away_name} ({away_elo:.0f}) — {abs(elo_diff):.0f}-point gap"
@@ -179,17 +204,36 @@ class AnalysisLLM:
                 if away_goals_for > 1.5
                 else "balanced" if away_goals_for > 1.0 else "defensive"
             )
+            away_label = away_style
+            if away_goals_for < 1.0 and away_goals_against > 1.5:
+                away_label = "goal-shy and defensively vulnerable"
             # Only include away style if we have their data
             if features.get("away_goals_for_avg", 0) > 0:
                 analysis_points.append(
                     f"⚔️ **Tactical Matchup:** {home_name} ({home_style}, {home_goals_for:.1f} GF / {home_goals_against:.1f} GA) "
-                    f"vs {away_name} ({away_style}, {away_goals_for:.1f} GF / {away_goals_against:.1f} GA)."
+                    f"vs {away_name} ({away_label}, {away_goals_for:.1f} GF / {away_goals_against:.1f} GA)."
                 )
             else:
                 analysis_points.append(
                     f"⚔️ **Tactical Matchup:** {home_name} ({home_style}, {home_goals_for:.1f} GF / {home_goals_against:.1f} GA). "
                     f"{away_name} data limited (newly promoted/new to league). Model uncertainty higher due to limited match sample."
                 )
+
+        # Explain scoreline vs defensive metrics if away GF is low but model gives them a goal
+        try:
+            score_home, score_away = [int(x) for x in str(score).replace("–", "-").split("-")]
+        except Exception:
+            score_home, score_away = None, None
+        if (
+            score_home is not None
+            and score_away is not None
+            and score_away >= 1
+            and away_goals_for < 1.1
+            and home_goals_against < 1.0
+        ):
+            analysis_points.append(
+                f"🛡️ **Defensive Note:** {away_name} rarely score more than once, but matchup variability/rotation makes a single concession for {home_name} plausible."
+            )
 
         # Form
         home_form = features.get("home_points_last10", 0)
@@ -213,9 +257,24 @@ class AnalysisLLM:
                         f"{home_name} struggling ({home_wins_last10}W in last 10, {home_form_last5:.0f}pts in last 5). Visitors have momentum."
                     )
             else:
-                analysis_points.append(
-                    "📈 **Form:** Both sides in similar form — no clear momentum advantage."
-                )
+                form_note = "— no clear momentum edge."
+                if abs(elo_diff_value) > 60:
+                    edge_team = home_name if elo_diff_value > 0 else away_name
+                    form_note = (
+                        f"— form is level, but underlying ratings still tilt toward {edge_team}."
+                    )
+                analysis_points.append(f"📈 **Form:** Both sides in similar form {form_note}")
+
+        # Draw / upset signaling
+        if draw_heavy:
+            analysis_points.append(
+                "🔀 **Draw Risk:** Elevated draw probability — protect with Draw No Bet/Double Chance."
+            )
+        if upset_live and favorite != "Draw":
+            underdog = away_name if favorite == home_name else home_name
+            analysis_points.append(
+                f"🚩 **Upset Watch:** {underdog} profile as a live underdog in this matchup."
+            )
 
         # ========== NEW ENHANCED INSIGHTS ==========
 
@@ -225,11 +284,12 @@ class AnalysisLLM:
         home_dependency = features.get("home_top_scorer_dependency", 0)
 
         if home_scorer and home_dependency > 0.35:  # >35% of team goals
-            goal_text = "goal" if home_scorer_goals == 1 else "goals"
-            analysis_points.append(
-                f"⭐ **Key Player:** {home_scorer} is crucial for {home_name}, scoring {home_scorer_goals} {goal_text} "
-                f"({home_dependency:.0%} of team total). Stopping him is the key."
-            )
+            if home_scorer_goals >= 3:
+                goal_text = "goal" if home_scorer_goals == 1 else "goals"
+                analysis_points.append(
+                    f"⭐ **Key Player:** {home_scorer} is crucial for {home_name}, scoring {home_scorer_goals} {goal_text} "
+                    f"({home_dependency:.0%} of team total). Stopping him is the key."
+                )
 
         # 2. Managerial Context
         home_coach_new = features.get("home_coach_is_new", False)
@@ -381,7 +441,13 @@ class AnalysisLLM:
         else:
             risk_text = "High"
             bet_suggestion = "Consider smaller stakes or alternative markets (BTTS, corners, etc.)."
-            verdict_intro = "This is a genuine toss-up — no clear favorite emerges from the data."
+            prob_gap = abs(home_prob - away_prob)
+            if favorite == "Draw" or prob_gap < 6:
+                verdict_intro = (
+                    "This is a genuine toss-up — no clear favorite emerges from the data."
+                )
+            else:
+                verdict_intro = f"Slight edge to {favorite}, but volatility is high and model disagreement keeps confidence low."
 
         # Assemble analysis points
         analysis_section = (
@@ -389,6 +455,29 @@ class AnalysisLLM:
             if analysis_points
             else "No detailed analysis available for this fixture."
         )
+
+        confidence_reasons = []
+        if confidence == "LOW":
+            if model_breakdown:
+                confidence_reasons.append("model disagreement")
+            if draw_heavy:
+                confidence_reasons.append("high draw risk")
+            if upset_live:
+                confidence_reasons.append("live underdog profile")
+        elif confidence == "MEDIUM":
+            if model_breakdown:
+                confidence_reasons.append("moderate model split")
+            if draw_heavy:
+                confidence_reasons.append("notable draw risk")
+
+        confidence_line = ""
+        if confidence_reasons:
+            confidence_line = (
+                f"*(Why {confidence.lower()} confidence: {', '.join(confidence_reasons)})*"
+            )
+
+        if model_range_text:
+            analysis_section = model_range_text + "\n\n" + analysis_section
 
         analysis = f"""## {home_name} vs {away_name}
 {confidence_emoji} **{confidence} CONFIDENCE** · {favorite} favored ({favorite_prob:.0f}%)
@@ -417,13 +506,36 @@ class AnalysisLLM:
 
 ### 🎯 Our Verdict
 
-{verdict_intro} **Risk level: {risk_text}** — {bet_suggestion}
+{verdict_intro} **Risk level: {risk_text}** — {bet_suggestion} {confidence_line}
 
 ---
 
 *Analysis by FixtureCast AI — 11-model ensemble with competition-aware weighting*"""
 
         return analysis
+
+    def _logic_insights(self, prediction, features):
+        """Lightweight rule-based snippets to humanize the analysis."""
+        lines = []
+
+        home_win_prob = prediction.get("home_win_prob", 0) * 100
+        away_xg = prediction.get("away_xg") or features.get("away_expected_goals") or 0
+        home_xg = prediction.get("home_xg") or features.get("home_expected_goals") or 0
+        injuries = prediction.get("injuries") or (
+            features.get("home_injuries_total", 0) + features.get("away_injuries_total", 0)
+        )
+        scoreline = (prediction.get("predicted_scoreline") or "").replace(" ", "")
+
+        if home_win_prob > 60:
+            lines.append("Home team are strong favourites.")
+        if away_xg > home_xg:
+            lines.append("Away side tend to create more dangerous chances.")
+        if injuries > 3:
+            lines.append("Injuries may affect their stability.")
+        if scoreline in {"2-1", "2–1"}:
+            lines.append("The model expects a narrow win.")
+
+        return lines
 
     def _ordinal(self, n):
         """Convert number to ordinal string (1st, 2nd, 3rd, etc.)."""

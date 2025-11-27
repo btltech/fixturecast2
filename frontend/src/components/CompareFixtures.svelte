@@ -1,48 +1,62 @@
 <script>
   // Compare Fixtures Component
   // Allows comparing two predictions side by side
-  import { onMount } from "svelte";
   import { Link } from "svelte-routing";
   import ConfidenceBadge from "./ConfidenceBadge.svelte";
   import SkeletonLoader from "./SkeletonLoader.svelte";
   import { ML_API_URL } from "../config.js";
+  import { getCurrentSeason } from "../services/season.js";
 
   // Import shared compare store from services
   import { compareStore } from "../services/compareStore.js";
 
   let predictions = [null, null];
   let loading = [false, false];
+  let predictionRequestTokens = [0, 0];
 
   // Use reactive auto-subscription ($ prefix) - automatically unsubscribes
   $: isOpen = $compareStore?.isOpen || false;
   $: compareFixtures = $compareStore?.fixtures || [];
+  $: compareLeagues = $compareStore?.fixtureLeagues || {};
+
+  const season = getCurrentSeason();
 
   // Load prediction data for a fixture
-  async function loadPrediction(fixtureId, index) {
+  async function loadPrediction(fixtureId, leagueId, index) {
     if (!fixtureId) return;
 
     loading[index] = true;
     loading = [...loading];
 
+    const requestId = predictionRequestTokens[index] + 1;
+    predictionRequestTokens[index] = requestId;
+    predictionRequestTokens = [...predictionRequestTokens];
+
     try {
+      const leagueParam = leagueId || compareLeagues[fixtureId] || 39;
       const res = await fetch(
-        `${ML_API_URL}/api/prediction/${fixtureId}?league=39&season=2025`
+        `${ML_API_URL}/api/prediction/${fixtureId}?league=${leagueParam}&season=${season}`
       );
       if (res.ok) {
-        predictions[index] = await res.json();
-        predictions = [...predictions];
+        const data = await res.json();
+        if (predictionRequestTokens[index] === requestId) {
+          predictions[index] = data;
+          predictions = [...predictions];
+        }
       }
     } catch (e) {
       console.error(`Error loading prediction ${fixtureId}:`, e);
     } finally {
-      loading[index] = false;
-      loading = [...loading];
+      if (predictionRequestTokens[index] === requestId) {
+        loading[index] = false;
+        loading = [...loading];
+      }
     }
   }
 
   // Watch for fixture changes and load predictions
-  $: if (compareFixtures[0]) loadPrediction(compareFixtures[0], 0);
-  $: if (compareFixtures[1]) loadPrediction(compareFixtures[1], 1);
+  $: if (compareFixtures[0]) loadPrediction(compareFixtures[0], compareLeagues[compareFixtures[0]], 0);
+  $: if (compareFixtures[1]) loadPrediction(compareFixtures[1], compareLeagues[compareFixtures[1]], 1);
 
   function closeCompare() {
     compareStore.close();
@@ -229,8 +243,9 @@
                   </div>
 
                   <!-- View Full -->
+                  {@const leagueId = compareLeagues[compareFixtures[index]] || 39}
                   <Link
-                    to={`/prediction/${compareFixtures[index]}`}
+                    to={`/prediction/${compareFixtures[index]}?league=${leagueId}&season=${season}`}
                     class="view-analysis-btn-sm"
                     on:click={closeCompare}
                   >

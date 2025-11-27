@@ -4,6 +4,8 @@
     import { mlClient } from "../services/mlPredictionClient.js";
     import { ML_API_URL, BACKEND_API_URL } from "../services/apiConfig.js";
     import MLPrediction from "../components/MLPrediction.svelte";
+    import { getCurrentSeason } from "../services/season.js";
+    import { getSavedLeague, saveLeague, getSavedSeason, saveSeason, getSavedOddsFormat, saveOddsFormat } from "../services/preferences.js";
 
     const BACKEND_API = BACKEND_API_URL;
     const ML_API = ML_API_URL;
@@ -38,15 +40,22 @@
     let loadingMatches = true;
     let error = null;
     let mlApiStatus = "checking";
-    let league = 39; // Default: Premier League
-    let season = 2025;
+    let league = getSavedLeague(39); // Default: Premier League (persisted)
+    let season = getSavedSeason(getCurrentSeason());
     let showLeagueDropdown = false;
     let showAnalysis = false; // For collapsible analysis section
+    let fixturesRequestToken = 0;
+    let predictionRequestToken = 0;
+    let oddsFormat = getSavedOddsFormat("decimal");
 
     // Get current league info
     $: currentLeague = leagues.find(l => l.id === league) || leagues[0];
 
     onMount(async () => {
+        // Persist defaults on load so they are available across pages
+        saveLeague(league);
+        saveSeason(season);
+        saveOddsFormat(oddsFormat);
         // Check ML API health
         checkMLApi();
 
@@ -70,26 +79,55 @@
         }
     }
 
-    async function changeLeague(newLeagueId, event) {
-        // Stop propagation to prevent handleClickOutside from interfering
-        if (event) {
-            event.stopPropagation();
+    // Lightly humanise and de-duplicate the raw analysis text from the API
+    function humanizeAnalysis(text) {
+        if (!text) return [];
+
+        const pieces = text
+            .split(/\n+/)
+            .flatMap(line => line.split(/[•\-]\s+/));
+
+        const seen = new Set();
+        const cleaned = [];
+
+        for (const piece of pieces) {
+            const trimmed = piece.trim().replace(/^[•\-\s]+/, "");
+            if (!trimmed) continue;
+
+            const normalized = trimmed.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+            if (!normalized || seen.has(normalized)) continue;
+            seen.add(normalized);
+
+            const sentence =
+                trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+            cleaned.push(/[.!?]$/.test(sentence) ? sentence : `${sentence}.`);
         }
+
+        return cleaned;
+    }
+
+    $: humanizedAnalysis = humanizeAnalysis(analysis);
+
+    async function changeLeague(newLeagueId) {
         league = newLeagueId;
+        saveLeague(newLeagueId);
         showLeagueDropdown = false;
         selectedMatch = null;
         prediction = null;
         analysis = null;
         error = null;
+        showAnalysis = false;
+        predictionRequestToken += 1; // invalidate in-flight prediction requests
         await loadUpcomingMatches();
     }
 
     async function loadUpcomingMatches() {
         loadingMatches = true;
         matches = [];
+        const requestId = ++fixturesRequestToken;
         try {
             const response = await fetch(
-                `${BACKEND_API}/api/fixtures?league=${league}&season=2025&next=20`
+                `${BACKEND_API}/api/fixtures?league=${league}&season=${season}&next=20`
             );
 
             if (!response.ok) {
@@ -99,7 +137,7 @@
             const data = await response.json();
 
             // Transform API response to match expected format
-            if (data.response && Array.isArray(data.response)) {
+            if (requestId === fixturesRequestToken && data.response && Array.isArray(data.response)) {
                 matches = data.response
                     .filter(fixture => {
                         // Only show upcoming matches (not started)
@@ -112,7 +150,9 @@
             console.error("Error loading fixtures:", err);
             error = "Failed to load fixtures. Make sure backend API is running on port 8001.";
         } finally {
-            loadingMatches = false;
+            if (requestId === fixturesRequestToken) {
+                loadingMatches = false;
+            }
         }
     }
 
@@ -122,13 +162,14 @@
         error = null;
         prediction = null;
         analysis = null;
+        const requestId = ++predictionRequestToken;
 
         try {
             const fixtureId = match.fixture.id;
 
             // Call the actual ML prediction API with current season
             const response = await fetch(
-                `${ML_API}/api/prediction/${fixtureId}?league=${league}&season=2025`
+                `${ML_API}/api/prediction/${fixtureId}?league=${league}&season=${season}`
             );
 
             if (!response.ok) {
@@ -139,21 +180,25 @@
             const data = await response.json();
 
             // Extract the prediction data and analysis
-            if (data.prediction) {
-                prediction = data.prediction;
-            } else {
-                prediction = data;
-            }
+            if (requestId === predictionRequestToken) {
+                if (data.prediction) {
+                    prediction = data.prediction;
+                } else {
+                    prediction = data;
+                }
 
-            // Extract analysis if available
-            if (data.analysis) {
-                analysis = data.analysis;
+                // Extract analysis if available
+                if (data.analysis) {
+                    analysis = data.analysis;
+                }
             }
         } catch (err) {
             error = err.message;
             console.error("Prediction error:", err);
         } finally {
-            loading = false;
+            if (requestId === predictionRequestToken) {
+                loading = false;
+            }
         }
     }
 </script>
@@ -178,14 +223,16 @@
                 </button>
 
                 {#if showLeagueDropdown}
-                    <div class="league-dropdown">
+                    <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+                    <div class="league-dropdown" on:click|stopPropagation>
                         <!-- European Competitions -->
                         <div class="league-group">
                             <div class="league-group-title">🏆 European Competitions</div>
                             {#each leagues.filter(l => l.tier === 0) as l}
                                 <button
+                                    type="button"
                                     class="league-option {league === l.id ? 'active' : ''}"
-                                    on:click|stopPropagation={() => changeLeague(l.id)}
+                                    on:click={() => changeLeague(l.id)}
                                 >
                                     <span>{l.emoji}</span>
                                     <span>{l.name}</span>
@@ -198,8 +245,9 @@
                             <div class="league-group-title">⭐ Top Leagues</div>
                             {#each leagues.filter(l => l.tier === 1) as l}
                                 <button
+                                    type="button"
                                     class="league-option {league === l.id ? 'active' : ''}"
-                                    on:click|stopPropagation={() => changeLeague(l.id)}
+                                    on:click={() => changeLeague(l.id)}
                                 >
                                     <span>{l.emoji}</span>
                                     <span>{l.name}</span>
@@ -212,8 +260,9 @@
                             <div class="league-group-title">📋 Second Division</div>
                             {#each leagues.filter(l => l.tier === 2) as l}
                                 <button
+                                    type="button"
                                     class="league-option {league === l.id ? 'active' : ''}"
-                                    on:click|stopPropagation={() => changeLeague(l.id)}
+                                    on:click={() => changeLeague(l.id)}
                                 >
                                     <span>{l.emoji}</span>
                                     <span>{l.name}</span>
@@ -378,15 +427,19 @@
                             </button>
                             {#if showAnalysis}
                                 <div class="analysis-content" transition:slide>
-                                    {#each analysis.split('\n') as line}
-                                        {#if line.trim()}
-                                            <p>{line.trim()}</p>
-                                        {/if}
-                                    {/each}
+                                    {#if humanizedAnalysis.length > 0}
+                                        <ul>
+                                            {#each humanizedAnalysis as point}
+                                                <li>{point}</li>
+                                            {/each}
+                                        </ul>
+                                    {:else}
+                                        <p>{analysis}</p>
+                                    {/if}
                                 </div>
                             {:else}
                                 <p class="analysis-preview">
-                                    {analysis.split('\n').find(l => l.trim())?.slice(0, 120)}...
+                                    {humanizedAnalysis[0] || analysis}
                                 </p>
                             {/if}
                         </div>
@@ -425,6 +478,8 @@
         margin-bottom: 20px;
         padding-bottom: 16px;
         border-bottom: 2px solid rgba(139, 92, 246, 0.2);
+        position: relative;
+        z-index: 10; /* Keep dropdown above the content grid */
     }
 
     @media (min-width: 640px) {
@@ -503,7 +558,7 @@
         position: absolute;
         top: calc(100% + 8px);
         left: 0;
-        z-index: 100;
+        z-index: 120;
         min-width: 240px;
         max-height: 400px;
         overflow-y: auto;
@@ -1126,6 +1181,20 @@
     .analysis-content p {
         margin: 6px 0;
         font-size: 0.8125rem;
+    }
+
+    .analysis-content ul {
+        padding-left: 1.1rem;
+        margin: 0;
+        list-style: disc;
+        display: grid;
+        gap: 6px;
+    }
+
+    .analysis-content li {
+        margin: 0;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.9);
     }
 
     @media (min-width: 640px) {

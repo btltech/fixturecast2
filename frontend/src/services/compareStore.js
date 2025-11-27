@@ -6,6 +6,7 @@ import { writable } from "svelte/store";
 function createCompareStore() {
   const { subscribe, set, update } = writable({
     fixtures: [], // Array of fixture IDs (max 2)
+    fixtureLeagues: {}, // Map fixtureId -> leagueId
     isOpen: false,
   });
 
@@ -13,39 +14,55 @@ function createCompareStore() {
     subscribe,
 
     // Add a fixture to compare (max 2)
-    addFixture: (fixtureId) => {
+    addFixture: (fixtureId, leagueId) => {
       update((state) => {
+        const fixtureLeagues = { ...state.fixtureLeagues };
+        if (leagueId) {
+          fixtureLeagues[fixtureId] = leagueId;
+        }
+
         if (state.fixtures.includes(fixtureId)) {
           // Already in compare, remove it
+          const fixtures = state.fixtures.filter((id) => id !== fixtureId);
+          delete fixtureLeagues[fixtureId];
           return {
             ...state,
-            fixtures: state.fixtures.filter((id) => id !== fixtureId),
+            fixtures,
+            fixtureLeagues,
           };
         }
         if (state.fixtures.length >= 2) {
           // Replace the first one
+          const fixtures = [state.fixtures[1], fixtureId];
+          delete fixtureLeagues[state.fixtures[0]];
           return {
             ...state,
-            fixtures: [state.fixtures[1], fixtureId],
+            fixtures,
+            fixtureLeagues,
           };
         }
+        const fixtures = [...state.fixtures, fixtureId];
         return {
           ...state,
-          fixtures: [...state.fixtures, fixtureId],
+          fixtures,
+          fixtureLeagues,
         };
       });
     },
 
     // Remove a fixture from compare
     removeFixture: (fixtureId) => {
-      update((state) => ({
-        ...state,
-        fixtures: state.fixtures.filter((id) => id !== fixtureId),
-        isOpen:
-          state.fixtures.filter((id) => id !== fixtureId).length > 0
-            ? state.isOpen
-            : false,
-      }));
+      update((state) => {
+        const fixtures = state.fixtures.filter((id) => id !== fixtureId);
+        const fixtureLeagues = { ...state.fixtureLeagues };
+        delete fixtureLeagues[fixtureId];
+        return {
+          ...state,
+          fixtures,
+          fixtureLeagues,
+          isOpen: fixtures.length > 0 ? state.isOpen : false,
+        };
+      });
     },
 
     // Check if fixture is in compare list
@@ -71,7 +88,7 @@ function createCompareStore() {
 
     // Close and clear
     close: () => {
-      set({ fixtures: [], isOpen: false });
+      set({ fixtures: [], fixtureLeagues: {}, isOpen: false });
     },
 
     // Clear fixtures
@@ -79,6 +96,7 @@ function createCompareStore() {
       update((state) => ({
         ...state,
         fixtures: [],
+        fixtureLeagues: {},
       }));
     },
   };

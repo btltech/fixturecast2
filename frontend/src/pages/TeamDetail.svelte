@@ -2,6 +2,7 @@
   import { onMount } from "svelte";
   import { Link } from "svelte-routing";
   import { API_URL } from "../config.js";
+  import { getCurrentSeason } from "../services/season.js";
 
   export let id;
 
@@ -17,6 +18,7 @@
   let loading = true;
   let error = null;
   let league = 39; // Default to Premier League
+  let season = getCurrentSeason();
 
   // Player filtering & sorting
   let playerSearch = "";
@@ -70,11 +72,13 @@
       // Get league from URL params if provided
       const urlParams = new URLSearchParams(window.location.search);
       const leagueParam = urlParams.get("league");
+      const seasonParam = urlParams.get("season");
       league = leagueParam ? parseInt(leagueParam, 10) : 39;
+      season = seasonParam ? parseInt(seasonParam, 10) || season : season;
 
       // Fetch Stats
       const statsRes = await fetch(
-        `${API_URL}/api/team/${id}/stats?league=${league}&season=2025`,
+        `${API_URL}/api/team/${id}/stats?league=${league}&season=${season}`,
       );
       const statsData = await statsRes.json();
 
@@ -85,7 +89,7 @@
 
       // Fetch Standings to get league position
       const standingsRes = await fetch(
-        `${API_URL}/api/standings?league=${league}&season=2025`,
+        `${API_URL}/api/standings?league=${league}&season=${season}`,
       );
       const standingsData = await standingsRes.json();
 
@@ -96,7 +100,7 @@
 
       // Fetch Recent Fixtures (last 5 games)
       const fixturesRes = await fetch(
-        `${API_URL}/api/team/${id}/fixtures?league=${league}&season=2025&last=5`,
+        `${API_URL}/api/team/${id}/fixtures?league=${league}&season=${season}&last=5`,
       );
       const fixturesData = await fixturesRes.json();
 
@@ -106,7 +110,7 @@
 
       // Fetch Upcoming Matches (next 2 games)
       const upcomingRes = await fetch(
-        `${API_URL}/api/team/${id}/upcoming?league=${league}&season=2025&next=2`,
+        `${API_URL}/api/team/${id}/upcoming?league=${league}&season=${season}&next=2`,
       );
       const upcomingData = await upcomingRes.json();
 
@@ -116,7 +120,7 @@
 
       // Fetch Injuries
       const injuriesRes = await fetch(
-        `${API_URL}/api/team/${id}/injuries?season=2025`,
+        `${API_URL}/api/team/${id}/injuries?season=${season}`,
       );
       const injuriesData = await injuriesRes.json();
 
@@ -136,7 +140,7 @@
 
       // Fetch Squad
       const squadRes = await fetch(
-        `${API_URL}/api/team/${id}/squad?season=2025`,
+        `${API_URL}/api/team/${id}/squad?season=${season}`,
       );
       const squadData = await squadRes.json();
 
@@ -507,7 +511,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           {#each upcoming as match}
             <Link
-              to={`/prediction/${match.fixture.id}`}
+              to={`/prediction/${match.fixture.id}?league=${match.league?.id || league}&season=${season}`}
               class="p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all border border-white/10 hover:border-accent/30 flex flex-col items-center text-center group"
             >
               <div class="text-xs text-slate-400 mb-2">
@@ -800,7 +804,7 @@
                     : "text-rose-400 bg-rose-400/10 border-rose-400/20"}
 
               <Link
-                to={`/prediction/${fixture.fixture.id}`}
+                to={`/prediction/${fixture.fixture.id}?league=${fixture.league?.id || league}&season=${season}`}
                 class="flex items-center gap-4 p-4 rounded-lg hover:bg-white/5 transition-all border border-white/10 hover:border-accent/30"
               >
                 <div
@@ -837,7 +841,7 @@
           {#each upcoming as match}
             {@const isHome = match.teams.home.id == id}
             <Link
-              to={`/prediction/${match.fixture.id}`}
+              to={`/prediction/${match.fixture.id}?league=${match.league?.id || league}&season=${season}`}
               class="flex items-center gap-4 p-4 rounded-lg hover:bg-white/5 transition-all border border-blue-500/30 hover:border-accent/50 bg-blue-500/5"
             >
               <div

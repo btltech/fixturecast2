@@ -2,6 +2,7 @@
   import { Link } from "svelte-routing";
   import { onMount } from "svelte";
   import { API_URL } from "../config.js";
+  import { getCurrentSeason } from "../services/season.js";
 
   export let searchQuery = "";
   export let selectedLeague = 39; // Default to Premier League, but can be overridden
@@ -13,12 +14,13 @@
   let showResults = false;
   let loading = false;
   let currentLeague = selectedLeague;
+  const season = getCurrentSeason();
 
   async function loadData(leagueId) {
     try {
       const [teamsRes, fixturesRes] = await Promise.all([
-        fetch(`${API_URL}/api/teams?league=${leagueId}&season=2025`),
-        fetch(`${API_URL}/api/fixtures?league=${leagueId}&next=50&season=2025`),
+        fetch(`${API_URL}/api/teams?league=${leagueId}&season=${season}`),
+        fetch(`${API_URL}/api/fixtures?league=${leagueId}&next=50&season=${season}`),
       ]);
       const teamsData = await teamsRes.json();
       const fixturesData = await fixturesRes.json();
@@ -133,7 +135,7 @@
             </div>
             {#each filteredFixtures as fixture}
               <Link
-                to="/prediction/{fixture.fixture.id}"
+              to="/prediction/{fixture.fixture.id}?league={fixture.league?.id || selectedLeague}&season={season}"
                 on:click={clearSearch}
                 class="block px-3 py-2 hover:bg-white/10 rounded-lg search-item"
               >

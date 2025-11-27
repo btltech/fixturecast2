@@ -7,12 +7,15 @@
   import ConfidenceBadge from "../components/ConfidenceBadge.svelte";
   import AccuracyTracker from "../components/AccuracyTracker.svelte";
   import { compareStore } from "../services/compareStore.js";
+  import { getCurrentSeason } from "../services/season.js";
+  import { getSavedLeague, saveLeague, getSavedSeason, saveSeason } from "../services/preferences.js";
 
   // Use reactive auto-subscription ($ prefix) - automatically unsubscribes
   $: compareFixtures = $compareStore?.fixtures || [];
+  $: compareLeagues = $compareStore?.fixtureLeagues || {};
 
   function toggleCompare(fixtureId) {
-    compareStore.addFixture(fixtureId);
+    compareStore.addFixture(fixtureId, selectedLeague);
   }
 
   function isInCompare(fixtureId) {
@@ -48,15 +51,18 @@
   const leaguesMap = {};
   leagues.forEach(l => leaguesMap[l.id] = l);
 
-  let selectedLeague = 39; // Default: Premier League
+  let selectedLeague = getSavedLeague(39); // Default: Premier League (persisted)
+  let season = getSavedSeason(getCurrentSeason());
   let fixtures = [];
   let deduplicatedFixtures = [];
   let loading = false;
   let showLeagueSelector = false;
+  let fixturesRequestToken = 0;
 
   // Predictions state - on demand
   let predictions = {}; // fixture_id -> prediction data
   let loadingPredictions = {}; // fixture_id -> boolean
+  let predictionRequestTokens = {}; // fixture_id -> request token
   let searchQuery = "";
 
   // UK timezone helpers
@@ -118,17 +124,23 @@
 
   async function loadFixtures() {
     loading = true;
+    saveSeason(season);
     fixtures = [];
     deduplicatedFixtures = [];
     predictions = {};
+    const requestId = ++fixturesRequestToken;
 
     try {
       const res = await fetch(
-        `${API_URL}/api/fixtures?league=${selectedLeague}&season=2025&next=40`
+        `${API_URL}/api/fixtures?league=${selectedLeague}&season=${season}&next=40`
       );
       const data = await res.json();
 
-      if (data.response && Array.isArray(data.response)) {
+      if (
+        requestId === fixturesRequestToken &&
+        data.response &&
+        Array.isArray(data.response)
+      ) {
         fixtures = data.response.filter(f =>
           f.fixture.status?.short === 'NS' || f.fixture.status?.short === 'TBD'
         );
@@ -136,14 +148,19 @@
         deduplicatedFixtures = deduplicateFixtures(fixtures);
       }
     } catch (e) {
-      console.error("Error loading fixtures:", e);
+      if (requestId === fixturesRequestToken) {
+        console.error("Error loading fixtures:", e);
+      }
     } finally {
-      loading = false;
+      if (requestId === fixturesRequestToken) {
+        loading = false;
+      }
     }
   }
 
   async function changeLeague(leagueId) {
     selectedLeague = leagueId;
+    saveLeague(leagueId);
     showLeagueSelector = false;
     await loadFixtures();
   }
@@ -155,22 +172,29 @@
 
     loadingPredictions[fixtureId] = true;
     loadingPredictions = {...loadingPredictions};
+    const requestId = (predictionRequestTokens[fixtureId] || 0) + 1;
+    predictionRequestTokens[fixtureId] = requestId;
+    predictionRequestTokens = {...predictionRequestTokens};
 
     try {
       const res = await fetch(
-        `${ML_API_URL}/api/prediction/${fixtureId}?league=${selectedLeague}&season=2025`
+        `${ML_API_URL}/api/prediction/${fixtureId}?league=${selectedLeague}&season=${season}`
       );
 
       if (res.ok) {
         const data = await res.json();
-        predictions[fixtureId] = data.prediction;
-        predictions = {...predictions};
+        if (predictionRequestTokens[fixtureId] === requestId) {
+          predictions[fixtureId] = data.prediction;
+          predictions = {...predictions};
+        }
       }
     } catch (e) {
       console.error(`Error loading prediction for ${fixtureId}:`, e);
     } finally {
-      loadingPredictions[fixtureId] = false;
-      loadingPredictions = {...loadingPredictions};
+      if (predictionRequestTokens[fixtureId] === requestId) {
+        loadingPredictions[fixtureId] = false;
+        loadingPredictions = {...loadingPredictions};
+      }
     }
   }
 
@@ -525,7 +549,7 @@
                   <span>D: {(pred.draw_prob * 100).toFixed(0)}%</span>
                   <span>A: {(pred.away_win_prob * 100).toFixed(0)}%</span>
                 </div>
-                <Link to={`/prediction/${fixtureId}`} class="view-analysis-btn">
+                <Link to={`/prediction/${fixtureId}?league=${selectedLeague}&season=${season}`} class="view-analysis-btn">
                   <span>🔮</span>
                   <span>View Full Analysis</span>
                   <svg class="arrow-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

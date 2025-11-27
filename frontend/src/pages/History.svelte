@@ -54,7 +54,7 @@
               })}
             </div>
             <Link
-              to="/prediction/{item.fixture_id}"
+              to={`/prediction/${item.fixture_id}?league=${item.league_id || 39}${item.season ? `&season=${item.season}` : ""}`}
               class="text-sm text-accent hover:underline"
             >
               View Again →

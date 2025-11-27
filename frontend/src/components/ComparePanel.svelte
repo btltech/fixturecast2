@@ -2,51 +2,64 @@
   // Compare Panel Component
   // Floating panel that shows when fixtures are selected for comparison
   import { Link } from "svelte-routing";
-  import { onDestroy } from "svelte";
   import { compareStore } from "../services/compareStore.js";
   import ConfidenceBadge from "./ConfidenceBadge.svelte";
   import SkeletonLoader from "./SkeletonLoader.svelte";
   import { ML_API_URL } from "../config.js";
+  import { getCurrentSeason } from "../services/season.js";
 
   let predictions = [null, null];
   let loading = [false, false];
+  let predictionRequestTokens = [0, 0];
 
   // Use reactive auto-subscription ($ prefix) - automatically unsubscribes
   $: isOpen = $compareStore?.isOpen || false;
   $: compareFixtures = $compareStore?.fixtures || [];
+  $: compareLeagues = $compareStore?.fixtureLeagues || {};
+
+  const season = getCurrentSeason();
 
   // React to fixture changes to load predictions
   $: if (compareFixtures[0] && !predictions[0]) {
-    loadPrediction(compareFixtures[0], 0);
+    loadPrediction(compareFixtures[0], compareLeagues[compareFixtures[0]], 0);
   }
   $: if (compareFixtures[1] && !predictions[1]) {
-    loadPrediction(compareFixtures[1], 1);
+    loadPrediction(compareFixtures[1], compareLeagues[compareFixtures[1]], 1);
   }
   // Clear predictions when removed
   $: if (!compareFixtures[0]) predictions[0] = null;
   $: if (!compareFixtures[1]) predictions[1] = null;
 
-  async function loadPrediction(fixtureId, index) {
+  async function loadPrediction(fixtureId, leagueId, index) {
     if (!fixtureId || predictions[index]?.fixture_id === fixtureId) return;
 
     loading[index] = true;
     loading = [...loading];
 
+    const requestId = predictionRequestTokens[index] + 1;
+    predictionRequestTokens[index] = requestId;
+    predictionRequestTokens = [...predictionRequestTokens];
+
     try {
+      const leagueParam = leagueId || compareLeagues[fixtureId] || 39;
       const res = await fetch(
-        `${ML_API_URL}/api/prediction/${fixtureId}?league=39&season=2025`
+        `${ML_API_URL}/api/prediction/${fixtureId}?league=${leagueParam}&season=${season}`
       );
       if (res.ok) {
         const data = await res.json();
         data.fixture_id = fixtureId;
-        predictions[index] = data;
-        predictions = [...predictions];
+        if (predictionRequestTokens[index] === requestId) {
+          predictions[index] = data;
+          predictions = [...predictions];
+        }
       }
     } catch (e) {
       console.error(`Error loading prediction ${fixtureId}:`, e);
     } finally {
-      loading[index] = false;
-      loading = [...loading];
+      if (predictionRequestTokens[index] === requestId) {
+        loading[index] = false;
+        loading = [...loading];
+      }
     }
   }
 
@@ -248,8 +261,9 @@
                   </div>
 
                   <!-- View Full -->
+                  {@const leagueId = compareLeagues[compareFixtures[index]] || 39}
                   <Link
-                    to={`/prediction/${compareFixtures[index]}`}
+                    to={`/prediction/${compareFixtures[index]}?league=${leagueId}&season=${season}`}
                     class="view-analysis-btn-sm"
                     on:click={closePanel}
                   >

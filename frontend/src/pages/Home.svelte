@@ -2,11 +2,14 @@
   import { Link } from "svelte-routing";
   import { onMount } from "svelte";
   import { API_URL } from "../config.js";
+  import { getCurrentSeason } from "../services/season.js";
+  import { getSavedSeason, saveSeason } from "../services/preferences.js";
 
   let matchOfTheDay = null;
   let todaysMatches = [];
   let loading = true;
   let error = null;
+  const season = getSavedSeason(getCurrentSeason());
 
   // League info for display
   const leagueInfo = {
@@ -31,6 +34,7 @@
   }
 
   onMount(async () => {
+    saveSeason(season);
     try {
       // Fetch today's fixtures
       const res = await fetch(`${API_URL}/api/fixtures/today`);
@@ -124,7 +128,7 @@
         </div>
 
         <Link
-          to={`/prediction/${matchOfTheDay.fixture.id}`}
+          to={`/prediction/${matchOfTheDay.fixture.id}?league=${matchOfTheDay.league?.id || 39}&season=${season}`}
           class="block bg-gradient-to-r from-accent/10 to-purple-500/10 rounded-xl p-4 md:p-6 card-interactive border border-accent/20"
         >
           <div class="flex items-center justify-between">
@@ -190,7 +194,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 stagger-enter">
         {#each todaysMatches.slice(1, 7) as fixture}
           <Link
-            to={`/prediction/${fixture.fixture.id}`}
+            to={`/prediction/${fixture.fixture.id}?league=${fixture.league?.id || 39}&season=${season}`}
             class="bg-white/5 rounded-lg p-3 card-interactive flex items-center justify-between gap-2"
           >
             <div class="flex items-center gap-2 flex-1 min-w-0">

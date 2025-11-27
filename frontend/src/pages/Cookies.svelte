@@ -139,7 +139,7 @@
       <section>
         <h2 class="text-xl font-semibold text-white mb-3">7. Contact</h2>
         <p>
-          For questions about our use of cookies, please contact privacy@fixturecast.com.
+          For questions about our use of cookies, please contact support@fixturecast.com.
         </p>
       </section>
     </div>

@@ -146,7 +146,7 @@
       <section>
         <h2 class="text-xl font-semibold text-white mb-3">12. Contact</h2>
         <p>
-          For questions about these Terms, please contact legal@fixturecast.com.
+          For questions about these Terms, please contact info@fixturecast.com.
         </p>
       </section>
     </div>

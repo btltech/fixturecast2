@@ -27,7 +27,7 @@
       <section>
         <h2 class="text-xl font-semibold text-white mb-3">2. Data Controller</h2>
         <p>
-          FixtureCast is the data controller responsible for your personal data. For any privacy-related queries, please contact us at privacy@fixturecast.com.
+          FixtureCast is the data controller responsible for your personal data. For any privacy-related queries, please contact us at support@fixturecast.com.
         </p>
       </section>
 
@@ -96,7 +96,7 @@
           <li><strong>Withdraw Consent:</strong> Withdraw cookie consent at any time</li>
         </ul>
         <p class="mt-3">
-          To exercise these rights, contact privacy@fixturecast.com.
+          To exercise these rights, contact support@fixturecast.com.
         </p>
       </section>
 

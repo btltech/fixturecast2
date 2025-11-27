@@ -172,33 +172,18 @@ class EnsemblePredictor:
     def _safe_predict(self, model, features_dict, vectorizer_name="main"):
         """
         Helper to handle sklearn models that need feature arrays.
-        Uses saved DictVectorizers to properly transform features.
+        Tries multiple methods in order of reliability.
         """
-        # First, try using vectorizer to transform features
-        X = self._vectorize_features(features_dict, vectorizer_name)
-
-        if X is not None and hasattr(model, "model") and model.model is not None:
-            try:
-                probs = model.model.predict_proba(X)[0]
-                # Return in expected format (class order: 0=Home, 1=Draw, 2=Away)
-                if len(probs) == 3:
-                    return {
-                        "home_win": round(float(probs[0]), 4),
-                        "draw": round(float(probs[1]), 4),
-                        "away_win": round(float(probs[2]), 4),
-                    }
-            except Exception as e:
-                print(f"  Vectorized prediction error for {type(model).__name__}: {e}")
-
-        # Fallback: Check if model has feature_keys (old method)
+        # Method 1: Use model's feature_keys (most reliable for GBDT/CatBoost)
         if (
             hasattr(model, "feature_keys")
             and model.feature_keys
-            and hasattr(model, "predict_proba")
+            and hasattr(model, "model")
+            and model.model is not None
         ):
             try:
                 X = np.array([[features_dict.get(k, 0) for k in model.feature_keys]])
-                probs = model.predict_proba(X)[0]
+                probs = model.model.predict_proba(X)[0]
                 if len(probs) == 3:
                     return {
                         "home_win": round(float(probs[0]), 4),
@@ -206,9 +191,23 @@ class EnsemblePredictor:
                         "away_win": round(float(probs[2]), 4),
                     }
             except Exception as e:
-                print(f"  Feature_keys prediction error for {type(model).__name__}: {e}")
+                logger.debug(f"Feature_keys prediction error for {type(model).__name__}: {e}")
 
-        # Final fallback: use model's own predict method (heuristic)
+        # Method 2: Try using vectorizer to transform features
+        X = self._vectorize_features(features_dict, vectorizer_name)
+        if X is not None and hasattr(model, "model") and model.model is not None:
+            try:
+                probs = model.model.predict_proba(X)[0]
+                if len(probs) == 3:
+                    return {
+                        "home_win": round(float(probs[0]), 4),
+                        "draw": round(float(probs[1]), 4),
+                        "away_win": round(float(probs[2]), 4),
+                    }
+            except Exception as e:
+                logger.debug(f"Vectorized prediction error for {type(model).__name__}: {e}")
+
+        # Method 3: Use model's own predict method (heuristic fallback)
         return model.predict(features_dict)
 
     def predict_fixture(self, features):

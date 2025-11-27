@@ -87,9 +87,10 @@
     <p class="text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-6 md:mb-8 px-2">
       AI-powered football predictions for <strong class="text-white">today's matches</strong>.
       Get accurate forecasts generated on match day for maximum accuracy.
+      <span class="block mt-2 text-accent font-semibold">Predicting Europe’s Elite Leagues & UEFA Competitions.</span>
     </p>
 
-    <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+    <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 w-full max-w-md mx-auto">
       <Link
         to="/fixtures"
         class="px-6 sm:px-8 py-3 rounded-full bg-accent text-white font-bold btn-glow touch-target"

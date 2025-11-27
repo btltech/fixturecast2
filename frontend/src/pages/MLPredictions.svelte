@@ -205,10 +205,13 @@
 
 <svelte:window on:click={handleClickOutside} />
 
-<div class="prediction-page page-enter">
-    <div class="page-header element-enter">
-        <h1>AI Match Predictions</h1>
-        <div class="header-controls">
+    <div class="prediction-page page-enter">
+        <div class="page-header element-enter">
+            <h1>AI Match Predictions</h1>
+            <p class="text-slate-400 text-sm mt-1">
+                Predicting Europe’s Elite Leagues & UEFA Competitions.
+            </p>
+            <div class="header-controls">
             <!-- League Selector -->
             <div class="league-selector">
                 <button
@@ -514,6 +517,20 @@
         align-items: center;
     }
 
+    @media (max-width: 480px) {
+        .header-controls {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .league-selector {
+            width: 100%;
+        }
+        .ml-status {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
     /* League Selector Styles */
     .league-selector {
         position: relative;
@@ -567,6 +584,14 @@
         border-radius: 12px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         backdrop-filter: blur(10px);
+    }
+
+    @media (max-width: 480px) {
+        .league-dropdown {
+            width: 100%;
+            min-width: unset;
+            left: 0;
+        }
     }
 
     .league-group {
@@ -739,6 +764,12 @@
         max-height: 60vh;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 480px) {
+        .matches-list {
+            max-height: 70vh;
+        }
     }
 
     @media (min-width: 640px) {

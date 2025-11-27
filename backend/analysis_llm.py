@@ -18,6 +18,7 @@ class AnalysisLLM:
         draw_prob = prediction.get("draw_prob", 0) * 100
         score = prediction.get("predicted_scoreline", "N/A")
         btts_prob = prediction.get("btts_prob", 0) * 100
+        matches_played = features.get("matches_played") or features.get("home_total_matches") or 0
         # Handle both field names for over 2.5 probability
         over25_prob = (prediction.get("over25_prob") or prediction.get("over_2_5_prob") or 0) * 100
 
@@ -56,6 +57,7 @@ class AnalysisLLM:
             "model_probabilities", {}
         )
         model_range_text = None
+        draw_support = 0
         if model_breakdown:
             models_favoring_home = 0
             models_favoring_away = 0
@@ -70,6 +72,8 @@ class AnalysisLLM:
                     models_favoring_home += 1
                 elif away_p > home_p and away_p > draw_p:
                     models_favoring_away += 1
+                elif draw_p >= home_p and draw_p >= away_p:
+                    draw_support += 1
                 model_home_values.append(home_p * 100)
                 model_away_values.append(away_p * 100)
 
@@ -101,6 +105,10 @@ class AnalysisLLM:
                     home_min, home_max = min(model_home_values), max(model_home_values)
                     away_min, away_max = min(model_away_values), max(model_away_values)
                     model_range_text = f"Model spread: {home_name} {home_min:.0f}–{home_max:.0f}% vs {away_name} {away_min:.0f}–{away_max:.0f}%"
+                    if draw_support:
+                        model_range_text += (
+                            f" · Draw support in {draw_support}/{total_models} models"
+                        )
 
         # Competition Context - NEW
         competition_type = features.get("competition_type", "domestic_league")
@@ -234,6 +242,16 @@ class AnalysisLLM:
             analysis_points.append(
                 f"🛡️ **Defensive Note:** {away_name} rarely score more than once, but matchup variability/rotation makes a single concession for {home_name} plausible."
             )
+        elif (
+            score_home is not None
+            and score_away is not None
+            and score_home >= 2
+            and home_goals_for < 1.3
+            and away_goals_against < 1.0
+        ):
+            analysis_points.append(
+                f"🛡️ **Defensive Note:** Predicted score leans above recent GF/GA — opponent rotation/variance could open the door for extra goals."
+            )
 
         # Form
         home_form = features.get("home_points_last10", 0)
@@ -268,12 +286,18 @@ class AnalysisLLM:
         # Draw / upset signaling
         if draw_heavy:
             analysis_points.append(
-                "🔀 **Draw Risk:** Elevated draw probability — protect with Draw No Bet/Double Chance."
+                "🔀 **Draw Risk:** Elevated draw probability — consider safer plays (e.g., BTTS or totals)."
             )
         if upset_live and favorite != "Draw":
             underdog = away_name if favorite == home_name else home_name
             analysis_points.append(
                 f"🚩 **Upset Watch:** {underdog} profile as a live underdog in this matchup."
+            )
+
+        # Sample size caution
+        if matches_played and matches_played < 8:
+            analysis_points.append(
+                "ℹ️ **Sample Size:** Limited recent matches — form/goals insights carry extra uncertainty."
             )
 
         # ========== NEW ENHANCED INSIGHTS ==========
@@ -282,14 +306,21 @@ class AnalysisLLM:
         home_scorer = features.get("home_top_scorer_name")
         home_scorer_goals = features.get("home_top_scorer_goals", 0)
         home_dependency = features.get("home_top_scorer_dependency", 0)
+        home_team_goals = (
+            features.get("home_goals_total") or features.get("home_goals_for_last_10") or 0
+        )
 
-        if home_scorer and home_dependency > 0.35:  # >35% of team goals
-            if home_scorer_goals >= 3:
-                goal_text = "goal" if home_scorer_goals == 1 else "goals"
-                analysis_points.append(
-                    f"⭐ **Key Player:** {home_scorer} is crucial for {home_name}, scoring {home_scorer_goals} {goal_text} "
-                    f"({home_dependency:.0%} of team total). Stopping him is the key."
-                )
+        if (
+            home_scorer
+            and home_dependency > 0.35
+            and home_scorer_goals >= 3
+            and home_team_goals >= 5
+        ):
+            goal_text = "goal" if home_scorer_goals == 1 else "goals"
+            analysis_points.append(
+                f"⭐ **Key Player:** {home_scorer} is crucial for {home_name}, scoring {home_scorer_goals} {goal_text} "
+                f"({home_dependency:.0%} of team total). Stopping him is the key."
+            )
 
         # 2. Managerial Context
         home_coach_new = features.get("home_coach_is_new", False)
@@ -313,10 +344,15 @@ class AnalysisLLM:
 
         # 4. Discipline Issues
         home_reds = features.get("home_red_cards_last5", 0)
-        if home_reds >= 2:
+        away_reds = features.get("away_red_cards_last5", 0)
+        if (home_reds >= 2 or away_reds >= 2) and (
+            features.get("home_cards_per_game", 0) > 2.5
+            or features.get("away_cards_per_game", 0) > 2.5
+        ):
+            hot_team = home_name if home_reds > away_reds else away_name
+            red_count = max(home_reds, away_reds)
             analysis_points.append(
-                f"⚠️ **Discipline:** {home_name} have seen {home_reds} red cards in their last 5 games. "
-                f"Discipline issues could cost them."
+                f"⚠️ **Discipline:** {hot_team} have {red_count} red cards in the last 5 — discipline could swing this."
             )
 
         # ===========================================        # Top Scorer Analysis
@@ -356,15 +392,8 @@ class AnalysisLLM:
         # Discipline Analysis
         home_red_cards = features.get("home_red_cards_last5", 0)
         away_red_cards = features.get("away_red_cards_last5", 0)
-        features.get("home_cards_per_game", 0)
-        features.get("away_cards_per_game", 0)
 
-        if home_red_cards >= 2 or away_red_cards >= 2:
-            hot_team = home_name if home_red_cards > away_red_cards else away_name
-            red_count = max(home_red_cards, away_red_cards)
-            analysis_points.append(
-                f"🟥 **Discipline Warning:** {hot_team} has {red_count} red cards in last 5 — could be vulnerable to another."
-            )
+        # Discipline already handled above to avoid duplication
 
         # Goal Timing Patterns
         home_late_goals = features.get("home_late_goals_pct", 0)
@@ -432,7 +461,9 @@ class AnalysisLLM:
             verdict_intro = f"{favorite} are clear favorites and the data strongly supports this."
         elif confidence == "MEDIUM":
             risk_text = "Moderate"
-            bet_suggestion = "'Draw No Bet' limits downside if the underdog steals a point."
+            bet_suggestion = (
+                "Lean toward safer angles (e.g., BTTS or totals) if you want to reduce variance."
+            )
             # FIXED: Acknowledge upset potential
             underdog = away_name if home_prob > away_prob else home_name
             verdict_intro = (
@@ -440,7 +471,7 @@ class AnalysisLLM:
             )
         else:
             risk_text = "High"
-            bet_suggestion = "Consider smaller stakes or alternative markets (BTTS, corners, etc.)."
+            bet_suggestion = "Consider smaller stakes or alternative markets (e.g., BTTS, totals)."
             prob_gap = abs(home_prob - away_prob)
             if favorite == "Draw" or prob_gap < 6:
                 verdict_intro = (

@@ -7,6 +7,7 @@ Exposes endpoints to get match predictions using the trained ensemble.
 import json
 import os
 import sys
+import time
 from collections import defaultdict
 from datetime import datetime
 from typing import Dict, Optional
@@ -563,7 +564,7 @@ from contextlib import asynccontextmanager
 from analysis_llm import AnalysisLLM
 
 # Initialize predictor once at startup (loads trained models)
-from api_client import ApiClient
+from api_client import ApiClient, RedisCache
 from safe_feature_builder import FeatureBuilder
 
 # Configure logging
@@ -575,6 +576,7 @@ predictor = None
 api_client = None
 feature_builder = FeatureBuilder()
 analysis_llm = AnalysisLLM()
+prediction_cache = RedisCache(prefix="fixturecast:mlpred:")
 
 
 @asynccontextmanager
@@ -875,6 +877,22 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
 
         fixture = fixture_response["response"][0]
 
+        # Cache key (skip caching for live/finished fixtures)
+        status_short = fixture.get("fixture", {}).get("status", {}).get("short")
+        kickoff_ts = fixture.get("fixture", {}).get("timestamp")  # epoch seconds
+        cache_key = None
+        allow_cache = status_short not in {"FT", "AET", "PEN", "CANC", "ABD", "1H", "2H", "LIVE"}
+        # If fixture starts within 2 hours, use a shorter TTL later; still allow cache for now
+        near_kickoff = False
+        if kickoff_ts:
+            time_to_kickoff = kickoff_ts - time.time()
+            near_kickoff = 0 < time_to_kickoff <= 2 * 3600
+        if allow_cache:
+            cache_key = f"prediction:{fixture_id}:{season}"
+            cached = prediction_cache.get(cache_key)
+            if cached:
+                return cached
+
         # Auto-detect league from fixture if not explicitly provided or default
         actual_league = fixture.get("league", {}).get("id", league)
         if actual_league and actual_league != league:
@@ -1041,7 +1059,17 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
         except Exception as e:
             print(f"Warning: Failed to log prediction for feedback: {e}")
 
-        return {"prediction": result, "fixture_details": fixture, "analysis": analysis}
+        response_payload = {"prediction": result, "fixture_details": fixture, "analysis": analysis}
+
+        # Cache the prediction for short-term reuse
+        if cache_key:
+            try:
+                ttl = 300 if near_kickoff else 600
+                prediction_cache.set(cache_key, response_payload, ttl=ttl)
+            except Exception as e:
+                print(f"Prediction cache set failed: {e}")
+
+        return response_payload
 
     except HTTPException:
         raise

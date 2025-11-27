@@ -11,6 +11,7 @@
   let predictions = [null, null];
   let loading = [false, false];
   let predictionRequestTokens = [0, 0];
+  let activeTab = 0; // 0 = first fixture, 1 = second fixture, 2 = summary
 
   // Use reactive auto-subscription ($ prefix) - automatically unsubscribes
   $: isOpen = $compareStore?.isOpen || false;
@@ -151,128 +152,430 @@
             <p class="text-sm mt-2">Click "⚖️ Compare" on fixture cards</p>
           </div>
         {:else}
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Mobile: tabbed view to reduce scrolling -->
+          <div class="md:hidden space-y-3">
+            <div class="flex gap-2">
+              {#each [0, 1, 2] as tabIndex}
+                <button
+                  class={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold ${
+                    activeTab === tabIndex ? 'bg-accent text-white' : 'bg-white/5 text-slate-300'
+                  }`}
+                  on:click={() => activeTab = tabIndex}
+                >
+                  {tabIndex === 0 ? `Fixture 1${compareFixtures[0] ? '' : ' (empty)'}` :
+                  tabIndex === 1 ? `Fixture 2${compareFixtures[1] ? '' : ' (empty)'}` : 'Summary'}
+                </button>
+              {/each}
+            </div>
+
+            {#if activeTab === 0}
+              {#if compareFixtures[0]}
+                <div class="glass-card p-4 relative min-h-[320px] max-h-[520px] overflow-hidden">
+                  {#if loading[0]}
+                    <SkeletonLoader type="prediction" />
+                  {:else if predictions[0]}
+                    {@const pred = predictions[0]}
+                    {@const outcome = getOutcome(pred)}
+                    <button
+                      on:click={() => removeFixture(0)}
+                      class="absolute top-2 right-2 p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors z-10"
+                      aria-label="Remove from compare"
+                    >
+                      ✕
+                    </button>
+                    <div class="flex flex-col h-full overflow-y-auto pr-1 gap-3">
+                      <div class="flex items-center justify-between">
+                        <div class="flex-1 text-center">
+                          <img src={pred.fixture_details?.teams?.home?.logo} alt="" class="w-12 h-12 mx-auto mb-1" />
+                          <div class="text-sm font-medium truncate px-1">
+                            {pred.fixture_details?.teams?.home?.name || "Home"}
+                          </div>
+                        </div>
+                        <div class="px-2 text-slate-500 text-sm">vs</div>
+                        <div class="flex-1 text-center">
+                          <img src={pred.fixture_details?.teams?.away?.logo} alt="" class="w-12 h-12 mx-auto mb-1" />
+                          <div class="text-sm font-medium truncate px-1">
+                            {pred.fixture_details?.teams?.away?.name || "Away"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="text-center">
+                        <div class="text-3xl font-bold font-mono">
+                          {pred.prediction?.predicted_scoreline || "? - ?"}
+                        </div>
+                        <div class="text-xs text-slate-400 mt-1">Predicted Score</div>
+                      </div>
+
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm {outcome.color} font-medium">{outcome.label}</span>
+                        <ConfidenceBadge confidence={getMaxProb(pred)} size="sm" />
+                      </div>
+
+                      <div class="space-y-2 text-xs">
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 text-slate-400">H</span>
+                          <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              class="h-full bg-emerald-500 rounded-full transition-all"
+                              style="width: {(pred.prediction?.home_win_prob || 0) * 100}%"
+                            ></div>
+                          </div>
+                          <span class="w-10 text-right font-mono">
+                            {((pred.prediction?.home_win_prob || 0) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 text-slate-400">D</span>
+                          <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              class="h-full bg-slate-500 rounded-full transition-all"
+                              style="width: {(pred.prediction?.draw_prob || 0) * 100}%"
+                            ></div>
+                          </div>
+                          <span class="w-10 text-right font-mono">
+                            {((pred.prediction?.draw_prob || 0) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 text-slate-400">A</span>
+                          <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              class="h-full bg-rose-500 rounded-full transition-all"
+                              style="width: {(pred.prediction?.away_win_prob || 0) * 100}%"
+                            ></div>
+                          </div>
+                          <span class="w-10 text-right font-mono">
+                            {((pred.prediction?.away_win_prob || 0) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-3 text-xs">
+                        <div class="bg-white/5 rounded-lg p-2 text-center">
+                          <div class="text-slate-400">BTTS</div>
+                          <div class="font-bold">{((pred.prediction?.btts_prob || 0) * 100).toFixed(0)}%</div>
+                        </div>
+                        <div class="bg-white/5 rounded-lg p-2 text-center">
+                          <div class="text-slate-400">Over 2.5</div>
+                          <div class="font-bold">{((pred.prediction?.over25_prob || 0) * 100).toFixed(0)}%</div>
+                        </div>
+                      </div>
+
+                      <Link
+                        to={`/prediction/${compareFixtures[0]}?league=${compareLeagues[compareFixtures[0]] || 39}&season=${season}`}
+                        class="view-analysis-btn-sm"
+                        on:click={closePanel}
+                      >
+                        <span>🔮</span>
+                        <span>View Full Analysis</span>
+                        <svg class="arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </Link>
+                    </div>
+                  {:else}
+                    <div class="text-center py-8 text-slate-400">
+                      <div class="text-3xl mb-2">➕</div>
+                      <p class="text-sm">Add a fixture to compare</p>
+                    </div>
+                  {/if}
+                </div>
+              {:else}
+                <div class="glass-card p-4 text-center text-slate-400">Add a fixture to slot 1.</div>
+              {/if}
+            {:else if activeTab === 1}
+              {#if compareFixtures[1]}
+                <div class="glass-card p-4 relative min-h-[320px] max-h-[520px] overflow-hidden">
+                  {#if loading[1]}
+                    <SkeletonLoader type="prediction" />
+                  {:else if predictions[1]}
+                    {@const pred = predictions[1]}
+                    {@const outcome = getOutcome(pred)}
+                    <button
+                      on:click={() => removeFixture(1)}
+                      class="absolute top-2 right-2 p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors z-10"
+                      aria-label="Remove from compare"
+                    >
+                      ✕
+                    </button>
+                    <div class="flex flex-col h-full overflow-y-auto pr-1 gap-3">
+                      <div class="flex items-center justify-between">
+                        <div class="flex-1 text-center">
+                          <img src={pred.fixture_details?.teams?.home?.logo} alt="" class="w-12 h-12 mx-auto mb-1" />
+                          <div class="text-sm font-medium truncate px-1">
+                            {pred.fixture_details?.teams?.home?.name || "Home"}
+                          </div>
+                        </div>
+                        <div class="px-2 text-slate-500 text-sm">vs</div>
+                        <div class="flex-1 text-center">
+                          <img src={pred.fixture_details?.teams?.away?.logo} alt="" class="w-12 h-12 mx-auto mb-1" />
+                          <div class="text-sm font-medium truncate px-1">
+                            {pred.fixture_details?.teams?.away?.name || "Away"}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="text-center">
+                        <div class="text-3xl font-bold font-mono">
+                          {pred.prediction?.predicted_scoreline || "? - ?"}
+                        </div>
+                        <div class="text-xs text-slate-400 mt-1">Predicted Score</div>
+                      </div>
+
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm {outcome.color} font-medium">{outcome.label}</span>
+                        <ConfidenceBadge confidence={getMaxProb(pred)} size="sm" />
+                      </div>
+
+                      <div class="space-y-2 text-xs">
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 text-slate-400">H</span>
+                          <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              class="h-full bg-emerald-500 rounded-full transition-all"
+                              style="width: {(pred.prediction?.home_win_prob || 0) * 100}%"
+                            ></div>
+                          </div>
+                          <span class="w-10 text-right font-mono">
+                            {((pred.prediction?.home_win_prob || 0) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 text-slate-400">D</span>
+                          <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              class="h-full bg-slate-500 rounded-full transition-all"
+                              style="width: {(pred.prediction?.draw_prob || 0) * 100}%"
+                            ></div>
+                          </div>
+                          <span class="w-10 text-right font-mono">
+                            {((pred.prediction?.draw_prob || 0) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <span class="w-8 text-slate-400">A</span>
+                          <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div
+                              class="h-full bg-rose-500 rounded-full transition-all"
+                              style="width: {(pred.prediction?.away_win_prob || 0) * 100}%"
+                            ></div>
+                          </div>
+                          <span class="w-10 text-right font-mono">
+                            {((pred.prediction?.away_win_prob || 0) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-3 text-xs">
+                        <div class="bg-white/5 rounded-lg p-2 text-center">
+                          <div class="text-slate-400">BTTS</div>
+                          <div class="font-bold">{((pred.prediction?.btts_prob || 0) * 100).toFixed(0)}%</div>
+                        </div>
+                        <div class="bg-white/5 rounded-lg p-2 text-center">
+                          <div class="text-slate-400">Over 2.5</div>
+                          <div class="font-bold">{((pred.prediction?.over25_prob || 0) * 100).toFixed(0)}%</div>
+                        </div>
+                      </div>
+
+                      <Link
+                        to={`/prediction/${compareFixtures[1]}?league=${compareLeagues[compareFixtures[1]] || 39}&season=${season}`}
+                        class="view-analysis-btn-sm"
+                        on:click={closePanel}
+                      >
+                        <span>🔮</span>
+                        <span>View Full Analysis</span>
+                        <svg class="arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                      </Link>
+                    </div>
+                  {:else}
+                    <div class="text-center py-8 text-slate-400">
+                      <div class="text-3xl mb-2">➕</div>
+                      <p class="text-sm">Add a fixture to compare</p>
+                    </div>
+                  {/if}
+                </div>
+              {:else}
+                <div class="glass-card p-4 text-center text-slate-400">Add a fixture to slot 2.</div>
+              {/if}
+            {:else}
+              <div class="glass-card p-4">
+                {#if predictions[0] && predictions[1]}
+                  <h3 class="font-bold mb-3 flex items-center gap-2">
+                    <span>📊</span> Quick Comparison
+                  </h3>
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                      <thead>
+                        <tr class="text-slate-400 text-xs">
+                          <th class="text-left py-2 font-medium">Fixture 1</th>
+                          <th class="text-center py-2 font-medium">Metric</th>
+                          <th class="text-right py-2 font-medium">Fixture 2</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr class="border-t border-white/5">
+                          <td class="py-2 {getMaxProb(predictions[0]) > getMaxProb(predictions[1]) ? 'text-accent font-bold' : ''}">
+                            {(getMaxProb(predictions[0]) * 100).toFixed(0)}%
+                          </td>
+                          <td class="py-2 text-center text-slate-400">Confidence</td>
+                          <td class="py-2 text-right {getMaxProb(predictions[1]) > getMaxProb(predictions[0]) ? 'text-accent font-bold' : ''}">
+                            {(getMaxProb(predictions[1]) * 100).toFixed(0)}%
+                          </td>
+                        </tr>
+                        <tr class="border-t border-white/5">
+                          <td class="py-2">{predictions[0].prediction?.predicted_scoreline || "?"}</td>
+                          <td class="py-2 text-center text-slate-400">Score</td>
+                          <td class="py-2 text-right">{predictions[1].prediction?.predicted_scoreline || "?"}</td>
+                        </tr>
+                        <tr class="border-t border-white/5">
+                          <td class="py-2">{((predictions[0].prediction?.btts_prob || 0) * 100).toFixed(0)}%</td>
+                          <td class="py-2 text-center text-slate-400">BTTS</td>
+                          <td class="py-2 text-right">{((predictions[1].prediction?.btts_prob || 0) * 100).toFixed(0)}%</td>
+                        </tr>
+                        <tr class="border-t border-white/5">
+                          <td class="py-2">{((predictions[0].prediction?.over25_prob || 0) * 100).toFixed(0)}%</td>
+                          <td class="py-2 text-center text-slate-400">Over 2.5</td>
+                          <td class="py-2 text-right">{((predictions[1].prediction?.over25_prob || 0) * 100).toFixed(0)}%</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                {:else}
+                  <div class="text-center text-slate-400">
+                    Add two fixtures to see the summary.
+                  </div>
+                {/if}
+              </div>
+            {/if}
+          </div>
+
+          <!-- Desktop: side-by-side cards -->
+          <div class="hidden md:grid grid-cols-1 sm:grid-cols-2 gap-4">
             {#each [0, 1] as index}
-              <div class="glass-card p-4 relative min-h-[300px] {!predictions[index] && !loading[index] && !compareFixtures[index] ? 'border-dashed border-2 border-white/20 flex items-center justify-center' : ''}">
+              <div class="glass-card p-4 relative min-h-[320px] max-h-[520px] overflow-hidden {!predictions[index] && !loading[index] && !compareFixtures[index] ? 'border-dashed border-2 border-white/20 flex items-center justify-center' : ''}">
                 {#if loading[index]}
                   <SkeletonLoader type="prediction" />
                 {:else if predictions[index]}
                   {@const pred = predictions[index]}
                   {@const outcome = getOutcome(pred)}
 
-                  <!-- Remove button -->
-                  <button
-                    on:click={() => removeFixture(index)}
-                    class="absolute top-2 right-2 p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors z-10"
-                    aria-label="Remove from compare"
-                  >
-                    ✕
-                  </button>
+                  <div class="flex flex-col h-full overflow-y-auto pr-1 gap-3">
+                    <!-- Remove button -->
+                    <button
+                      on:click={() => removeFixture(index)}
+                      class="absolute top-2 right-2 p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors z-10"
+                      aria-label="Remove from compare"
+                    >
+                      ✕
+                    </button>
 
-                  <!-- Teams -->
-                  <div class="flex items-center justify-between mb-4">
-                    <div class="flex-1 text-center">
-                      <img
-                        src={pred.fixture_details?.teams?.home?.logo}
-                        alt=""
-                        class="w-12 h-12 mx-auto mb-1"
-                      />
-                      <div class="text-sm font-medium truncate px-1">
-                        {pred.fixture_details?.teams?.home?.name || "Home"}
+                    <!-- Teams -->
+                    <div class="flex items-center justify-between">
+                      <div class="flex-1 text-center">
+                        <img
+                          src={pred.fixture_details?.teams?.home?.logo}
+                          alt=""
+                          class="w-12 h-12 mx-auto mb-1"
+                        />
+                        <div class="text-sm font-medium truncate px-1">
+                          {pred.fixture_details?.teams?.home?.name || "Home"}
+                        </div>
+                      </div>
+                      <div class="px-2 text-slate-500 text-sm">vs</div>
+                      <div class="flex-1 text-center">
+                        <img
+                          src={pred.fixture_details?.teams?.away?.logo}
+                          alt=""
+                          class="w-12 h-12 mx-auto mb-1"
+                        />
+                        <div class="text-sm font-medium truncate px-1">
+                          {pred.fixture_details?.teams?.away?.name || "Away"}
+                        </div>
                       </div>
                     </div>
-                    <div class="px-2 text-slate-500 text-sm">vs</div>
-                    <div class="flex-1 text-center">
-                      <img
-                        src={pred.fixture_details?.teams?.away?.logo}
-                        alt=""
-                        class="w-12 h-12 mx-auto mb-1"
-                      />
-                      <div class="text-sm font-medium truncate px-1">
-                        {pred.fixture_details?.teams?.away?.name || "Away"}
+
+                    <!-- Predicted Score -->
+                    <div class="text-center">
+                      <div class="text-3xl font-bold font-mono">
+                        {pred.prediction?.predicted_scoreline || "? - ?"}
+                      </div>
+                      <div class="text-xs text-slate-400 mt-1">Predicted Score</div>
+                    </div>
+
+                    <!-- Outcome & Confidence -->
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm {outcome.color} font-medium">{outcome.label}</span>
+                      <ConfidenceBadge confidence={getMaxProb(pred)} size="sm" />
+                    </div>
+
+                    <!-- Probability Bars -->
+                    <div class="space-y-2 text-xs">
+                      <div class="flex items-center gap-2">
+                        <span class="w-8 text-slate-400">H</span>
+                        <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            class="h-full bg-emerald-500 rounded-full transition-all"
+                            style="width: {(pred.prediction?.home_win_prob || 0) * 100}%"
+                          ></div>
+                        </div>
+                        <span class="w-10 text-right font-mono">
+                          {((pred.prediction?.home_win_prob || 0) * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="w-8 text-slate-400">D</span>
+                        <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            class="h-full bg-slate-500 rounded-full transition-all"
+                            style="width: {(pred.prediction?.draw_prob || 0) * 100}%"
+                          ></div>
+                        </div>
+                        <span class="w-10 text-right font-mono">
+                          {((pred.prediction?.draw_prob || 0) * 100).toFixed(0)}%
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="w-8 text-slate-400">A</span>
+                        <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                          <div
+                            class="h-full bg-rose-500 rounded-full transition-all"
+                            style="width: {(pred.prediction?.away_win_prob || 0) * 100}%"
+                          ></div>
+                        </div>
+                        <span class="w-10 text-right font-mono">
+                          {((pred.prediction?.away_win_prob || 0) * 100).toFixed(0)}%
+                        </span>
                       </div>
                     </div>
-                  </div>
 
-                  <!-- Predicted Score -->
-                  <div class="text-center mb-4">
-                    <div class="text-3xl font-bold font-mono">
-                      {pred.prediction?.predicted_scoreline || "? - ?"}
-                    </div>
-                    <div class="text-xs text-slate-400 mt-1">Predicted Score</div>
-                  </div>
-
-                  <!-- Outcome & Confidence -->
-                  <div class="flex items-center justify-between mb-4">
-                    <span class="text-sm {outcome.color} font-medium">{outcome.label}</span>
-                    <ConfidenceBadge confidence={getMaxProb(pred)} size="sm" />
-                  </div>
-
-                  <!-- Probability Bars -->
-                  <div class="space-y-2 text-xs">
-                    <div class="flex items-center gap-2">
-                      <span class="w-8 text-slate-400">H</span>
-                      <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div
-                          class="h-full bg-emerald-500 rounded-full transition-all"
-                          style="width: {(pred.prediction?.home_win_prob || 0) * 100}%"
-                        ></div>
+                    <!-- Additional Stats -->
+                    <div class="pt-3 border-t border-white/10 grid grid-cols-2 gap-3 text-xs">
+                      <div class="bg-white/5 rounded-lg p-2 text-center">
+                        <div class="text-slate-400">BTTS</div>
+                        <div class="font-bold">{((pred.prediction?.btts_prob || 0) * 100).toFixed(0)}%</div>
                       </div>
-                      <span class="w-10 text-right font-mono">
-                        {((pred.prediction?.home_win_prob || 0) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <span class="w-8 text-slate-400">D</span>
-                      <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div
-                          class="h-full bg-slate-500 rounded-full transition-all"
-                          style="width: {(pred.prediction?.draw_prob || 0) * 100}%"
-                        ></div>
+                      <div class="bg-white/5 rounded-lg p-2 text-center">
+                        <div class="text-slate-400">Over 2.5</div>
+                        <div class="font-bold">{((pred.prediction?.over25_prob || 0) * 100).toFixed(0)}%</div>
                       </div>
-                      <span class="w-10 text-right font-mono">
-                        {((pred.prediction?.draw_prob || 0) * 100).toFixed(0)}%
-                      </span>
                     </div>
-                    <div class="flex items-center gap-2">
-                      <span class="w-8 text-slate-400">A</span>
-                      <div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div
-                          class="h-full bg-rose-500 rounded-full transition-all"
-                          style="width: {(pred.prediction?.away_win_prob || 0) * 100}%"
-                        ></div>
-                      </div>
-                      <span class="w-10 text-right font-mono">
-                        {((pred.prediction?.away_win_prob || 0) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
 
-                  <!-- Additional Stats -->
-                  <div class="mt-4 pt-4 border-t border-white/10 grid grid-cols-2 gap-3 text-xs">
-                    <div class="bg-white/5 rounded-lg p-2 text-center">
-                      <div class="text-slate-400">BTTS</div>
-                      <div class="font-bold">{((pred.prediction?.btts_prob || 0) * 100).toFixed(0)}%</div>
-                    </div>
-                    <div class="bg-white/5 rounded-lg p-2 text-center">
-                      <div class="text-slate-400">Over 2.5</div>
-                      <div class="font-bold">{((pred.prediction?.over25_prob || 0) * 100).toFixed(0)}%</div>
-                    </div>
+                    <!-- View Full -->
+                    <Link
+                      to={`/prediction/${compareFixtures[index]}?league=${compareLeagues[compareFixtures[index]] || 39}&season=${season}`}
+                      class="view-analysis-btn-sm"
+                      on:click={closePanel}
+                    >
+                      <span>🔮</span>
+                      <span>View Full Analysis</span>
+                      <svg class="arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                      </svg>
+                    </Link>
                   </div>
-
-                  <!-- View Full -->
-                  {@const leagueId = compareLeagues[compareFixtures[index]] || 39}
-                  <Link
-                    to={`/prediction/${compareFixtures[index]}?league=${leagueId}&season=${season}`}
-                    class="view-analysis-btn-sm"
-                    on:click={closePanel}
-                  >
-                    <span>🔮</span>
-                    <span>View Full Analysis</span>
-                    <svg class="arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                  </Link>
                 {:else}
                   <!-- Empty slot -->
                   <div class="text-center py-8 text-slate-400">

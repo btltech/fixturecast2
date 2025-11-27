@@ -20,6 +20,8 @@
   let league = 39;
   let season = getCurrentSeason();
   let predictionRequestToken = 0;
+  let showDetails = true;
+  let isMobile = false;
 
   // Use reactive auto-subscription ($ prefix) - automatically unsubscribes
   $: currentFavorites = $favorites;
@@ -42,6 +44,8 @@
 
   onMount(async () => {
     if (typeof window !== "undefined") {
+      isMobile = window.innerWidth < 768;
+      showDetails = !isMobile;
       const params = new URLSearchParams(window.location.search);
       const leagueParam = parseInt(params.get("league") || "", 10);
       const seasonParam = parseInt(params.get("season") || "", 10);
@@ -148,6 +152,10 @@
         },
       ]);
     }
+  }
+
+  function toggleDetails() {
+    showDetails = !showDetails;
   }
 </script>
 
@@ -348,8 +356,17 @@
       </div>
     </div>
 
+    <div class="flex justify-center mt-2 md:hidden">
+      <button
+        class="px-4 py-2 bg-white/10 rounded-lg border border-white/10 text-sm btn-interact"
+        on:click={toggleDetails}
+      >
+        {showDetails ? "Hide full analysis" : "Show full analysis & stats"}
+      </button>
+    </div>
+
     <!-- Analysis & Stats Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 element-enter stagger-3">
+    <div class={`grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 element-enter stagger-3 ${!showDetails && isMobile ? 'hidden' : ''}`}>
       <!-- AI Analysis -->
       <div class="lg:col-span-2 glass-card p-4 md:p-8 relative overflow-hidden">
         <div class="absolute top-0 right-0 p-4 opacity-10 hidden md:block">
@@ -486,8 +503,10 @@
         <!-- Model Accuracy Tracker -->
         <AccuracyTracker league={data.fixture_details?.league?.id || 39} />
       </div>
+    </div>
 
-      <!-- Head-to-Head Section -->
+    <!-- Head-to-Head Section -->
+    <div class={!showDetails && isMobile ? 'hidden' : ''}>
       {#if data.fixture_details}
         <HeadToHead
           homeTeam={data.fixture_details.teams.home}

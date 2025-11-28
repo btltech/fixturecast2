@@ -58,18 +58,36 @@ def fetch_recent_finished_matches(days=7):
     return all_matches
 
 
-def generate_prediction_for_match(fixture):
-    """Generate prediction using local trained models"""
-    from backend.safe_feature_builder import build_features_for_fixture
-    from ml_engine.ensemble_predictor import EnsemblePredictor
-
+def generate_prediction_for_match(fixture, predictor):
+    """Generate prediction using loaded predictor"""
     try:
-        # Build features for this match
-        features = build_features_for_fixture(fixture)
+        # Extract basic features from fixture data
+        home_team = fixture["teams"]["home"]["name"]
+        away_team = fixture["teams"]["away"]["name"]
+        home_id = fixture["teams"]["home"]["id"]
+        away_id = fixture["teams"]["away"]["id"]
+        league_id = fixture["league"]["id"]
 
-        # Load trained models and predict
-        predictor = EnsemblePredictor(load_trained=True)
-        prediction = predictor.predict(features)
+        # Create minimal feature dict
+        features = {
+            "home_id": home_id,
+            "away_id": away_id,
+            "home_name": home_team,
+            "away_name": away_team,
+            "league_id": league_id,
+            # Add defaults for key features
+            "home_league_pos": 10,
+            "away_league_pos": 10,
+            "home_points_last10": 15,
+            "away_points_last10": 15,
+            "home_goals_for_avg": 1.3,
+            "away_goals_for_avg": 1.2,
+            "home_goals_against_avg": 1.2,
+            "away_goals_against_avg": 1.3,
+        }
+
+        # Use the loaded predictor
+        prediction = predictor.predict_fixture(features)
 
         return prediction
 
@@ -237,6 +255,13 @@ def run_weekly_backtest():
         print("No matches found to backtest.")
         return
 
+    # Load models once (optimization)
+    print("Loading trained models...")
+    from ml_engine.ensemble_predictor import EnsemblePredictor
+
+    predictor = EnsemblePredictor(load_trained=True)
+    print("✅ Models loaded\n")
+
     results = []
     total_correct = 0
     total_profit = 0.0
@@ -253,7 +278,7 @@ def run_weekly_backtest():
         print(f"  {home_team} {home_goals}-{away_goals} {away_team}")
 
         # Generate prediction
-        prediction = generate_prediction_for_match(match)
+        prediction = generate_prediction_for_match(match, predictor)
 
         # Evaluate
         evaluation = evaluate_prediction(prediction, home_goals, away_goals)

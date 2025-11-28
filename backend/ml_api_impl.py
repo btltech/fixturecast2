@@ -1523,6 +1523,26 @@ async def predict_match(features: MatchFeatures):
         )
         stats_tracker.record_prediction(result.get("model_breakdown", {}), ensemble_confidence)
 
+        # Log prediction to metrics tracker
+        try:
+            fixture_id = features_dict.get("fixture_id", 0)
+            home_team = features_dict.get("home_team", "Unknown")
+            away_team = features_dict.get("away_team", "Unknown")
+            predicted_score = result.get("predicted_scoreline", "")
+
+            metrics_tracker.log_prediction(
+                fixture_id=fixture_id,
+                home_team=home_team,
+                away_team=away_team,
+                home_pred=result["home_win_prob"],
+                draw_pred=result["draw_prob"],
+                away_pred=result["away_win_prob"],
+                predicted_score=predicted_score,
+                model_breakdown=result.get("model_breakdown", {}),
+            )
+        except Exception as e:
+            logger.warning(f"Failed to log prediction to metrics: {e}")
+
         return PredictionResponse(**result)
 
     except Exception as e:
@@ -1620,6 +1640,22 @@ async def api_record_result(fixture_id: int, home_goals: int, away_goals: int):
     evaluation = record_result(fixture_id, home_goals, away_goals)
     if evaluation is None:
         raise HTTPException(status_code=404, detail="No prediction found for this fixture")
+
+    # Log actual result to metrics tracker
+    try:
+        # Determine result (H=home, D=draw, A=away)
+        if home_goals > away_goals:
+            actual_result = "H"
+        elif home_goals < away_goals:
+            actual_result = "A"
+        else:
+            actual_result = "D"
+
+        actual_score = f"{home_goals}-{away_goals}"
+        metrics_tracker.log_actual_result(fixture_id, actual_result, actual_score)
+    except Exception as e:
+        logger.warning(f"Failed to log result to metrics: {e}")
+
     return {"status": "recorded", "evaluation": evaluation}
 
 

@@ -121,6 +121,16 @@
         >
         AI Models
       </Link>
+      <Link
+        to="/admin/metrics"
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-all {isActive(
+          '/admin/metrics',
+        )
+          ? 'text-white bg-white/10'
+          : 'text-slate-400 hover:text-white hover:bg-white/5'}"
+      >
+        Metrics
+      </Link>
     </div>
 
     <!-- Mobile: More menu (main nav in bottom bar) -->
@@ -280,6 +290,32 @@
           </div>
           <span class="font-medium text-slate-200 group-hover:text-white"
             >Model Stats</span
+          >
+        </Link>
+
+        <Link
+          to="/admin/metrics"
+          on:click={closeMobileMenu}
+          class="flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-white/5 touch-target menu-item group"
+        >
+          <div
+            class="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-colors"
+          >
+            <svg
+              class="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              ><path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z"
+              /></svg
+            >
+          </div>
+          <span class="font-medium text-slate-200 group-hover:text-white"
+            >Metrics</span
           >
         </Link>
 

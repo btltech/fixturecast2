@@ -33,6 +33,8 @@ jobs:
           pip install -r requirements.txt
 
       - name: Train models
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
         run: |
           cd ml_engine
           python continuous_training.py --no-collect --train

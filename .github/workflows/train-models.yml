@@ -51,9 +51,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
           git add ml_engine/trained_models/
           git commit -m "chore: Update trained models - $(date +'%Y-%m-%d %H:%M:%S UTC')"
-          git pull --rebase origin main
           git push
 
       - name: Notify on success

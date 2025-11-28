@@ -20,6 +20,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -48,14 +49,12 @@ jobs:
 
       - name: Commit and push models
         if: steps.check_changes.outputs.changed == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "FixtureCast Training Bot"
           git config user.email "training-bot@fixturecast.dev"
           git add ml_engine/trained_models/
           git commit -m "chore: Update trained models - $(date +'%Y-%m-%d %H:%M:%S UTC')"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          git push origin main
 
       - name: Notify on success
         if: success()

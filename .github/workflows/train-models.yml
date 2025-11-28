@@ -4,13 +4,17 @@ on:
   schedule:
     # Run every Monday at 3 AM UTC
     - cron: "0 3 * * 1"
+  push:
+    branches:
+      - main
+  # Allow manual trigger
   # Allow manual trigger
   workflow_dispatch:
     inputs:
       collect_data:
         description: 'Collect fresh data from API'
         required: false
-        default: 'false'
+        default: false
         type: boolean
 
 permissions:

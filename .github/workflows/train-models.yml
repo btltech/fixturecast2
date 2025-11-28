@@ -59,12 +59,15 @@ jobs:
 
       - name: Commit and push models
         if: steps.check_changes.outputs.changed == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore: Update trained models - automated training"
-          commit_user_name: FixtureCast Training Bot
-          commit_user_email: training-bot@fixturecast.dev
-          file_pattern: "ml_engine/trained_models/*"
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          git config user.name "FixtureCast Training Bot"
+          git config user.email "training-bot@fixturecast.dev"
+          git add ml_engine/trained_models/
+          git commit -m "chore: Update trained models - $(date +'%Y-%m-%d %H:%M:%S UTC')"
+          git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git
+          git push origin HEAD:main
 
       - name: Notify on success
         if: success()

@@ -14,11 +14,11 @@ print(f"🚀 Dispatcher: SERVICE_TYPE={service_type}")
 
 if service_type == "backend":
     print("🚀 DEBUG: IMPORTING BACKEND_API NOW")
-    print("🔄 Routing to Data API (backend_api.py)")
+    print("🔄 Routing to Data API (main.py)")
     try:
-        from backend_api import app
+        from main import app
     except ImportError:
-        from backend.backend_api import app
+        from backend.main import app
 else:
     print("🤖 Routing to ML API (ml_api_impl.py)")
     try:

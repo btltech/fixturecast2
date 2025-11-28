@@ -79,9 +79,7 @@ jobs:
       - name: Restart ML API
         run: |
           echo "🔄 Attempting to restart ML API..."
-          railway link $RAILWAY_PROJECT_ID
-          railway service ml-api
-          railway redeploy -y
+          railway redeploy --project $RAILWAY_PROJECT_ID --service web -y
           echo "✅ ML API restart triggered"
 
       - name: Notify Restart
@@ -100,9 +98,7 @@ jobs:
       - name: Restart Backend API
         run: |
           echo "🔄 Attempting to restart Backend API..."
-          railway link $RAILWAY_PROJECT_ID
-          railway service backend-api
-          railway redeploy -y
+          railway redeploy --project $RAILWAY_PROJECT_ID --service backend -y
           echo "✅ Backend API restart triggered"
 
       - name: Notify Restart

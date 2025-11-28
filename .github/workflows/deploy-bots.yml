@@ -1,0 +1,104 @@
+name: Deploy Bots to Railway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/telegram_bot.py'
+      - 'scripts/discord_bot.py'
+      - 'scripts/reddit_bot.py'
+      - 'scripts/twitter_bot.py'
+      - 'requirements.txt'
+      - '.env.example'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Validate bot scripts
+        run: |
+          python -m py_compile scripts/telegram_bot.py
+          python -m py_compile scripts/discord_bot.py
+          echo "✅ Bot scripts validated successfully"
+
+      - name: Trigger Railway deployment
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "⚠️ RAILWAY_TOKEN not set - deployment will happen via Railway's auto-deploy"
+            echo "Railway watches this repository and auto-deploys on push to main"
+          else
+            echo "✅ Railway token configured"
+            # Railway auto-deploys when connected to GitHub
+            echo "Deployment will be triggered automatically by Railway"
+          fi
+
+      - name: Notify Discord on success
+        if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ ! -z "$DISCORD_WEBHOOK" ]; then
+            curl -X POST "$DISCORD_WEBHOOK" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "content": "✅ **Bot Deployment Started**",
+                "embeds": [{
+                  "title": "FixtureCast Bots",
+                  "description": "Bot code has been updated and Railway deployment triggered.",
+                  "color": 65280,
+                  "fields": [
+                    {
+                      "name": "Commit",
+                      "value": "${{ github.event.head_commit.message }}",
+                      "inline": false
+                    },
+                    {
+                      "name": "Author",
+                      "value": "${{ github.actor }}",
+                      "inline": true
+                    }
+                  ],
+                  "timestamp": "'$(date -u +'%Y-%m-%dT%H:%M:%SZ')'"
+                }]
+              }'
+          fi
+
+      - name: Notify Discord on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ ! -z "$DISCORD_WEBHOOK" ]; then
+            curl -X POST "$DISCORD_WEBHOOK" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "content": "❌ **Bot Deployment Failed**",
+                "embeds": [{
+                  "title": "Deployment Error",
+                  "description": "Check the workflow logs for details.",
+                  "color": 16711680,
+                  "fields": [{
+                    "name": "Run",
+                    "value": "[View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                    "inline": false
+                  }]
+                }]
+              }'
+          fi

@@ -1,0 +1,139 @@
+# GitHub Actions Workflow for FixtureCast Health Monitoring
+# Runs every 30 minutes to check system health and auto-restart if needed
+
+name: Health Monitor
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:  # Allow manual triggers
+
+env:
+  ML_API_URL: https://ml-api-production-6cfc.up.railway.app
+  BACKEND_API_URL: https://backend-api-production-7b7d.up.railway.app
+  RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    outputs:
+      ml_healthy: ${{ steps.check.outputs.ml_healthy }}
+      backend_healthy: ${{ steps.check.outputs.backend_healthy }}
+    steps:
+      - name: Check API Health
+        id: check
+        run: |
+          echo "🩺 Checking FixtureCast Services..."
+
+          # Check ML API
+          ML_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" $ML_API_URL/health 2>/dev/null || echo "000")
+          if [ "$ML_STATUS" = "200" ]; then
+            echo "ml_healthy=true" >> $GITHUB_OUTPUT
+            echo "✅ ML API is healthy (HTTP $ML_STATUS)"
+          else
+            echo "ml_healthy=false" >> $GITHUB_OUTPUT
+            echo "❌ ML API is unhealthy (HTTP $ML_STATUS)"
+          fi
+
+          # Check Backend API
+          BACKEND_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" $BACKEND_API_URL/health 2>/dev/null || echo "000")
+          if [ "$BACKEND_STATUS" = "200" ]; then
+            echo "backend_healthy=true" >> $GITHUB_OUTPUT
+            echo "✅ Backend API is healthy (HTTP $BACKEND_STATUS)"
+          else
+            echo "backend_healthy=false" >> $GITHUB_OUTPUT
+            echo "❌ Backend API is unhealthy (HTTP $BACKEND_STATUS)"
+          fi
+
+      - name: Health Summary
+        run: |
+          echo "## 🩺 Health Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check.outputs.ml_healthy }}" = "true" ]; then
+            echo "| ML API | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| ML API | ❌ Unhealthy |" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ steps.check.outputs.backend_healthy }}" = "true" ]; then
+            echo "| Backend API | ✅ Healthy |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Backend API | ❌ Unhealthy |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "_Last checked: $(date -u)_" >> $GITHUB_STEP_SUMMARY
+
+  auto-restart-ml:
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: needs.health-check.outputs.ml_healthy == 'false'
+    steps:
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL https://railway.com/install.sh | sh
+          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+      - name: Restart ML API
+        run: |
+          echo "🔄 Attempting to restart ML API..."
+          railway link $RAILWAY_PROJECT_ID
+          railway service ml-api
+          railway redeploy -y
+          echo "✅ ML API restart triggered"
+
+      - name: Notify Restart
+        run: echo "⚠️ ML API was unhealthy and has been restarted"
+
+  auto-restart-backend:
+    runs-on: ubuntu-latest
+    needs: health-check
+    if: needs.health-check.outputs.backend_healthy == 'false'
+    steps:
+      - name: Install Railway CLI
+        run: |
+          curl -fsSL https://railway.com/install.sh | sh
+          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+
+      - name: Restart Backend API
+        run: |
+          echo "🔄 Attempting to restart Backend API..."
+          railway link $RAILWAY_PROJECT_ID
+          railway service backend-api
+          railway redeploy -y
+          echo "✅ Backend API restart triggered"
+
+      - name: Notify Restart
+        run: echo "⚠️ Backend API was unhealthy and has been restarted"
+
+  verify-recovery:
+    runs-on: ubuntu-latest
+    needs: [auto-restart-ml, auto-restart-backend]
+    if: always() && (needs.auto-restart-ml.result == 'success' || needs.auto-restart-backend.result == 'success')
+    steps:
+      - name: Wait for restart
+        run: sleep 120  # Wait 2 minutes for Railway to restart
+
+      - name: Verify recovery
+        run: |
+          echo "🔍 Verifying service recovery..."
+
+          ML_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" $ML_API_URL/health 2>/dev/null || echo "000")
+          BACKEND_STATUS=$(curl -sf -o /dev/null -w "%{http_code}" $BACKEND_API_URL/health 2>/dev/null || echo "000")
+
+          echo "## 🔄 Recovery Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$ML_STATUS" = "200" ]; then
+            echo "✅ ML API recovered (HTTP $ML_STATUS)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ ML API still unhealthy (HTTP $ML_STATUS) - Manual intervention required!" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "$BACKEND_STATUS" = "200" ]; then
+            echo "✅ Backend API recovered (HTTP $BACKEND_STATUS)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Backend API still unhealthy (HTTP $BACKEND_STATUS) - Manual intervention required!" >> $GITHUB_STEP_SUMMARY
+          fi

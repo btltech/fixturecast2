@@ -1,0 +1,113 @@
+# GitHub Actions Workflow for Daily Predictions
+# Generates and caches predictions for today's matches every morning
+
+name: Daily Predictions
+
+on:
+  schedule:
+    # Run at 6:00 AM UTC daily (before MOTD posts at 8:00 AM)
+    - cron: '0 6 * * *'
+  workflow_dispatch:  # Allow manual triggers
+
+env:
+  ML_API_URL: https://ml-api-production-6cfc.up.railway.app
+  BACKEND_API_URL: https://backend-api-production-7b7d.up.railway.app
+
+jobs:
+  generate-predictions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Today's Predictions
+        run: |
+          echo "📅 Generating predictions for $(date -u +%Y-%m-%d)..."
+
+          # Fetch today's fixtures
+          echo "🔍 Fetching today's fixtures..."
+          FIXTURES=$(curl -sf "$BACKEND_API_URL/api/fixtures/today" || echo '{"response":[]}')
+
+          FIXTURE_COUNT=$(echo $FIXTURES | jq '.response | length')
+          echo "📊 Found $FIXTURE_COUNT fixtures for today"
+
+          if [ "$FIXTURE_COUNT" = "0" ]; then
+            echo "📭 No fixtures today, exiting"
+            echo "## 📅 Daily Predictions" >> $GITHUB_STEP_SUMMARY
+            echo "No fixtures scheduled for $(date -u +%Y-%m-%d)" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          # Generate predictions for each fixture (this warms the cache)
+          SUCCESSFUL=0
+          FAILED=0
+
+          echo $FIXTURES | jq -c '.response[]' | head -20 | while read fixture; do
+            FIXTURE_ID=$(echo $fixture | jq -r '.fixture.id')
+            LEAGUE_ID=$(echo $fixture | jq -r '.league.id')
+            HOME=$(echo $fixture | jq -r '.teams.home.name')
+            AWAY=$(echo $fixture | jq -r '.teams.away.name')
+
+            echo "  Generating prediction for $HOME vs $AWAY..."
+
+            RESPONSE=$(curl -sf "$ML_API_URL/api/prediction/$FIXTURE_ID?league=$LEAGUE_ID" 2>/dev/null)
+
+            if [ $? -eq 0 ]; then
+              echo "    ✅ Success"
+              SUCCESSFUL=$((SUCCESSFUL + 1))
+            else
+              echo "    ❌ Failed"
+              FAILED=$((FAILED + 1))
+            fi
+          done
+
+          echo ""
+          echo "✅ Predictions generated: $SUCCESSFUL successful, $FAILED failed"
+
+      - name: Check Match of the Day
+        run: |
+          echo "⭐ Checking Match of the Day..."
+
+          MOTD=$(curl -sf "$BACKEND_API_URL/api/fixtures/today" | jq '.match_of_the_day')
+
+          if [ "$MOTD" != "null" ]; then
+            HOME=$(echo $MOTD | jq -r '.teams.home.name')
+            AWAY=$(echo $MOTD | jq -r '.teams.away.name')
+            LEAGUE=$(echo $MOTD | jq -r '.league.name')
+            echo "⭐ Match of the Day: $HOME vs $AWAY ($LEAGUE)"
+
+            # Pre-generate MOTD prediction
+            FIXTURE_ID=$(echo $MOTD | jq -r '.fixture.id')
+            LEAGUE_ID=$(echo $MOTD | jq -r '.league.id')
+            curl -sf "$ML_API_URL/api/prediction/$FIXTURE_ID?league=$LEAGUE_ID" > /dev/null
+            echo "✅ MOTD prediction cached"
+          else
+            echo "📭 No Match of the Day today"
+          fi
+
+      - name: Generate Summary
+        run: |
+          echo "## 📅 Daily Predictions Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Date:** $(date -u +%Y-%m-%d)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Get fixture count
+          FIXTURES=$(curl -sf "$BACKEND_API_URL/api/fixtures/today" || echo '{"response":[]}')
+          FIXTURE_COUNT=$(echo $FIXTURES | jq '.response | length')
+          MOTD=$(echo $FIXTURES | jq '.match_of_the_day')
+
+          echo "### 📊 Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "- Total fixtures: **$FIXTURE_COUNT**" >> $GITHUB_STEP_SUMMARY
+
+          if [ "$MOTD" != "null" ]; then
+            HOME=$(echo $MOTD | jq -r '.teams.home.name')
+            AWAY=$(echo $MOTD | jq -r '.teams.away.name')
+            echo "- Match of the Day: **$HOME vs $AWAY**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Match of the Day: _None selected_" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🤖 Bot Posts Scheduled" >> $GITHUB_STEP_SUMMARY
+          echo "- Morning MOTD: 8:00 AM UTC" >> $GITHUB_STEP_SUMMARY
+          echo "- Afternoon MOTD: 2:00 PM UTC" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "_Predictions generated at $(date -u)_" >> $GITHUB_STEP_SUMMARY

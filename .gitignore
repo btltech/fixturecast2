@@ -19,3 +19,5 @@ ml_engine/trained_models/feedback/
 # Large training data files (models are pre-trained)
 data/historical/all_leagues_combined.json
 data/historical/league_*_all.json
+.env
+logs/

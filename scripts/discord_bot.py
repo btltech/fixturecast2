@@ -8,6 +8,9 @@ Features:
 - Interactive embeds with team logos and colors
 - Auto-responds to match mentions
 - Server-specific settings
+- AUTOMATED DAILY PREDICTIONS: Posts Match of the Day at scheduled times
+- HEALTH MONITORING: Auto-reconnect and error recovery
+- WEEKLY SUMMARIES: Posts prediction accuracy on Sundays
 
 Requirements:
     pip install discord.py python-dotenv requests
@@ -22,7 +25,8 @@ Setup:
 import asyncio
 import os
 import sys
-from datetime import datetime
+import traceback
+from datetime import datetime, time, timedelta
 
 import requests
 from dotenv import load_dotenv
@@ -32,6 +36,7 @@ load_dotenv()
 try:
     import discord
     from discord import app_commands
+    from discord.ext import tasks
 except ImportError:
     print("❌ discord.py not installed. Run: pip install discord.py python-dotenv")
     sys.exit(1)
@@ -41,6 +46,22 @@ DISCORD_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 ML_API_URL = os.getenv("ML_API_URL", "http://localhost:8000")
 BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8001")
 APP_URL = os.getenv("APP_URL", "https://fixturecast.com")
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+
+# Scheduled posting channels (comma-separated channel IDs)
+DAILY_PREDICTION_CHANNELS = os.getenv("DAILY_PREDICTION_CHANNELS", "").split(",")
+DAILY_PREDICTION_CHANNELS = [c.strip() for c in DAILY_PREDICTION_CHANNELS if c.strip()]
+
+# Scheduled times (UK timezone - UTC+0/+1)
+MORNING_POST_TIME = time(hour=8, minute=0)  # 8:00 AM UK
+AFTERNOON_POST_TIME = time(hour=14, minute=0)  # 2:00 PM UK
+EVENING_POST_TIME = time(hour=18, minute=0)  # 6:00 PM UK
+
+# Health monitoring
+HEALTH_CHECK_INTERVAL = 300  # 5 minutes
+MAX_CONSECUTIVE_FAILURES = 3
+consecutive_failures = 0
+last_health_check = None
 
 # Bot intents
 intents = discord.Intents.default()
@@ -51,14 +72,232 @@ class FixtureCastBot(discord.Client):
     def __init__(self):
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
+        self.start_time = datetime.utcnow()
+        self.predictions_sent = 0
+        self.errors_count = 0
 
     async def setup_hook(self):
-        """Sync commands with Discord"""
+        """Sync commands with Discord and start scheduled tasks"""
         await self.tree.sync()
         print("✅ Commands synced with Discord")
 
+        # Start scheduled tasks
+        self.daily_motd_post.start()
+        self.health_check_task.start()
+        self.weekly_summary.start()
+        print("✅ Scheduled tasks started")
+
+    async def close(self):
+        """Cleanup on shutdown"""
+        self.daily_motd_post.cancel()
+        self.health_check_task.cancel()
+        self.weekly_summary.cancel()
+        await super().close()
+
 
 bot = FixtureCastBot()
+
+
+# ============================================================================
+# SCHEDULED TASKS
+# ============================================================================
+
+
+@tasks.loop(time=[MORNING_POST_TIME, AFTERNOON_POST_TIME])
+async def daily_motd_post():
+    """Post Match of the Day prediction at scheduled times"""
+    global consecutive_failures
+
+    if not DAILY_PREDICTION_CHANNELS:
+        return  # No channels configured
+
+    try:
+        _, match_of_the_day = await get_todays_fixtures()
+
+        if not match_of_the_day:
+            print(f"📭 No Match of the Day for scheduled post at {datetime.utcnow()}")
+            return
+
+        # Get prediction
+        fixture_id = match_of_the_day["fixture"]["id"]
+        league_id = match_of_the_day["league"]["id"]
+        prediction_data = await get_prediction(fixture_id, league_id)
+
+        # Create embed
+        embed = create_prediction_embed(match_of_the_day, prediction_data)
+        embed.title = f"⭐ MATCH OF THE DAY ⭐\n\n{embed.title}"
+        embed.color = discord.Color.gold()
+
+        # Add scheduled post indicator
+        current_time = datetime.utcnow().strftime("%H:%M UTC")
+        embed.set_footer(text=f"FixtureCast AI • Scheduled {current_time} • Gamble Responsibly")
+
+        # Post to all configured channels
+        for channel_id in DAILY_PREDICTION_CHANNELS:
+            try:
+                channel = bot.get_channel(int(channel_id))
+                if channel:
+                    await channel.send(content="🔔 **Daily Prediction Alert!**", embed=embed)
+                    bot.predictions_sent += 1
+                    print(f"✅ Posted MOTD to channel {channel.name} ({channel_id})")
+            except Exception as e:
+                print(f"❌ Failed to post to channel {channel_id}: {e}")
+
+        consecutive_failures = 0
+
+    except Exception as e:
+        consecutive_failures += 1
+        bot.errors_count += 1
+        print(f"❌ Scheduled MOTD post failed: {e}")
+        traceback.print_exc()
+
+
+@daily_motd_post.before_loop
+async def before_daily_motd():
+    """Wait for bot to be ready before starting scheduled posts"""
+    await bot.wait_until_ready()
+    print(
+        f"✅ Daily MOTD scheduler ready. Posting at {MORNING_POST_TIME} and {AFTERNOON_POST_TIME} UTC"
+    )
+
+
+@tasks.loop(seconds=HEALTH_CHECK_INTERVAL)
+async def health_check_task():
+    """Monitor bot health and API connectivity"""
+    global consecutive_failures, last_health_check
+
+    try:
+        # Check backend API
+        backend_ok = False
+        try:
+            response = requests.get(f"{BACKEND_API_URL}/health", timeout=10)
+            backend_ok = response.status_code == 200
+        except Exception:
+            pass
+
+        # Check ML API
+        ml_ok = False
+        try:
+            response = requests.get(f"{ML_API_URL}/health", timeout=10)
+            ml_ok = response.status_code == 200
+        except Exception:
+            pass
+
+        # Check Discord connection
+        discord_ok = bot.is_ready() and not bot.is_closed()
+
+        # Log health status
+        status = "✅" if (backend_ok and ml_ok and discord_ok) else "⚠️"
+        last_health_check = datetime.utcnow()
+
+        if not backend_ok or not ml_ok:
+            consecutive_failures += 1
+            print(f"⚠️ Health check: Backend={backend_ok}, ML={ml_ok}, Discord={discord_ok}")
+
+            # Send alert via webhook if too many failures
+            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES and DISCORD_WEBHOOK_URL:
+                await send_webhook_alert(
+                    f"🚨 **FixtureCast Bot Health Alert**\n\n"
+                    f"Backend API: {'✅' if backend_ok else '❌'}\n"
+                    f"ML API: {'✅' if ml_ok else '❌'}\n"
+                    f"Discord: {'✅' if discord_ok else '❌'}\n"
+                    f"Consecutive failures: {consecutive_failures}"
+                )
+        else:
+            if consecutive_failures > 0:
+                print(f"✅ Health restored after {consecutive_failures} failures")
+            consecutive_failures = 0
+
+    except Exception as e:
+        print(f"❌ Health check error: {e}")
+
+
+@health_check_task.before_loop
+async def before_health_check():
+    """Wait for bot to be ready"""
+    await bot.wait_until_ready()
+    print(f"✅ Health monitoring started (every {HEALTH_CHECK_INTERVAL}s)")
+
+
+@tasks.loop(time=time(hour=20, minute=0))  # 8 PM UTC on Sundays
+async def weekly_summary():
+    """Post weekly prediction accuracy summary on Sundays"""
+    if datetime.utcnow().weekday() != 6:  # Only on Sunday
+        return
+
+    if not DAILY_PREDICTION_CHANNELS:
+        return
+
+    try:
+        # Fetch weekly accuracy stats
+        stats = await fetch_json(f"{ML_API_URL}/api/accuracy/weekly")
+
+        if not stats:
+            return
+
+        embed = discord.Embed(
+            title="📊 Weekly Prediction Summary",
+            description="How did our AI perform this week?",
+            color=discord.Color.purple(),
+            timestamp=datetime.utcnow(),
+        )
+
+        if "accuracy" in stats:
+            accuracy = stats["accuracy"] * 100
+            total = stats.get("total_predictions", 0)
+            correct = stats.get("correct_predictions", 0)
+
+            embed.add_field(
+                name="🎯 Overall Accuracy",
+                value=f"**{accuracy:.1f}%**\n({correct}/{total} correct)",
+                inline=True,
+            )
+
+        if "by_confidence" in stats:
+            conf_text = ""
+            for level, data in stats["by_confidence"].items():
+                acc = data.get("accuracy", 0) * 100
+                conf_text += f"**{level}:** {acc:.0f}%\n"
+            embed.add_field(name="📈 By Confidence", value=conf_text, inline=True)
+
+        embed.add_field(
+            name="🔗 Full Stats",
+            value=f"[View detailed model stats]({APP_URL}/models)",
+            inline=False,
+        )
+
+        embed.set_footer(text="FixtureCast AI • Weekly Report • Gamble Responsibly")
+
+        # Post to all configured channels
+        for channel_id in DAILY_PREDICTION_CHANNELS:
+            try:
+                channel = bot.get_channel(int(channel_id))
+                if channel:
+                    await channel.send(embed=embed)
+                    print(f"✅ Posted weekly summary to {channel.name}")
+            except Exception as e:
+                print(f"❌ Failed to post summary to {channel_id}: {e}")
+
+    except Exception as e:
+        print(f"❌ Weekly summary failed: {e}")
+
+
+@weekly_summary.before_loop
+async def before_weekly_summary():
+    """Wait for bot to be ready"""
+    await bot.wait_until_ready()
+    print("✅ Weekly summary scheduler ready (Sundays 8 PM UTC)")
+
+
+async def send_webhook_alert(message):
+    """Send alert via Discord webhook"""
+    if not DISCORD_WEBHOOK_URL:
+        return
+
+    try:
+        requests.post(DISCORD_WEBHOOK_URL, json={"content": message}, timeout=10)
+    except Exception as e:
+        print(f"❌ Webhook alert failed: {e}")
 
 
 # Helper functions
@@ -371,11 +610,86 @@ async def help_command(interaction: discord.Interaction):
 
     embed.add_field(name="/motd", value="Get prediction for today's Match of the Day", inline=False)
 
+    embed.add_field(name="/status", value="Check bot health and uptime", inline=False)
+
     embed.add_field(name="🌐 Website", value=f"[{APP_URL}]({APP_URL})", inline=False)
 
     embed.set_footer(text="Predictions by 8-Model AI Ensemble • Gamble Responsibly")
 
     await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="status", description="Check bot health and statistics")
+async def status_command(interaction: discord.Interaction):
+    """Status command - shows bot health and stats"""
+    await interaction.response.defer()
+
+    try:
+        # Calculate uptime
+        uptime = datetime.utcnow() - bot.start_time
+        days = uptime.days
+        hours, remainder = divmod(uptime.seconds, 3600)
+        minutes, _ = divmod(remainder, 60)
+        uptime_str = f"{days}d {hours}h {minutes}m"
+
+        # Check API health
+        backend_ok = False
+        ml_ok = False
+
+        try:
+            response = requests.get(f"{BACKEND_API_URL}/health", timeout=5)
+            backend_ok = response.status_code == 200
+        except Exception:
+            pass
+
+        try:
+            response = requests.get(f"{ML_API_URL}/health", timeout=5)
+            ml_ok = response.status_code == 200
+        except Exception:
+            pass
+
+        embed = discord.Embed(
+            title="🤖 FixtureCast Bot Status",
+            color=discord.Color.green() if (backend_ok and ml_ok) else discord.Color.orange(),
+            timestamp=datetime.utcnow(),
+        )
+
+        embed.add_field(name="⏱️ Uptime", value=uptime_str, inline=True)
+
+        embed.add_field(
+            name="📊 Stats",
+            value=f"Predictions: {bot.predictions_sent}\nErrors: {bot.errors_count}",
+            inline=True,
+        )
+
+        embed.add_field(name="🖥️ Servers", value=f"{len(bot.guilds)} connected", inline=True)
+
+        embed.add_field(
+            name="🔌 API Status",
+            value=f"Backend: {'✅' if backend_ok else '❌'}\nML API: {'✅' if ml_ok else '❌'}",
+            inline=True,
+        )
+
+        embed.add_field(
+            name="⏰ Scheduled Posts",
+            value=f"Morning: {MORNING_POST_TIME.strftime('%H:%M')} UTC\n"
+            f"Afternoon: {AFTERNOON_POST_TIME.strftime('%H:%M')} UTC",
+            inline=True,
+        )
+
+        if last_health_check:
+            embed.add_field(
+                name="🩺 Last Health Check",
+                value=last_health_check.strftime("%H:%M:%S UTC"),
+                inline=True,
+            )
+
+        embed.set_footer(text="FixtureCast AI • Health Monitoring Active")
+
+        await interaction.followup.send(embed=embed)
+
+    except Exception as e:
+        await interaction.followup.send(f"❌ Error getting status: {str(e)}")
 
 
 def main():

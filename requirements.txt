@@ -48,6 +48,8 @@ tweepy>=4.14.0
 praw>=7.7.0
 discord.py>=2.3.0
 python-dotenv>=1.0.0
+python-telegram-bot>=20.0
+apscheduler>=3.10.0
 
 # Image Generation (for OG images)
 Pillow>=10.0.0

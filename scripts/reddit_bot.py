@@ -44,7 +44,7 @@ REDDIT_PASSWORD = os.getenv("REDDIT_PASSWORD")
 
 ML_API_URL = os.getenv("ML_API_URL", "http://localhost:8000")
 BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8001")
-APP_URL = os.getenv("APP_URL", "https://fixturecast.app")
+APP_URL = os.getenv("APP_URL", "https://fixturecast.com")
 
 # Subreddits to monitor
 SUBREDDITS = [

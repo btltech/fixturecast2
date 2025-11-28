@@ -16,6 +16,7 @@
   import ModelStats from "./pages/ModelStats.svelte";
   import History from "./pages/History.svelte";
   import LiveScores from "./pages/LiveScores.svelte";
+  import TodaysFixtures from "./pages/TodaysFixtures.svelte";
   import Privacy from "./pages/Privacy.svelte";
   import Terms from "./pages/Terms.svelte";
   import Cookies from "./pages/Cookies.svelte";
@@ -28,6 +29,7 @@
     <Navbar />
     <main class="flex-grow container mx-auto p-4">
       <Route path="/" component={Home} />
+      <Route path="/today" component={TodaysFixtures} />
       <Route path="/fixtures" component={Fixtures} />
       <Route path="/prediction/:id" component={Prediction} />
       <Route path="/predictions" component={MLPredictions} />

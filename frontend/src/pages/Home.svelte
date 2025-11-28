@@ -117,7 +117,7 @@
         class="flex flex-col sm:flex-row justify-center gap-4 w-full max-w-md mx-auto relative z-10"
       >
         <Link
-          to="/fixtures"
+          to="/today"
           class="group relative px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white font-bold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 overflow-hidden"
         >
           <div
@@ -352,7 +352,7 @@
       <div class="flex items-center justify-between mb-6 px-2">
         <h2 class="text-2xl font-display font-bold">Today's Matches</h2>
         <Link
-          to="/fixtures"
+          to="/today"
           class="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
         >
           View all {todaysMatches.length} matches &rarr;

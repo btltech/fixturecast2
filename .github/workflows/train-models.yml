@@ -1,0 +1,103 @@
+name: Automated Weekly Training
+
+on:
+  schedule:
+    # Run every Monday at 3 AM UTC
+    - cron: "0 3 * * 1"
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Train models
+        run: |
+          cd ml_engine
+          python continuous_training.py --no-collect --train
+
+      - name: Check if models changed
+        id: check_changes
+        run: |
+          if git diff --quiet ml_engine/trained_models/; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push models
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config user.name "FixtureCast Training Bot"
+          git config user.email "training-bot@fixturecast.dev"
+          git add ml_engine/trained_models/
+          git commit -m "chore: Update trained models - $(date +'%Y-%m-%d %H:%M:%S UTC')"
+          git push
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "✅ Training pipeline completed successfully"
+          echo "Models updated and committed to repository"
+
+      - name: Notify on failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ ! -z "$DISCORD_WEBHOOK" ]; then
+            curl -X POST "$DISCORD_WEBHOOK" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "content": "❌ **FixtureCast Training Failed**",
+                "embeds": [{
+                  "title": "Weekly Model Training",
+                  "description": "The automated model training pipeline failed.",
+                  "color": 16711680,
+                  "fields": [
+                    {
+                      "name": "Repository",
+                      "value": "${{ github.repository }}",
+                      "inline": true
+                    },
+                    {
+                      "name": "Run",
+                      "value": "[View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                      "inline": true
+                    }
+                  ],
+                  "timestamp": "'$(date -u +'%Y-%m-%dT%H:%M:%SZ')'
+                }]
+              }'
+          fi
+
+      - name: Build and deploy to Railway
+        if: steps.check_changes.outputs.changed == 'true'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ ! -z "$RAILWAY_TOKEN" ]; then
+            echo "✅ Railway deployment would be triggered here"
+            # Railway typically auto-deploys on git push if configured
+            # No additional action needed if Railway is watching this branch
+          else
+            echo "⚠️ RAILWAY_TOKEN not set - skipping deployment"
+          fi

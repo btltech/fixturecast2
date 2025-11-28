@@ -14,6 +14,7 @@
   import Standings from "./pages/Standings.svelte";
   import Results from "./pages/Results.svelte";
   import ModelStats from "./pages/ModelStats.svelte";
+  import AdminMetrics from "./pages/AdminMetrics.svelte";
   import History from "./pages/History.svelte";
   import LiveScores from "./pages/LiveScores.svelte";
   import TodaysFixtures from "./pages/TodaysFixtures.svelte";
@@ -38,6 +39,7 @@
       <Route path="/standings" component={Standings} />
       <Route path="/results" component={Results} />
       <Route path="/models" component={ModelStats} />
+      <Route path="/admin/metrics" component={AdminMetrics} />
       <Route path="/history" component={History} />
       <Route path="/live" component={LiveScores} />
       <Route path="/privacy" component={Privacy} />

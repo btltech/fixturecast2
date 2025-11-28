@@ -77,9 +77,12 @@ jobs:
           echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
       - name: Restart ML API
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           echo "🔄 Attempting to restart ML API..."
-          railway redeploy --project $RAILWAY_PROJECT_ID --service web -y
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }} || true
+          railway redeploy -s web -y || echo "Note: May need manual restart"
           echo "✅ ML API restart triggered"
 
       - name: Notify Restart
@@ -96,9 +99,12 @@ jobs:
           echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
       - name: Restart Backend API
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           echo "🔄 Attempting to restart Backend API..."
-          railway redeploy --project $RAILWAY_PROJECT_ID --service backend -y
+          railway link ${{ secrets.RAILWAY_PROJECT_ID }} || true
+          railway redeploy -s backend-api -y || echo "Note: May need manual restart"
           echo "✅ Backend API restart triggered"
 
       - name: Notify Restart

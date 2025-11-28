@@ -57,7 +57,7 @@ BIG_TEAMS = {
 app = FastAPI(
     title="Fixture Cast Backend API",
     description="Backend API for fixtures and teams data",
-    version="1.0.0",
+    version="2.0.0",
 )
 
 # Enable CORS
@@ -87,7 +87,13 @@ async def startup_event():
 
 @app.get("/")
 async def root():
-    return {"service": "FixtureCast Backend API", "version": "1.0.0", "status": "running"}
+    return {"service": "FixtureCast Backend API", "version": "2.0.0", "status": "running"}
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring"""
+    return {"status": "healthy", "service": "backend-api", "version": "2.0.0"}
 
 
 @app.get("/api/fixtures")

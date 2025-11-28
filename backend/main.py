@@ -206,6 +206,63 @@ async def prometheus_metrics():
     return PlainTextResponse("\n".join(lines), media_type="text/plain")
 
 
+@app.get("/api/metrics/backtest-history")
+async def get_backtest_history(limit: int = Query(52, description="Number of weeks to return")):
+    """
+    Get backtest performance history.
+    Returns weekly backtest results showing model accuracy and profit over time.
+    """
+    import json
+
+    backtest_file = os.path.join(os.path.dirname(__file__), "backtest_history.json")
+
+    try:
+        if not os.path.exists(backtest_file):
+            return {
+                "history": [],
+                "summary": {
+                    "total_weeks": 0,
+                    "avg_accuracy": 0,
+                    "total_profit": 0,
+                    "message": "No backtest data available yet. First run will populate this.",
+                },
+            }
+
+        with open(backtest_file, "r") as f:
+            history = json.load(f)
+
+        # Return most recent N weeks
+        recent_history = history[-limit:] if len(history) > limit else history
+
+        # Calculate summary stats
+        if history:
+            accuracies = [h["summary"]["accuracy"] for h in history if "summary" in h]
+            profits = [h["summary"]["profit"] for h in history if "summary" in h]
+
+            summary = {
+                "total_weeks": len(history),
+                "avg_accuracy": sum(accuracies) / len(accuracies) if accuracies else 0,
+                "total_profit": sum(profits) if profits else 0,
+                "best_week": (
+                    max(history, key=lambda x: x.get("summary", {}).get("accuracy", 0))
+                    if history
+                    else None
+                ),
+                "worst_week": (
+                    min(history, key=lambda x: x.get("summary", {}).get("accuracy", 0))
+                    if history
+                    else None
+                ),
+            }
+        else:
+            summary = {"total_weeks": 0, "avg_accuracy": 0, "total_profit": 0}
+
+        return {"history": recent_history, "summary": summary}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading backtest history: {str(e)}")
+
+
 @app.get("/api/fixtures")
 async def get_fixtures(
     league: int = Query(39, description="League ID"),

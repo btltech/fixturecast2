@@ -3,6 +3,8 @@
   import { Link } from "svelte-routing";
 
   let metrics = null;
+  let backtestHistory = null;
+  let backtestSummary = null;
   let loading = true;
   let error = null;
   const BACKEND_API = import.meta.env.VITE_BACKEND_API || "http://localhost:8000";
@@ -12,6 +14,9 @@
   let isAuthenticated = false;
   let passwordInput = "";
   let authError = "";
+
+  // Tab state
+  let activeTab = "summary"; // 'summary' or 'history'
 
   function handleLogin() {
     if (passwordInput === ADMIN_PASSWORD) {
@@ -38,9 +43,25 @@
 
   async function loadMetrics() {
     try {
-      const res = await fetch(`${BACKEND_API}/api/metrics/summary`);
-      if (!res.ok) throw new Error("Failed to load metrics");
-      metrics = await res.json();
+      // Load both metrics and backtest history in parallel
+      const [metricsRes, backtestRes] = await Promise.all([
+        fetch(`${BACKEND_API}/api/metrics/summary`).catch(() => null),
+        fetch(`${BACKEND_API}/api/metrics/backtest-history?limit=52`).catch(() => null)
+      ]);
+
+      if (metricsRes?.ok) {
+        metrics = await metricsRes.json();
+      }
+
+      if (backtestRes?.ok) {
+        const backtestData = await backtestRes.json();
+        backtestHistory = backtestData.history || [];
+        backtestSummary = backtestData.summary || null;
+      }
+
+      if (!metrics && !backtestHistory) {
+        throw new Error("Failed to load any metrics data");
+      }
     } catch (e) {
       error = e.message;
       console.error("Error loading metrics:", e);
@@ -118,6 +139,20 @@
     if (sortColumn !== column) return "↕";
     return sortDirection === "asc" ? "↑" : "↓";
   }
+
+  function formatDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  }
+
+  function getProfitColor(profit) {
+    if (profit > 0) return "text-emerald-400";
+    if (profit < 0) return "text-red-400";
+    return "text-slate-400";
+  }
 </script>
 
 <div class="space-y-6 page-enter">
@@ -169,6 +204,22 @@
         ← Back
       </Link>
     </div>
+
+    <!-- Tab Navigation -->
+    <div class="flex gap-2 mt-4 border-b border-white/10 pb-0">
+      <button
+        on:click={() => activeTab = 'summary'}
+        class="px-4 py-2 font-medium transition -mb-px {activeTab === 'summary' ? 'text-accent border-b-2 border-accent' : 'text-slate-400 hover:text-white'}"
+      >
+        📊 Current Metrics
+      </button>
+      <button
+        on:click={() => activeTab = 'history'}
+        class="px-4 py-2 font-medium transition -mb-px {activeTab === 'history' ? 'text-accent border-b-2 border-accent' : 'text-slate-400 hover:text-white'}"
+      >
+        📈 Backtest History
+      </button>
+    </div>
   </div>
 
   {#if loading}
@@ -181,7 +232,10 @@
       <p class="text-red-400">Error: {error}</p>
       <p class="text-sm text-slate-400 mt-2">Check that the backend API is running</p>
     </div>
-  {:else if metrics}
+  {:else}
+
+  <!-- Current Metrics Tab -->
+  {#if activeTab === 'summary' && metrics}
     <!-- 7-Day Summary -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div class="glass-card p-4">
@@ -307,6 +361,128 @@
     <div class="text-center text-xs text-slate-500">
       Last updated: {new Date(metrics.last_updated).toLocaleString()}
     </div>
+  {/if}
+
+  <!-- Backtest History Tab -->
+  {#if activeTab === 'history'}
+    {#if backtestHistory && backtestHistory.length > 0}
+      <!-- Backtest Summary Cards -->
+      {#if backtestSummary}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="glass-card p-4">
+            <div class="text-slate-400 text-sm font-medium mb-2">Total Weeks Tracked</div>
+            <div class="text-3xl font-bold text-blue-400">
+              {backtestSummary.total_weeks}
+            </div>
+            <div class="text-xs text-slate-500 mt-2">Weekly backtest runs</div>
+          </div>
+
+          <div class="glass-card p-4">
+            <div class="text-slate-400 text-sm font-medium mb-2">Avg Weekly Accuracy</div>
+            <div class={`text-3xl font-bold ${getAccuracyColor(backtestSummary.avg_accuracy / 100)}`}>
+              {backtestSummary.avg_accuracy.toFixed(1)}%
+            </div>
+            <div class="text-xs text-slate-500 mt-2">Across all weeks</div>
+          </div>
+
+          <div class="glass-card p-4">
+            <div class="text-slate-400 text-sm font-medium mb-2">Total Profit</div>
+            <div class={`text-3xl font-bold ${getProfitColor(backtestSummary.total_profit)}`}>
+              ${backtestSummary.total_profit.toFixed(2)}
+            </div>
+            <div class="text-xs text-slate-500 mt-2">Simulated betting profit</div>
+          </div>
+
+          <div class="glass-card p-4">
+            <div class="text-slate-400 text-sm font-medium mb-2">Best Week</div>
+            {#if backtestSummary.best_week}
+              <div class="text-3xl font-bold text-emerald-400">
+                {backtestSummary.best_week.summary?.accuracy?.toFixed(1) || 'N/A'}%
+              </div>
+              <div class="text-xs text-slate-500 mt-2">
+                {formatDate(backtestSummary.best_week.date)}
+              </div>
+            {:else}
+              <div class="text-3xl font-bold text-slate-500">N/A</div>
+            {/if}
+          </div>
+        </div>
+      {/if}
+
+      <!-- Backtest History Table -->
+      <div class="glass-card p-6">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <span>📅</span> Weekly Backtest Results
+          <span class="text-sm font-normal text-slate-400 ml-2">(last 52 weeks)</span>
+        </h2>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-white/10">
+                <th class="text-left py-3 px-4 font-medium text-slate-400">Date</th>
+                <th class="text-center py-3 px-4 font-medium text-slate-400">Matches</th>
+                <th class="text-center py-3 px-4 font-medium text-slate-400">Correct</th>
+                <th class="text-center py-3 px-4 font-medium text-slate-400">Accuracy</th>
+                <th class="text-center py-3 px-4 font-medium text-slate-400">ROI</th>
+                <th class="text-right py-3 px-4 font-medium text-slate-400">Profit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each [...backtestHistory].reverse() as week}
+                <tr class="border-t border-white/5 hover:bg-white/5 transition">
+                  <td class="py-3 px-4 font-medium">{formatDate(week.date)}</td>
+                  <td class="py-3 px-4 text-center text-slate-300">{week.summary?.evaluated || week.sample_size || 0}</td>
+                  <td class="py-3 px-4 text-center text-slate-300">{week.summary?.correct || 0}</td>
+                  <td class="py-3 px-4 text-center">
+                    <span class={`font-bold ${getAccuracyColor((week.summary?.accuracy || 0) / 100)}`}>
+                      {(week.summary?.accuracy || 0).toFixed(1)}%
+                    </span>
+                  </td>
+                  <td class="py-3 px-4 text-center">
+                    <span class={`font-medium ${getProfitColor(week.summary?.roi || 0)}`}>
+                      {(week.summary?.roi || 0).toFixed(1)}%
+                    </span>
+                  </td>
+                  <td class="py-3 px-4 text-right">
+                    <span class={`font-bold ${getProfitColor(week.summary?.profit || 0)}`}>
+                      ${(week.summary?.profit || 0).toFixed(2)}
+                    </span>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Chart placeholder -->
+      <div class="glass-card p-6">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+          <span>📈</span> Accuracy Trend
+        </h2>
+        <div class="h-48 flex items-center justify-center bg-white/5 rounded-lg">
+          <div class="text-center text-slate-400">
+            <div class="text-4xl mb-2">📊</div>
+            <p>Chart visualization coming soon</p>
+            <p class="text-xs text-slate-500 mt-1">Track accuracy trends over time</p>
+          </div>
+        </div>
+      </div>
+    {:else}
+      <div class="glass-card p-8 text-center">
+        <div class="text-6xl mb-4">📅</div>
+        <h2 class="text-xl font-bold mb-2">No Backtest History Yet</h2>
+        <p class="text-slate-400 mb-4">
+          Backtest results will appear here after the weekly training workflow runs.
+        </p>
+        <p class="text-sm text-slate-500">
+          The workflow runs automatically every Monday at 3 AM UTC, or can be triggered manually from GitHub Actions.
+        </p>
+      </div>
+    {/if}
+  {/if}
+
   {/if}
   {/if}
 </div>

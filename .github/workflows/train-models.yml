@@ -99,14 +99,17 @@ jobs:
       - name: Check if models changed
         id: check_changes
         run: |
+          # Add both models and backtest history
           git add ml_engine/trained_models/
-          if git diff --staged --quiet ml_engine/trained_models/; then
+          git add backend/backtest_history.json || true
+
+          if git diff --staged --quiet; then
             echo "changed=false" >> $GITHUB_OUTPUT
-            echo "No changes to models"
+            echo "No changes to commit"
           else
             echo "changed=true" >> $GITHUB_OUTPUT
-            echo "Models have changed"
-            git diff --staged --stat ml_engine/trained_models/
+            echo "Files have changed:"
+            git diff --staged --stat
           fi
 
       - name: Commit and push models
@@ -115,7 +118,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git commit -m "chore: Update trained models - $(date +'%Y-%m-%d %H:%M:%S UTC')"
+          git commit -m "chore: Update models and backtest results - $(date +'%Y-%m-%d %H:%M:%S UTC')"
 
           # Pull latest changes and retry push up to 3 times
           max_retries=3

@@ -62,21 +62,29 @@ bot = FixtureCastBot()
 
 
 # Helper functions
-def get_todays_fixtures():
-    """Fetch today's fixtures"""
+async def fetch_json(url):
+    """Async fetch JSON from URL"""
+    loop = asyncio.get_running_loop()
     try:
-        response = requests.get(f"{BACKEND_API_URL}/api/fixtures/today", timeout=10)
+        response = await loop.run_in_executor(None, lambda: requests.get(url, timeout=10))
         response.raise_for_status()
-        data = response.json()
-        return data.get("response", []), data.get("match_of_the_day")
+        return response.json()
     except Exception as e:
-        print(f"❌ Error fetching fixtures: {e}")
-        return [], None
+        print(f"❌ Error fetching {url}: {e}")
+        return None
 
 
-def search_match(team1, team2=None):
+async def get_todays_fixtures():
+    """Fetch today's fixtures"""
+    data = await fetch_json(f"{BACKEND_API_URL}/api/fixtures/today")
+    if data:
+        return data.get("response", []), data.get("match_of_the_day")
+    return [], None
+
+
+async def search_match(team1, team2=None):
     """Search for a match"""
-    fixtures, _ = get_todays_fixtures()
+    fixtures, _ = await get_todays_fixtures()
 
     if not fixtures:
         return None
@@ -106,14 +114,15 @@ def search_match(team1, team2=None):
     return None
 
 
-def get_prediction(fixture_id, league_id):
+async def get_prediction(fixture_id, league_id):
     """Get AI prediction"""
+    # Defensive: ensure fixture_id and league_id are clean integers
     try:
-        response = requests.get(
-            f"{ML_API_URL}/api/prediction/{fixture_id}?league={league_id}", timeout=30
-        )
-        response.raise_for_status()
-        return response.json()
+        fid = int(str(fixture_id).strip())
+        lid = int(str(league_id).strip())
+        url = f"{ML_API_URL}/api/prediction/{fid}?league={lid}"
+        print(f"DEBUG: Fetching prediction from: {url}")
+        return await fetch_json(url)
     except Exception as e:
         print(f"❌ Error getting prediction: {e}")
         return None
@@ -200,7 +209,10 @@ def create_prediction_embed(fixture, prediction_data):
 async def on_ready():
     """Called when bot is ready"""
     print(f"✅ Logged in as {bot.user} (ID: {bot.user.id})")
-    print(f"📡 Connected to {len(bot.guilds)} servers")
+    print(f"📡 Connected to {len(bot.guilds)} servers:")
+    for guild in bot.guilds:
+        print(f"   - 🏠 Server Name: {guild.name} (ID: {guild.id})")
+
     await bot.change_presence(
         activity=discord.Activity(
             type=discord.ActivityType.watching, name="football matches | /predict"
@@ -219,7 +231,7 @@ async def predict(interaction: discord.Interaction, team1: str, team2: str = Non
 
     try:
         # Search for match
-        fixture = search_match(team1, team2)
+        fixture = await search_match(team1, team2)
 
         if not fixture:
             if team2:
@@ -237,7 +249,7 @@ async def predict(interaction: discord.Interaction, team1: str, team2: str = Non
         # Get prediction
         fixture_id = fixture["fixture"]["id"]
         league_id = fixture["league"]["id"]
-        prediction_data = get_prediction(fixture_id, league_id)
+        prediction_data = await get_prediction(fixture_id, league_id)
 
         # Create and send embed
         embed = create_prediction_embed(fixture, prediction_data)
@@ -261,7 +273,7 @@ async def today(interaction: discord.Interaction):
     await interaction.response.defer()
 
     try:
-        fixtures, match_of_the_day = get_todays_fixtures()
+        fixtures, match_of_the_day = await get_todays_fixtures()
 
         if not fixtures:
             await interaction.followup.send("📭 No matches scheduled for today.")
@@ -317,7 +329,7 @@ async def motd(interaction: discord.Interaction):
     await interaction.response.defer()
 
     try:
-        _, match_of_the_day = get_todays_fixtures()
+        _, match_of_the_day = await get_todays_fixtures()
 
         if not match_of_the_day:
             await interaction.followup.send("📭 No Match of the Day available.")
@@ -326,7 +338,7 @@ async def motd(interaction: discord.Interaction):
         # Get prediction
         fixture_id = match_of_the_day["fixture"]["id"]
         league_id = match_of_the_day["league"]["id"]
-        prediction_data = get_prediction(fixture_id, league_id)
+        prediction_data = await get_prediction(fixture_id, league_id)
 
         # Create embed
         embed = create_prediction_embed(match_of_the_day, prediction_data)

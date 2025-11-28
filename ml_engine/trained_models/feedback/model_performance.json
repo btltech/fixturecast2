@@ -1,13 +1,41 @@
 {
   "overall": {
-    "correct": 1,
-    "total": 1,
-    "accuracy": 1.0
+    "correct": 7,
+    "total": 14,
+    "accuracy": 0.5
   },
   "by_model": {
     "gbdt": {
-      "correct": 1,
-      "total": 1
+      "correct": 6,
+      "total": 14
+    },
+    "catboost": {
+      "correct": 7,
+      "total": 13
+    },
+    "transformer": {
+      "correct": 6,
+      "total": 13
+    },
+    "lstm": {
+      "correct": 3,
+      "total": 13
+    },
+    "gnn": {
+      "correct": 6,
+      "total": 13
+    },
+    "bayesian": {
+      "correct": 6,
+      "total": 13
+    },
+    "elo": {
+      "correct": 8,
+      "total": 13
+    },
+    "monte_carlo": {
+      "correct": 6,
+      "total": 13
     }
   },
   "by_confidence": {
@@ -16,20 +44,38 @@
       "total": 1
     },
     "medium": {
-      "correct": 0,
-      "total": 0
+      "correct": 5,
+      "total": 11
     },
     "low": {
-      "correct": 0,
-      "total": 0
+      "correct": 1,
+      "total": 2
     }
   },
   "by_league": {
     "39": {
       "name": "Premier League",
+      "correct": 2,
+      "total": 3,
+      "brier_sum": 0.4122219459425061
+    },
+    "40": {
+      "name": "Championship",
+      "correct": 2,
+      "total": 3,
+      "brier_sum": 0.5624909515551008
+    },
+    "2": {
+      "name": "UEFA Champions League",
+      "correct": 2,
+      "total": 6,
+      "brier_sum": 1.2483850343624858
+    },
+    "3": {
+      "name": "UEFA Europa League",
       "correct": 1,
-      "total": 1,
-      "brier_sum": 0.061666666666666654
+      "total": 2,
+      "brier_sum": 0.3913677960214673
     }
   },
   "recent_trend": [
@@ -39,16 +85,117 @@
       "confidence": 0.65,
       "brier": 0.061666666666666654,
       "date": "2025-11-30T15:00:00"
+    },
+    {
+      "fixture_id": 1386743,
+      "correct": true,
+      "confidence": 0.47178182421386977,
+      "brier": 0.14222257614375075,
+      "date": "2025-11-26T19:45:00+00:00"
+    },
+    {
+      "fixture_id": 1386744,
+      "correct": true,
+      "confidence": 0.5893955846641492,
+      "brier": 0.08551183244798677,
+      "date": "2025-11-26T19:45:00+00:00"
+    },
+    {
+      "fixture_id": 1386747,
+      "correct": false,
+      "confidence": 0.4280053441962421,
+      "brier": 0.33475654296336327,
+      "date": "2025-11-25T19:45:00+00:00"
+    },
+    {
+      "fixture_id": 1451104,
+      "correct": false,
+      "confidence": 0.5293678972482697,
+      "brier": 0.2503438987983067,
+      "date": "2025-11-26T20:00:00+00:00"
+    },
+    {
+      "fixture_id": 1451107,
+      "correct": true,
+      "confidence": 0.6226263779114788,
+      "brier": 0.07440293168084137,
+      "date": "2025-11-26T20:00:00+00:00"
+    },
+    {
+      "fixture_id": 1451105,
+      "correct": false,
+      "confidence": 0.5119363705456201,
+      "brier": 0.24972645040585437,
+      "date": "2025-11-26T20:00:00+00:00"
+    },
+    {
+      "fixture_id": 1451102,
+      "correct": false,
+      "confidence": 0.463406751092521,
+      "brier": 0.3525685584306452,
+      "date": "2025-11-26T17:45:00+00:00"
+    },
+    {
+      "fixture_id": 1451096,
+      "correct": true,
+      "confidence": 0.6341454861741403,
+      "brier": 0.0671064025780194,
+      "date": "2025-11-25T20:00:00+00:00"
+    },
+    {
+      "fixture_id": 1451098,
+      "correct": true,
+      "confidence": 0.6214151549362497,
+      "brier": 0.07409997261720619,
+      "date": "2025-11-25T20:00:00+00:00"
+    },
+    {
+      "fixture_id": 1451100,
+      "correct": false,
+      "confidence": 0.4787679118742649,
+      "brier": 0.25423679246881886,
+      "date": "2025-11-25T20:00:00+00:00"
+    },
+    {
+      "fixture_id": 1451092,
+      "correct": false,
+      "confidence": 0.5594955271857011,
+      "brier": 0.27645530665863327,
+      "date": "2025-11-25T17:45:00+00:00"
+    },
+    {
+      "fixture_id": 1451236,
+      "correct": true,
+      "confidence": 0.435500592817434,
+      "brier": 0.17006726248724632,
+      "date": "2025-11-27T17:45:00+00:00"
+    },
+    {
+      "fixture_id": 1451235,
+      "correct": false,
+      "confidence": 0.4821382409067578,
+      "brier": 0.22130053353422097,
+      "date": "2025-11-27T17:45:00+00:00"
     }
   ],
   "calibration": {
     "bins": {
       "60-70": {
-        "predicted_sum": 0.65,
+        "predicted_sum": 2.5281870190218685,
+        "actual_sum": 4,
+        "count": 4
+      },
+      "40-50": {
+        "predicted_sum": 2.759600665101089,
+        "actual_sum": 2,
+        "count": 6
+      },
+      "50-60": {
+        "predicted_sum": 2.19019537964374,
         "actual_sum": 1,
-        "count": 1
+        "count": 4
       }
     },
-    "samples": 1
+    "samples": 14
   }
 }

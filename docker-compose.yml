@@ -139,6 +139,93 @@ services:
     networks:
       - fixturecast-network
 
+  # ==========================================
+  # Discord Bot Service
+  # ==========================================
+  discord-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fixturecast-discord-bot
+    environment:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
+      - ML_API_URL=http://ml-api:8002
+      - BACKEND_API_URL=http://backend:8001
+      - PYTHONUNBUFFERED=1
+    command: python scripts/discord_bot.py
+    depends_on:
+      - ml-api
+      - backend
+    restart: unless-stopped
+    networks:
+      - fixturecast-network
+
+  # ==========================================
+  # Telegram Bot Service
+  # ==========================================
+  telegram-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fixturecast-telegram-bot
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - ML_API_URL=http://ml-api:8002
+      - BACKEND_API_URL=http://backend:8001
+      - PYTHONUNBUFFERED=1
+    command: python scripts/telegram_bot.py
+    depends_on:
+      - ml-api
+      - backend
+    restart: unless-stopped
+    networks:
+      - fixturecast-network
+
+  # ==========================================
+  # Reddit Bot Service
+  # ==========================================
+  reddit-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fixturecast-reddit-bot
+    environment:
+      - REDDIT_CLIENT_ID=${REDDIT_CLIENT_ID}
+      - REDDIT_CLIENT_SECRET=${REDDIT_CLIENT_SECRET}
+      - REDDIT_USER_AGENT=${REDDIT_USER_AGENT}
+      - ML_API_URL=http://ml-api:8002
+      - BACKEND_API_URL=http://backend:8001
+      - PYTHONUNBUFFERED=1
+    command: python scripts/reddit_bot.py
+    depends_on:
+      - ml-api
+      - backend
+    restart: unless-stopped
+    networks:
+      - fixturecast-network
+
+  # ==========================================
+  # Twitter Bot Service
+  # ==========================================
+  twitter-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fixturecast-twitter-bot
+    environment:
+      - TWITTER_BEARER_TOKEN=${TWITTER_BEARER_TOKEN}
+      - ML_API_URL=http://ml-api:8002
+      - BACKEND_API_URL=http://backend:8001
+      - PYTHONUNBUFFERED=1
+    command: python scripts/twitter_bot.py
+    depends_on:
+      - ml-api
+      - backend
+    restart: unless-stopped
+    networks:
+      - fixturecast-network
+
 volumes:
   redis-data:
   prometheus-data:

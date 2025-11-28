@@ -45,12 +45,14 @@ jobs:
 
       - name: Commit and push models
         if: steps.check_changes.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "FixtureCast Training Bot"
           git config user.email "training-bot@fixturecast.dev"
           git add ml_engine/trained_models/
           git commit -m "chore: Update trained models - $(date +'%Y-%m-%d %H:%M:%S UTC')"
-          git push
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
 
       - name: Notify on success
         if: success()

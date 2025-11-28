@@ -5,6 +5,7 @@ Exposes endpoints to get match predictions using the trained ensemble.
 """
 
 import json
+import logging
 import os
 import sys
 import time
@@ -16,12 +17,21 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Add paths
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
+from metrics_tracker import MetricsTracker
+
 from ml_engine.ensemble_predictor import EnsemblePredictor
 from ml_engine.feedback_learning import log_prediction as log_feedback_prediction
+
+# Initialize metrics tracker for logging predictions
+metrics_tracker = MetricsTracker()
 
 # ============================================
 # SEASONAL STATS LOADING FOR ENHANCED PREDICTIONS
@@ -1641,6 +1651,94 @@ async def update_results_from_backend():
         result = update_results_from_api()
         return {"status": "success", **result}
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================
+# MODEL PERFORMANCE METRICS
+# ============================================
+
+
+@app.get("/api/metrics/summary")
+async def get_metrics_summary():
+    """
+    Get model performance summary including accuracy and calibration.
+    7-day, 30-day, and all-time breakdowns.
+    """
+    try:
+        metrics_tracker.export_summary()
+
+        summary_file = os.path.join(
+            os.path.dirname(__file__), "..", "data", "metrics", "summary.json"
+        )
+        if os.path.exists(summary_file):
+            with open(summary_file) as f:
+                return json.load(f)
+        else:
+            return {
+                "error": "No metrics available yet",
+                "message": "Predictions will start being tracked once matches are predicted",
+            }
+    except Exception as e:
+        logger.error(f"Error fetching metrics: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/metrics/model-comparison")
+async def get_model_comparison():
+    """
+    Compare individual model performance in the ensemble.
+    """
+    try:
+        return metrics_tracker.get_model_comparison()
+    except Exception as e:
+        logger.error(f"Error comparing models: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/metrics/log-prediction")
+async def log_prediction_metric(
+    fixture_id: int,
+    home_team: str,
+    away_team: str,
+    home_pred: float,
+    draw_pred: float,
+    away_pred: float,
+    predicted_score: str,
+    model_breakdown: Optional[Dict] = None,
+):
+    """
+    Log a prediction for later accuracy tracking.
+    Call this endpoint when making predictions.
+    """
+    try:
+        metrics_tracker.log_prediction(
+            fixture_id=fixture_id,
+            home_team=home_team,
+            away_team=away_team,
+            home_pred=home_pred,
+            draw_pred=draw_pred,
+            away_pred=away_pred,
+            predicted_score=predicted_score,
+            model_breakdown=model_breakdown,
+        )
+        return {"status": "logged", "fixture_id": fixture_id}
+    except Exception as e:
+        logger.error(f"Error logging prediction: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/metrics/log-result")
+async def log_actual_result(fixture_id: int, actual_result: str, actual_score: str):
+    """
+    Log actual match result (H/D/A) to calculate prediction accuracy.
+    Call this when match is finished.
+    """
+    try:
+        metrics_tracker.log_actual_result(fixture_id, actual_result, actual_score)
+        return {"status": "updated", "fixture_id": fixture_id}
+    except Exception as e:
+        logger.error(f"Error logging result: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

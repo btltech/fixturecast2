@@ -1,0 +1,51 @@
+{
+  "7_day": {
+    "period_days": 7,
+    "total_predictions": 2,
+    "correct_predictions": 2,
+    "accuracy": 1.0,
+    "avg_confidence": 0.52,
+    "min_confidence": 0.52,
+    "max_confidence": 0.52,
+    "avg_calibration_error": 0.48,
+    "max_calibration_error": 0.48,
+    "timestamp": "2025-11-28T08:14:50.904090"
+  },
+  "30_day": {
+    "period_days": 30,
+    "total_predictions": 2,
+    "correct_predictions": 2,
+    "accuracy": 1.0,
+    "avg_confidence": 0.52,
+    "min_confidence": 0.52,
+    "max_confidence": 0.52,
+    "avg_calibration_error": 0.48,
+    "max_calibration_error": 0.48,
+    "timestamp": "2025-11-28T08:14:50.904157"
+  },
+  "all_time": {
+    "period_days": 365,
+    "total_predictions": 2,
+    "correct_predictions": 2,
+    "accuracy": 1.0,
+    "avg_confidence": 0.52,
+    "min_confidence": 0.52,
+    "max_confidence": 0.52,
+    "avg_calibration_error": 0.48,
+    "max_calibration_error": 0.48,
+    "timestamp": "2025-11-28T08:14:50.904221"
+  },
+  "model_comparison": {
+    "gbdt": {
+      "total": 2,
+      "correct": 2,
+      "accuracy": 1.0
+    },
+    "catboost": {
+      "total": 2,
+      "correct": 2,
+      "accuracy": 1.0
+    }
+  },
+  "last_updated": "2025-11-28T08:14:50.904270"
+}

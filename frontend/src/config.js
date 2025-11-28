@@ -11,9 +11,17 @@ export const API_URL = isDev
     "https://backend-api-production-7b7d.up.railway.app";
 
 export const ML_API_URL = isDev
-  ? "http://localhost:8002"
+  ? "http://localhost:8000"
   : import.meta.env.VITE_ML_API_URL ||
     "https://ml-api-production-6cfc.up.railway.app";
+
+// Export aliases for clarity
+export const BACKEND_API_URL = API_URL;
+
+// App URL for canonical links and OG tags
+export const APP_URL = isDev
+  ? "http://localhost:5173"
+  : import.meta.env.VITE_APP_URL || "https://fixturecast.app";
 
 export const API_ENDPOINTS = {
   // Backend API (port 8001)

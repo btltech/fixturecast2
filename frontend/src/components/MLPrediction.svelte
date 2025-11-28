@@ -54,7 +54,8 @@
     $: if (prediction && prediction.elo_ratings) {
         const diff = Math.abs(prediction.elo_ratings.diff || 0);
         if (diff >= 80) {
-            const favored = prediction.elo_ratings.diff > 0 ? homeTeam : awayTeam;
+            const favored =
+                prediction.elo_ratings.diff > 0 ? homeTeam : awayTeam;
             reasons = [
                 ...reasons,
                 `${favored} has a clear Elo rating advantage (~${diff.toFixed(0)} pts)`,
@@ -63,8 +64,10 @@
     }
 
     $: if (prediction) {
-        const homeForm = prediction.home_form_last5 ?? prediction.home_points_last10;
-        const awayForm = prediction.away_form_last5 ?? prediction.away_points_last10;
+        const homeForm =
+            prediction.home_form_last5 ?? prediction.home_points_last10;
+        const awayForm =
+            prediction.away_form_last5 ?? prediction.away_points_last10;
         if (typeof homeForm === "number" && typeof awayForm === "number") {
             const diff = homeForm - awayForm;
             if (diff >= 3) {
@@ -94,6 +97,36 @@
                 `${awayTeam} sits significantly higher in the table`,
             ];
         }
+    }
+
+    // Friendly names for models
+    const MODEL_NAMES = {
+        gbdt: "Pattern Recognition",
+        xgboost: "Pattern Recognition",
+        poisson: "Goal Probability",
+        elo: "Team Strength",
+        rating: "Team Strength",
+        lstm: "Form Engine",
+        neural_net: "Form Engine",
+        monte_carlo: "Simulation Core",
+        random_forest: "Decision Tree",
+        ensemble: "Meta-Ensemble",
+    };
+
+    function getModelName(key) {
+        // Normalize key
+        const normalized = key.toLowerCase().replace(/_/g, " ").trim();
+
+        // Check direct mapping
+        if (MODEL_NAMES[key]) return MODEL_NAMES[key];
+
+        // Check partial matches
+        for (const [techName, friendlyName] of Object.entries(MODEL_NAMES)) {
+            if (normalized.includes(techName)) return friendlyName;
+        }
+
+        // Fallback: Capitalize
+        return normalized.charAt(0).toUpperCase() + normalized.slice(1);
     }
 </script>
 
@@ -161,7 +194,10 @@
             >
                 <div class="bar-label">
                     {#if homeTeamId}
-                        <Link to="/team/{homeTeamId}?league={leagueId}" class="team-name team-link">{homeTeam}</Link>
+                        <Link
+                            to="/team/{homeTeamId}?league={leagueId}"
+                            class="team-name team-link">{homeTeam}</Link
+                        >
                     {:else}
                         <span class="team-name">{homeTeam}</span>
                     {/if}
@@ -187,7 +223,10 @@
             >
                 <div class="bar-label">
                     {#if awayTeamId}
-                        <Link to="/team/{awayTeamId}?league={leagueId}" class="team-name team-link">{awayTeam}</Link>
+                        <Link
+                            to="/team/{awayTeamId}?league={leagueId}"
+                            class="team-name team-link">{awayTeam}</Link
+                        >
                     {:else}
                         <span class="team-name">{awayTeam}</span>
                     {/if}
@@ -235,7 +274,7 @@
                 {#each Object.entries(prediction.model_breakdown || {}) as [model, probs]}
                     {#if typeof probs === "object" && probs.home_win}
                         <div class="model-card">
-                            <div class="model-name">{model.toUpperCase()}</div>
+                            <div class="model-name">{getModelName(model)}</div>
                             <div class="model-probs">
                                 <div class="prob-mini">
                                     <span>H</span>
@@ -282,8 +321,11 @@
         padding: 20px;
         backdrop-filter: blur(20px);
         box-shadow: 0 8px 32px rgba(139, 92, 246, 0.1);
-        transition: transform var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
-                    box-shadow var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
+        transition:
+            transform var(--duration-fast, 100ms)
+                var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
+            box-shadow var(--duration-fast, 100ms)
+                var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
     }
 
     @media (min-width: 640px) {
@@ -390,8 +432,11 @@
         padding: 6px;
         cursor: pointer;
         color: var(--primary-400, #a78bfa);
-        transition: background-color var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
-                    transform var(--duration-instant, 70ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
+        transition:
+            background-color var(--duration-fast, 100ms)
+                var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
+            transform var(--duration-instant, 70ms)
+                var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
     }
 
     .info-btn:hover {
@@ -452,7 +497,8 @@
     .team-link {
         color: inherit;
         text-decoration: none;
-        transition: color var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
+        transition: color var(--duration-fast, 100ms)
+            var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
     }
 
     .team-link:hover {
@@ -471,7 +517,8 @@
         left: 0;
         height: 100%;
         border-radius: 12px;
-        transition: width var(--duration-slow, 300ms) var(--ease-out-smooth, cubic-bezier(0.22, 1, 0.36, 1)) 50ms; /* Slight delay to ensure layout is ready */
+        transition: width var(--duration-slow, 300ms)
+            var(--ease-out-smooth, cubic-bezier(0.22, 1, 0.36, 1)) 50ms; /* Slight delay to ensure layout is ready */
         opacity: 0.3;
         width: 0; /* Start at 0, animate to target */
     }
@@ -538,8 +585,11 @@
         flex-direction: column;
         align-items: center;
         gap: 6px;
-        transition: transform var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
-                    background-color var(--duration-fast, 100ms) var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
+        transition:
+            transform var(--duration-fast, 100ms)
+                var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94)),
+            background-color var(--duration-fast, 100ms)
+                var(--ease-out-soft, cubic-bezier(0.25, 0.46, 0.45, 0.94));
     }
 
     .prediction-pill:hover {
@@ -588,7 +638,8 @@
         margin-top: 24px;
         padding-top: 24px;
         border-top: 1px solid rgba(139, 92, 246, 0.2);
-        animation: breakdownEnter var(--duration-fast, 100ms) var(--ease-out-smooth, cubic-bezier(0.22, 1, 0.36, 1));
+        animation: breakdownEnter var(--duration-fast, 100ms)
+            var(--ease-out-smooth, cubic-bezier(0.22, 1, 0.36, 1));
     }
 
     @keyframes breakdownEnter {

@@ -441,8 +441,15 @@ class ApiClient:
     def get_fixture_details(self, fixture_id):
         return self._call_api("fixtures", {"id": fixture_id}, "fixtures")
 
-    def get_teams(self, league_id, season=2025):
-        return self._call_api("teams", {"league": league_id, "season": season}, "teams")
+    def get_teams(self, league_id=None, season=2025, team_id=None):
+        if team_id:
+            # If fetching by ID, we don't need other params
+            return self._call_api("teams", {"id": team_id}, "teams")
+
+        params = {"season": season}
+        if league_id:
+            params["league"] = league_id
+        return self._call_api("teams", params, "teams")
 
     def get_team_stats(self, team_id, league_id, season=2025):
         return self._call_api(

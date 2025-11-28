@@ -473,12 +473,19 @@ class AnalysisLLM:
             risk_text = "High"
             bet_suggestion = "Consider smaller stakes or alternative markets (e.g., BTTS, totals)."
             prob_gap = abs(home_prob - away_prob)
-            if favorite == "Draw" or prob_gap < 6:
+
+            if favorite == "Draw":
+                verdict_intro = "The data points to a stalemate, with neither side holding a decisive statistical advantage."
+            elif prob_gap < 6:
                 verdict_intro = (
-                    "This is a genuine toss-up — no clear favorite emerges from the data."
+                    f"A tightly contested affair is expected. {favorite} hold a marginal edge, "
+                    "but the data suggests this could swing either way."
                 )
             else:
-                verdict_intro = f"Slight edge to {favorite}, but volatility is high and model disagreement keeps confidence low."
+                verdict_intro = (
+                    f"Slight edge to {favorite}, though high volatility and model disagreement "
+                    "suggest caution is warranted."
+                )
 
         # Assemble analysis points
         analysis_section = (
@@ -550,21 +557,55 @@ class AnalysisLLM:
         lines = []
 
         home_win_prob = prediction.get("home_win_prob", 0) * 100
+        away_win_prob = prediction.get("away_win_prob", 0) * 100
         away_xg = prediction.get("away_xg") or features.get("away_expected_goals") or 0
         home_xg = prediction.get("home_xg") or features.get("home_expected_goals") or 0
-        injuries = prediction.get("injuries") or (
-            features.get("home_injuries_total", 0) + features.get("away_injuries_total", 0)
-        )
+        home_injuries = features.get("home_injuries_total", 0)
+        away_injuries = features.get("away_injuries_total", 0)
         scoreline = (prediction.get("predicted_scoreline") or "").replace(" ", "")
 
-        if home_win_prob > 60:
-            lines.append("Home team are strong favourites.")
-        if away_xg > home_xg:
-            lines.append("Away side tend to create more dangerous chances.")
-        if injuries > 3:
-            lines.append("Injuries may affect their stability.")
-        if scoreline in {"2-1", "2–1"}:
-            lines.append("The model expects a narrow win.")
+        home_name = features.get("home_name", "Home Team")
+        away_name = features.get("away_name", "Away Team")
+
+        # Dominance
+        if home_win_prob > 65:
+            lines.append(
+                f"The model sees {home_name} as clear favorites with a {home_win_prob:.0f}% win probability."
+            )
+        elif away_win_prob > 65:
+            lines.append(
+                f"The model sees {away_name} as clear favorites with a {away_win_prob:.0f}% win probability."
+            )
+
+        # xG Analysis
+        if away_xg > home_xg + 0.5:
+            lines.append(
+                f"Underlying metrics favor {away_name}, who consistently generate higher quality chances (xG)."
+            )
+        elif home_xg > away_xg + 0.5:
+            lines.append(
+                f"Underlying metrics favor {home_name}, who consistently generate higher quality chances (xG)."
+            )
+
+        # Injuries
+        if home_injuries >= 3:
+            lines.append(
+                f"{home_name} are dealing with {home_injuries} reported injuries, which may impact squad depth."
+            )
+        if away_injuries >= 3:
+            lines.append(
+                f"{away_name} are dealing with {away_injuries} reported injuries, which may impact squad depth."
+            )
+
+        # Scoreline context
+        if scoreline in {"1-0", "0-1", "1–0", "0–1"}:
+            lines.append(
+                "A tight, defensive battle is anticipated, likely decided by a single goal."
+            )
+        elif scoreline in {"2-2", "3-2", "2-3", "3–3"}:
+            lines.append(
+                "An open, end-to-end game is expected with plenty of scoring opportunities."
+            )
 
         return lines
 

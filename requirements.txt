@@ -42,3 +42,12 @@ pre-commit>=3.4.0
 
 # Monitoring (optional)
 prometheus-client>=0.17.0
+
+# Social Media Bots (optional)
+tweepy>=4.14.0
+praw>=7.7.0
+discord.py>=2.3.0
+python-dotenv>=1.0.0
+
+# Image Generation (for OG images)
+Pillow>=10.0.0

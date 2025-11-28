@@ -5,6 +5,7 @@ Provides fixtures and teams data from API-Football.
 Runs on port 8001 to avoid conflict with ML API (port 8000).
 """
 
+import asyncio
 import json
 import logging
 import os
@@ -26,6 +27,8 @@ logger = logging.getLogger(__name__)
 sys.path.append(os.path.dirname(__file__))
 
 from api_client import ApiClient
+from fastapi.responses import Response
+from og_image_generator import generate_default_og_image, generate_prediction_og_image
 
 # Prometheus metrics (manual implementation for flexibility)
 METRICS = {
@@ -242,14 +245,22 @@ async def get_todays_fixtures():
         # Supported leagues
         leagues = [39, 140, 135, 78, 61, 88, 94, 40, 141, 136, 79, 62, 2, 3]
 
-        for league_id in leagues:
+        # Fetch all leagues in parallel
+        async def fetch_league(league_id):
             try:
-                result = api_client.get_fixtures(league_id=league_id, date=today)
-                if result.get("response"):
-                    all_fixtures.extend(result["response"])
+                # Run synchronous API call in a thread
+                return await asyncio.to_thread(
+                    api_client.get_fixtures, league_id=league_id, date=today
+                )
             except Exception as e:
                 print(f"Error fetching fixtures for league {league_id}: {e}")
-                continue
+                return None
+
+        results = await asyncio.gather(*[fetch_league(lid) for lid in leagues])
+
+        for result in results:
+            if result and result.get("response"):
+                all_fixtures.extend(result["response"])
 
         # Calculate importance score for each fixture
         def calculate_importance(fixture):
@@ -337,15 +348,20 @@ async def get_match_of_the_day():
 
 @app.get("/api/teams")
 async def get_teams(
-    league: int = Query(39, description="League ID"),
+    league: int = Query(None, description="League ID"),
     season: int = Query(2025, description="Season year"),
+    id: int = Query(None, description="Team ID"),
 ):
-    """Get teams in a league"""
+    """Get teams in a league or specific team details"""
     if api_client is None:
         raise HTTPException(status_code=503, detail="API client not initialized")
 
     try:
-        result = api_client.get_teams(league, season)
+        # If neither league nor id is provided, default to PL
+        if not league and not id:
+            league = 39
+
+        result = api_client.get_teams(league_id=league, season=season, team_id=id)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -380,7 +396,9 @@ def get_team_fixtures(
         raise HTTPException(status_code=503, detail="API client not initialized")
 
     try:
-        result = api_client.get_last_fixtures(team_id, league, season, last)
+        result = api_client.get_last_fixtures(
+            team_id=team_id, league=league, season=season, last=last
+        )
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -489,6 +507,106 @@ async def get_live_scores():
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/og-image/{fixture_id}")
+async def get_og_image(fixture_id: int, league: int = Query(39)):
+    """Generate Open Graph (OG) image for social media sharing"""
+    if api_client is None:
+        raise HTTPException(status_code=503, detail="API client not initialized")
+
+    try:
+        # Get fixture details
+        fixture_data = api_client.get_fixture(fixture_id)
+        if not fixture_data or "response" not in fixture_data or not fixture_data["response"]:
+            # Return default image if fixture not found
+            image_data = generate_default_og_image(
+                title="FixtureCast", subtitle="AI Football Predictions"
+            )
+            return Response(content=image_data, media_type="image/png")
+
+        fixture = fixture_data["response"][0]
+        home_team = fixture.get("teams", {}).get("home", {}).get("name", "Home")
+        away_team = fixture.get("teams", {}).get("away", {}).get("name", "Away")
+        league_name = fixture.get("league", {}).get("name", "League")
+
+        # Try to get prediction data from ML API
+        prediction_data = None
+        try:
+            import requests
+
+            ml_api_url = os.getenv("ML_API_URL", "http://localhost:8000")
+            pred_response = requests.get(
+                f"{ml_api_url}/api/prediction/{fixture_id}?league={league}", timeout=5
+            )
+            if pred_response.status_code == 200:
+                pred_json = pred_response.json()
+                prediction_data = pred_json.get("prediction")
+        except Exception as e:
+            logger.warning(f"Could not fetch prediction for OG image: {e}")
+
+        # Generate image
+        image_data = generate_prediction_og_image(
+            fixture_id=fixture_id,
+            home_team=home_team,
+            away_team=away_team,
+            prediction_data=prediction_data,
+            league_name=league_name,
+        )
+
+        return Response(
+            content=image_data,
+            media_type="image/png",
+            headers={
+                "Cache-Control": "public, max-age=3600",  # Cache for 1 hour
+                "Content-Disposition": f"inline; filename=prediction_{fixture_id}.png",
+            },
+        )
+
+    except Exception as e:
+        logger.error(f"Error generating OG image: {e}")
+        # Return default image on error
+        image_data = generate_default_og_image()
+        return Response(content=image_data, media_type="image/png")
+
+
+@app.get("/api/og-image/daily")
+async def get_daily_og_image():
+    """Generate OG image for daily fixtures page"""
+    try:
+        from datetime import date
+
+        today_str = date.today().strftime("%B %d, %Y")
+        image_data = generate_default_og_image(
+            title="Today's Predictions", subtitle=f"AI Football Predictions - {today_str}"
+        )
+        return Response(
+            content=image_data,
+            media_type="image/png",
+            headers={"Cache-Control": "public, max-age=3600"},
+        )
+    except Exception as e:
+        logger.error(f"Error generating daily OG image: {e}")
+        image_data = generate_default_og_image()
+        return Response(content=image_data, media_type="image/png")
+
+
+@app.get("/api/og-image/home")
+async def get_home_og_image():
+    """Generate OG image for homepage"""
+    try:
+        image_data = generate_default_og_image(
+            title="FixtureCast", subtitle="AI-Powered Football Predictions"
+        )
+        return Response(
+            content=image_data,
+            media_type="image/png",
+            headers={"Cache-Control": "public, max-age=86400"},  # Cache for 24 hours
+        )
+    except Exception as e:
+        logger.error(f"Error generating home OG image: {e}")
+        image_data = generate_default_og_image()
+        return Response(content=image_data, media_type="image/png")
 
 
 if __name__ == "__main__":

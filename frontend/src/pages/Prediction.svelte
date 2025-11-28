@@ -5,12 +5,21 @@
   import SkeletonLoader from "../components/SkeletonLoader.svelte";
   import ConfidenceBadge from "../components/ConfidenceBadge.svelte";
   import AccuracyTracker from "../components/AccuracyTracker.svelte";
-  import { favorites, toggleFixtureFavorite, isFixtureFavorite } from "../services/favoritesStore.js";
+  import {
+    favorites,
+    toggleFixtureFavorite,
+    isFixtureFavorite,
+  } from "../services/favoritesStore.js";
   import { addToHistory } from "../services/historyStore.js";
-  import { exportPredictionsToCSV, exportPredictionsToPDF } from "../services/exportService.js";
+  import {
+    exportPredictionsToCSV,
+    exportPredictionsToPDF,
+  } from "../services/exportService.js";
   import { compareStore } from "../services/compareStore.js";
   import { ML_API_URL } from "../config.js";
   import { getCurrentSeason } from "../services/season.js";
+  import SEOHead from "../components/SEOHead.svelte";
+  import { generatePredictionSEO } from "../services/seoService.js";
 
   export let id; // Fixture ID from router
 
@@ -22,6 +31,12 @@
   let predictionRequestToken = 0;
   let showDetails = true;
   let isMobile = false;
+
+  // Generate SEO data when fixture loads
+  $: seoData =
+    data && data.fixture
+      ? generatePredictionSEO(data.fixture, data.prediction)
+      : null;
 
   // Use reactive auto-subscription ($ prefix) - automatically unsubscribes
   $: currentFavorites = $favorites;
@@ -36,11 +51,13 @@
   }
 
   // Get max confidence for badge
-  $: maxConfidence = data?.prediction ? Math.max(
-    data.prediction.home_win_prob || 0,
-    data.prediction.draw_prob || 0,
-    data.prediction.away_win_prob || 0
-  ) : 0;
+  $: maxConfidence = data?.prediction
+    ? Math.max(
+        data.prediction.home_win_prob || 0,
+        data.prediction.draw_prob || 0,
+        data.prediction.away_win_prob || 0,
+      )
+    : 0;
 
   onMount(async () => {
     if (typeof window !== "undefined") {
@@ -87,7 +104,7 @@
           confidence: Math.max(
             data.prediction?.home_win_prob || 0,
             data.prediction?.draw_prob || 0,
-            data.prediction?.away_win_prob || 0
+            data.prediction?.away_win_prob || 0,
           ),
         });
       }
@@ -103,12 +120,18 @@
   function formatAnalysis(text) {
     if (!text) return "";
     return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-bold">$1</strong>') // Bold
+      .replace(
+        /\*\*(.*?)\*\*/g,
+        '<strong class="text-white font-bold">$1</strong>',
+      ) // Bold
       .replace(/\*(.*?)\*/g, '<em class="text-slate-300 italic">$1</em>') // Italic
       .replace(/\n\n/g, "</p><p class='mb-4'>") // Paragraphs
       .replace(/\n/g, "<br/>") // Line breaks
-      .replace(/^• (.*?)(<br\/>|$)/gm, '<li class="ml-6 mb-2 list-disc text-slate-300">$1</li>') // Bullet points
-      .replace(/<\/li><br\/>/g, '</li>'); // Clean up list breaks
+      .replace(
+        /^• (.*?)(<br\/>|$)/gm,
+        '<li class="ml-6 mb-2 list-disc text-slate-300">$1</li>',
+      ) // Bullet points
+      .replace(/<\/li><br\/>/g, "</li>"); // Clean up list breaks
   }
 
   function getConfidenceColor(prob) {
@@ -159,6 +182,10 @@
   }
 </script>
 
+{#if seoData}
+  <SEOHead data={seoData} />
+{/if}
+
 {#if loading}
   <!-- Skeleton Loading State -->
   <div class="max-w-5xl mx-auto space-y-6 md:space-y-8 px-1">
@@ -185,14 +212,21 @@
     </div>
 
     <!-- Action Buttons - Scrollable on mobile -->
-    <div class="flex gap-2 md:gap-3 justify-start md:justify-center overflow-x-auto pb-2 hide-scrollbar -mx-1 px-1 element-enter stagger-1">
+    <div
+      class="flex gap-2 md:gap-3 justify-start md:justify-center overflow-x-auto pb-2 hide-scrollbar -mx-1 px-1 element-enter stagger-1"
+    >
       <button
         on:click={toggleFavorite}
-        class="flex-shrink-0 px-3 md:px-4 py-2 rounded-lg text-sm touch-target btn-interact {isFixtureFavorite(parseInt(id), currentFavorites)
+        class="flex-shrink-0 px-3 md:px-4 py-2 rounded-lg text-sm touch-target btn-interact {isFixtureFavorite(
+          parseInt(id),
+          currentFavorites,
+        )
           ? 'bg-accent text-white'
           : 'bg-white/10 hover:bg-white/20 active:bg-white/30'}"
       >
-        {isFixtureFavorite(parseInt(id), currentFavorites) ? '⭐ Favorited' : '☆ Favorite'}
+        {isFixtureFavorite(parseInt(id), currentFavorites)
+          ? "⭐ Favorited"
+          : "☆ Favorite"}
       </button>
       <button
         on:click={toggleCompare}
@@ -200,7 +234,7 @@
           ? 'bg-purple-500 text-white'
           : 'bg-white/10 hover:bg-white/20 active:bg-white/30'}"
       >
-        {isInCompare() ? '⚖️ In Compare' : '⚖️ Compare'}
+        {isInCompare() ? "⚖️ In Compare" : "⚖️ Compare"}
       </button>
       <button
         on:click={exportCSV}
@@ -217,7 +251,9 @@
     </div>
 
     <!-- Match Header -->
-    <div class="glass-card p-4 md:p-8 text-center relative overflow-hidden group element-enter stagger-2">
+    <div
+      class="glass-card p-4 md:p-8 text-center relative overflow-hidden group element-enter stagger-2"
+    >
       <div
         class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"
       ></div>
@@ -230,12 +266,16 @@
         {@const league = data.fixture_details.league}
         {@const isEuropean = [2, 3, 848].includes(league.id)}
         {@const isCup = [45, 48].includes(league.id)}
-        {@const round = league.round || ''}
+        {@const round = league.round || ""}
         <div class="flex justify-center mb-4">
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium
-            {isEuropean ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
-             isCup ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' :
-             'bg-accent/20 text-accent border border-accent/30'}">
+          <div
+            class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium
+            {isEuropean
+              ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+              : isCup
+                ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30'
+                : 'bg-accent/20 text-accent border border-accent/30'}"
+          >
             {#if league.logo}
               <img src={league.logo} alt="" class="w-4 h-4" />
             {/if}
@@ -266,14 +306,18 @@
               class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 object-contain mb-2 md:mb-4 drop-shadow-2xl relative z-10 transform group-hover:scale-110 transition-transform duration-300"
             />
           </div>
-          <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover:text-accent transition-colors text-center">
+          <h2
+            class="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover:text-accent transition-colors text-center"
+          >
             {data.fixture_details.teams.home.name}
           </h2>
           <div class="text-xs md:text-sm text-slate-400 mt-1">Home</div>
         </Link>
 
         <!-- Score & Time -->
-        <div class="flex flex-col items-center w-full md:w-1/3 z-10 order-first md:order-none py-2">
+        <div
+          class="flex flex-col items-center w-full md:w-1/3 z-10 order-first md:order-none py-2"
+        >
           <div
             class="text-[10px] md:text-xs font-bold text-accent uppercase tracking-[0.15em] md:tracking-[0.2em] mb-2 md:mb-3"
           >
@@ -315,7 +359,9 @@
               class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 object-contain mb-2 md:mb-4 drop-shadow-2xl relative z-10 transform group-hover:scale-110 transition-transform duration-300"
             />
           </div>
-          <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover:text-accent transition-colors text-center">
+          <h2
+            class="text-lg sm:text-xl md:text-2xl font-bold text-white group-hover:text-accent transition-colors text-center"
+          >
             {data.fixture_details.teams.away.name}
           </h2>
           <div class="text-xs md:text-sm text-slate-400 mt-1">Away</div>
@@ -366,7 +412,9 @@
     </div>
 
     <!-- Analysis & Stats Grid -->
-    <div class={`grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 element-enter stagger-3 ${!showDetails && isMobile ? 'hidden' : ''}`}>
+    <div
+      class={`grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 element-enter stagger-3 ${!showDetails && isMobile ? "hidden" : ""}`}
+    >
       <!-- AI Analysis -->
       <div class="lg:col-span-2 glass-card p-4 md:p-8 relative overflow-hidden">
         <div class="absolute top-0 right-0 p-4 opacity-10 hidden md:block">
@@ -379,7 +427,9 @@
             /></svg
           >
         </div>
-        <h3 class="text-lg md:text-xl font-bold mb-4 md:mb-6 flex items-center gap-2 md:gap-3">
+        <h3
+          class="text-lg md:text-xl font-bold mb-4 md:mb-6 flex items-center gap-2 md:gap-3"
+        >
           <span
             class="flex items-center justify-center w-7 h-7 md:w-8 md:h-8 rounded-lg bg-accent/20 text-accent text-sm md:text-base"
             >✨</span
@@ -397,7 +447,9 @@
       <div class="space-y-4 md:space-y-6">
         <!-- Advanced Metrics -->
         <div class="glass-card p-4 md:p-6">
-          <h3 class="text-base md:text-lg font-bold mb-4 md:mb-6 flex items-center gap-2">
+          <h3
+            class="text-base md:text-lg font-bold mb-4 md:mb-6 flex items-center gap-2"
+          >
             <span class="text-accent">📊</span> Advanced Metrics
           </h3>
 
@@ -405,8 +457,11 @@
             <!-- BTTS -->
             <div>
               <div class="flex justify-between items-center mb-2">
-                <span class="text-slate-400 text-xs md:text-sm">Both Teams to Score</span>
-                <span class="font-mono font-bold text-white text-sm md:text-base"
+                <span class="text-slate-400 text-xs md:text-sm"
+                  >Both Teams to Score</span
+                >
+                <span
+                  class="font-mono font-bold text-white text-sm md:text-base"
                   >{(data.prediction.btts_prob * 100).toFixed(0)}%</span
                 >
               </div>
@@ -421,8 +476,11 @@
             <!-- Over 2.5 -->
             <div>
               <div class="flex justify-between items-center mb-2">
-                <span class="text-slate-400 text-xs md:text-sm">Over 2.5 Goals</span>
-                <span class="font-mono font-bold text-white text-sm md:text-base"
+                <span class="text-slate-400 text-xs md:text-sm"
+                  >Over 2.5 Goals</span
+                >
+                <span
+                  class="font-mono font-bold text-white text-sm md:text-base"
                   >{(data.prediction.over25_prob * 100).toFixed(0)}%</span
                 >
               </div>
@@ -438,12 +496,16 @@
 
         <!-- Model Confidence -->
         <div class="glass-card p-4 md:p-6">
-          <h3 class="text-base md:text-lg font-bold mb-3 md:mb-4 flex items-center gap-2">
+          <h3
+            class="text-base md:text-lg font-bold mb-3 md:mb-4 flex items-center gap-2"
+          >
             <span class="text-accent">🎯</span> System Confidence
           </h3>
 
           <div class="flex items-center justify-center py-2 md:py-4">
-            <div class="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center">
+            <div
+              class="relative w-24 h-24 md:w-32 md:h-32 flex items-center justify-center"
+            >
               <svg class="w-full h-full transform -rotate-90">
                 <circle
                   cx="50%"
@@ -495,7 +557,9 @@
             </div>
           </div>
 
-          <div class="text-center text-[10px] md:text-xs text-slate-500 mt-1 md:mt-2">
+          <div
+            class="text-center text-[10px] md:text-xs text-slate-500 mt-1 md:mt-2"
+          >
             Based on consensus of 8 statistical models
           </div>
         </div>
@@ -506,7 +570,7 @@
     </div>
 
     <!-- Head-to-Head Section -->
-    <div class={!showDetails && isMobile ? 'hidden' : ''}>
+    <div class={!showDetails && isMobile ? "hidden" : ""}>
       {#if data.fixture_details}
         <HeadToHead
           homeTeam={data.fixture_details.teams.home}

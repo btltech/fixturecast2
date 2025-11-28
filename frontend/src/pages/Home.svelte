@@ -4,6 +4,7 @@
   import { API_URL } from "../config.js";
   import { getCurrentSeason } from "../services/season.js";
   import { getSavedSeason, saveSeason } from "../services/preferences.js";
+  import MatchCardSkeleton from "../components/MatchCardSkeleton.svelte";
 
   let matchOfTheDay = null;
   let todaysMatches = [];
@@ -59,255 +60,486 @@
   }
 </script>
 
-<div class="space-y-6 md:space-y-8 page-enter">
+<div class="space-y-8 md:space-y-12 page-enter pb-12">
   <!-- Hero Section -->
-  <div
-    class="glass-card p-6 md:p-8 lg:p-12 text-center relative overflow-hidden group"
-  >
+  <div class="relative isolate overflow-hidden">
+    <!-- Background Effects -->
+    <div class="absolute inset-0 -z-10">
+      <div
+        class="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50"
+      ></div>
+      <div
+        class="absolute bottom-0 left-0 translate-y-12 -translate-x-12 w-96 h-96 bg-secondary/20 rounded-full blur-3xl opacity-50"
+      ></div>
+    </div>
+
     <div
-      class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"
-    ></div>
-    <div
-      class="absolute inset-0 bg-accent/5 opacity-0 group-hover:opacity-10 transition-opacity duration-300"
-    ></div>
+      class="glass-card p-8 md:p-12 lg:p-16 text-center relative overflow-hidden group border-white/5"
+    >
+      <div
+        class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+      ></div>
 
-    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-3 md:mb-4 tracking-tight">
-      <span
-        class="text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400"
+      <div
+        class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-accent mb-6 backdrop-blur-md"
       >
-        Fixture
-      </span>
-      <span
-        class="text-transparent bg-clip-text bg-gradient-to-r from-accent to-purple-400"
-      >
-        Cast
-      </span>
-    </h1>
+        <span class="relative flex h-2 w-2">
+          <span
+            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"
+          ></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-accent"
+          ></span>
+        </span>
+        Live Predictions Available
+      </div>
 
-    <p class="text-sm sm:text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-6 md:mb-8 px-2">
-      AI-powered football predictions for <strong class="text-white">today's matches</strong>.
-      Get accurate forecasts generated on match day for maximum accuracy.
-      <span class="block mt-2 text-accent font-semibold">Predicting Europe’s Elite Leagues & UEFA Competitions.</span>
-    </p>
+      <h1
+        class="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight leading-none"
+      >
+        <span
+          class="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-slate-400"
+          >Fixture</span
+        ><span
+          class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent"
+          >Cast</span
+        >
+      </h1>
 
-    <div class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 w-full max-w-md mx-auto">
-      <Link
-        to="/fixtures"
-        class="px-6 sm:px-8 py-3 rounded-full bg-accent text-white font-bold btn-glow touch-target"
+      <p
+        class="font-light text-lg sm:text-xl md:text-2xl text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed"
       >
-        Today's Fixtures
-      </Link>
-      <Link
-        to="/predictions"
-        class="px-6 sm:px-8 py-3 rounded-full bg-white/10 text-white font-bold btn-press backdrop-blur-sm border border-white/10 touch-target"
+        Next-generation football forecasting powered by <span
+          class="text-white font-medium">ensemble machine learning</span
+        >.
+      </p>
+
+      <div
+        class="flex flex-col sm:flex-row justify-center gap-4 w-full max-w-md mx-auto relative z-10"
       >
-        AI Predictions
-      </Link>
+        <Link
+          to="/fixtures"
+          class="group relative px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white font-bold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 overflow-hidden"
+        >
+          <div
+            class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+          ></div>
+          <span class="relative flex items-center justify-center gap-2">
+            Today's Fixtures
+            <svg
+              class="w-5 h-5 transition-transform group-hover:translate-x-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              ><path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              /></svg
+            >
+          </span>
+        </Link>
+        <Link
+          to="/predictions"
+          class="px-8 py-4 rounded-xl bg-white/5 text-white font-bold border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all hover:-translate-y-0.5 backdrop-blur-sm"
+        >
+          View AI Models
+        </Link>
+      </div>
     </div>
   </div>
 
   <!-- Match of the Day Section -->
   {#if loading}
-    <div class="glass-card p-8 text-center">
-      <div class="inline-block w-10 h-10 border-4 border-accent border-t-transparent rounded-full loading-spin"></div>
-      <p class="mt-4 text-slate-400 loading-pulse">Loading today's matches...</p>
-    </div>
-  {:else if matchOfTheDay}
-    <div class="glass-card p-4 md:p-6 relative overflow-hidden content-enter">
-      <!-- Spotlight effect -->
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-accent/20 blur-3xl rounded-full"></div>
+    <!-- Match of the Day Skeleton -->
+    <div class="space-y-4">
+      <div class="flex items-center justify-between px-2">
+        <div class="h-8 w-48 bg-white/10 rounded-lg animate-pulse"></div>
+        <div class="h-6 w-32 bg-white/10 rounded-full animate-pulse"></div>
+      </div>
 
-      <div class="relative">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <span class="text-2xl">⭐</span>
-            <h2 class="text-lg md:text-xl font-bold text-accent">Match of the Day</h2>
+      <div class="glass-card p-8 md:p-10 animate-pulse">
+        <div
+          class="flex flex-col md:flex-row items-center justify-between gap-8"
+        >
+          <!-- Home Team Skeleton -->
+          <div class="flex-1 space-y-4">
+            <div
+              class="w-24 h-24 md:w-32 md:h-32 bg-white/10 rounded-full mx-auto"
+            ></div>
+            <div class="h-8 w-48 bg-white/10 rounded mx-auto"></div>
           </div>
-          <div class="text-xs md:text-sm text-slate-400">
-            {getLeagueDisplay(matchOfTheDay.league?.id).emoji} {matchOfTheDay.league?.name || 'League'}
+
+          <!-- VS Skeleton -->
+          <div class="space-y-2">
+            <div class="h-6 w-16 bg-white/10 rounded mx-auto"></div>
+            <div class="h-12 w-24 bg-white/10 rounded mx-auto"></div>
+          </div>
+
+          <!-- Away Team Skeleton -->
+          <div class="flex-1 space-y-4">
+            <div
+              class="w-24 h-24 md:w-32 md:h-32 bg-white/10 rounded-full mx-auto"
+            ></div>
+            <div class="h-8 w-48 bg-white/10 rounded mx-auto"></div>
           </div>
         </div>
+      </div>
+    </div>
 
-        <Link
-          to={`/prediction/${matchOfTheDay.fixture.id}?league=${matchOfTheDay.league?.id || 39}&season=${season}`}
-          class="block bg-gradient-to-r from-accent/10 to-purple-500/10 rounded-xl p-4 md:p-6 card-interactive border border-accent/20"
+    <!-- Today's Matches Skeleton -->
+    <div class="space-y-4">
+      <div class="h-8 w-56 bg-white/10 rounded-lg animate-pulse"></div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {#each Array(6) as _}
+          <MatchCardSkeleton />
+        {/each}
+      </div>
+    </div>
+  {:else if matchOfTheDay}
+    <div class="relative">
+      <div class="flex items-center justify-between mb-6 px-2">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-amber-500/10 rounded-lg text-amber-400">
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              ><path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+              /></svg
+            >
+          </div>
+          <h2 class="text-2xl font-display font-bold text-white">
+            Match of the Day
+          </h2>
+        </div>
+        <div
+          class="text-sm font-medium text-slate-400 bg-white/5 px-3 py-1 rounded-full border border-white/5"
         >
-          <div class="flex items-center justify-between">
+          {getLeagueDisplay(matchOfTheDay.league?.id).emoji}
+          {matchOfTheDay.league?.name || "League"}
+        </div>
+      </div>
+
+      <Link
+        to={`/prediction/${matchOfTheDay.fixture.id}?league=${matchOfTheDay.league?.id || 39}&season=${season}`}
+        class="block group relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 to-slate-950 border border-white/10 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10"
+      >
+        <!-- Background Glow -->
+        <div
+          class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-primary/5 to-transparent opacity-50"
+        ></div>
+
+        <div class="relative p-8 md:p-10">
+          <div
+            class="flex flex-col md:flex-row items-center justify-between gap-8"
+          >
             <!-- Home Team -->
-            <div class="flex-1 text-center">
-              <img
-                src={matchOfTheDay.teams.home.logo}
-                alt={matchOfTheDay.teams.home.name}
-                class="w-16 h-16 md:w-20 md:h-20 mx-auto mb-2"
-              />
-              <div class="font-bold text-sm md:text-lg">{matchOfTheDay.teams.home.name}</div>
+            <div class="flex-1 text-center md:text-right group/team">
+              <div class="relative inline-block">
+                <div
+                  class="absolute inset-0 bg-primary/20 blur-2xl rounded-full opacity-0 group-hover/team:opacity-100 transition-opacity"
+                ></div>
+                <img
+                  src={matchOfTheDay.teams.home.logo}
+                  alt={matchOfTheDay.teams.home.name}
+                  class="relative w-24 h-24 md:w-32 md:h-32 mx-auto md:ml-auto object-contain drop-shadow-2xl transition-transform group-hover/team:scale-110 duration-300"
+                />
+              </div>
+              <div
+                class="mt-4 font-display font-bold text-xl md:text-3xl text-white"
+              >
+                {matchOfTheDay.teams.home.name}
+              </div>
             </div>
 
             <!-- VS & Time -->
-            <div class="px-4 md:px-8 text-center">
-              <div class="text-2xl md:text-3xl font-extrabold text-slate-500 mb-1">VS</div>
-              <div class="text-sm md:text-base text-accent font-mono">
+            <div class="px-4 text-center shrink-0 relative z-10">
+              <div
+                class="text-sm font-bold text-primary tracking-widest uppercase mb-2"
+              >
+                VS
+              </div>
+              <div
+                class="text-4xl md:text-5xl font-display font-bold text-white mb-2 tracking-tight"
+              >
                 {formatTime(matchOfTheDay.fixture.date)}
               </div>
-              <div class="text-xs text-slate-500 mt-1">
-                {new Date(matchOfTheDay.fixture.date).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}
+              <div
+                class="text-sm font-medium text-slate-400 bg-white/5 px-4 py-1.5 rounded-full inline-block"
+              >
+                {new Date(matchOfTheDay.fixture.date).toLocaleDateString([], {
+                  weekday: "long",
+                  month: "long",
+                  day: "numeric",
+                })}
               </div>
             </div>
 
             <!-- Away Team -->
-            <div class="flex-1 text-center">
-              <img
-                src={matchOfTheDay.teams.away.logo}
-                alt={matchOfTheDay.teams.away.name}
-                class="w-16 h-16 md:w-20 md:h-20 mx-auto mb-2"
-              />
-              <div class="font-bold text-sm md:text-lg">{matchOfTheDay.teams.away.name}</div>
+            <div class="flex-1 text-center md:text-left group/team">
+              <div class="relative inline-block">
+                <div
+                  class="absolute inset-0 bg-secondary/20 blur-2xl rounded-full opacity-0 group-hover/team:opacity-100 transition-opacity"
+                ></div>
+                <img
+                  src={matchOfTheDay.teams.away.logo}
+                  alt={matchOfTheDay.teams.away.name}
+                  class="relative w-24 h-24 md:w-32 md:h-32 mx-auto md:mr-auto object-contain drop-shadow-2xl transition-transform group-hover/team:scale-110 duration-300"
+                />
+              </div>
+              <div
+                class="mt-4 font-display font-bold text-xl md:text-3xl text-white"
+              >
+                {matchOfTheDay.teams.away.name}
+              </div>
             </div>
           </div>
 
-          <div class="mt-4 text-center">
-            <span class="inline-flex items-center gap-2 px-4 py-2 bg-accent/20 rounded-full text-sm text-accent font-medium btn-press">
-              🧠 Get AI Prediction
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
+          <div class="mt-10 text-center">
+            <span
+              class="inline-flex items-center gap-2 px-6 py-3 bg-primary/10 hover:bg-primary/20 border border-primary/20 rounded-full text-primary font-bold transition-all group-hover:scale-105"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                ><path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                /></svg
+              >
+              View AI Analysis
             </span>
           </div>
-        </Link>
-      </div>
+        </div>
+      </Link>
     </div>
   {:else if !error}
-    <div class="glass-card p-6 text-center content-enter">
-      <div class="text-4xl mb-3">📅</div>
-      <h3 class="font-bold text-lg mb-2">No Matches Today</h3>
-      <p class="text-slate-400 text-sm">Check back tomorrow for match predictions!</p>
+    <div class="glass-card p-12 text-center content-enter">
+      <div
+        class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4 text-slate-400"
+      >
+        <svg
+          class="w-8 h-8"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          /></svg
+        >
+      </div>
+      <h3 class="font-display font-bold text-xl mb-2">No Matches Today</h3>
+      <p class="text-slate-400">Check back tomorrow for new predictions!</p>
     </div>
   {/if}
 
   <!-- Today's Other Matches -->
   {#if todaysMatches.length > 1}
-    <div class="glass-card p-4 md:p-6 content-enter">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg md:text-xl font-bold">Today's Matches</h2>
-        <span class="text-sm text-slate-400">{todaysMatches.length} matches</span>
+    <div class="content-enter">
+      <div class="flex items-center justify-between mb-6 px-2">
+        <h2 class="text-2xl font-display font-bold">Today's Matches</h2>
+        <Link
+          to="/fixtures"
+          class="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+        >
+          View all {todaysMatches.length} matches &rarr;
+        </Link>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 stagger-enter">
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 stagger-enter"
+      >
         {#each todaysMatches.slice(1, 7) as fixture}
           <Link
             to={`/prediction/${fixture.fixture.id}?league=${fixture.league?.id || 39}&season=${season}`}
-            class="bg-white/5 rounded-lg p-3 card-interactive flex items-center justify-between gap-2"
+            class="group glass-card p-4 hover:border-primary/30 transition-all hover:-translate-y-1"
           >
-            <div class="flex items-center gap-2 flex-1 min-w-0">
-              <img src={fixture.teams.home.logo} alt="" class="w-6 h-6 flex-shrink-0" />
-              <span class="text-sm truncate">{fixture.teams.home.name}</span>
+            <div
+              class="flex items-center justify-between mb-3 text-xs text-slate-400"
+            >
+              <span>{fixture.league?.name}</span>
+              <span class="font-mono">{formatTime(fixture.fixture.date)}</span>
             </div>
-            <span class="text-xs text-slate-500 font-mono px-2">{formatTime(fixture.fixture.date)}</span>
-            <div class="flex items-center gap-2 flex-1 min-w-0 justify-end">
-              <span class="text-sm truncate">{fixture.teams.away.name}</span>
-              <img src={fixture.teams.away.logo} alt="" class="w-6 h-6 flex-shrink-0" />
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <img
+                    src={fixture.teams.home.logo}
+                    alt=""
+                    class="w-8 h-8 object-contain"
+                  />
+                  <span
+                    class="font-medium group-hover:text-white transition-colors"
+                    >{fixture.teams.home.name}</span
+                  >
+                </div>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <img
+                    src={fixture.teams.away.logo}
+                    alt=""
+                    class="w-8 h-8 object-contain"
+                  />
+                  <span
+                    class="font-medium group-hover:text-white transition-colors"
+                    >{fixture.teams.away.name}</span
+                  >
+                </div>
+              </div>
             </div>
           </Link>
         {/each}
       </div>
-
-      {#if todaysMatches.length > 7}
-        <div class="mt-4 text-center">
-          <Link
-            to="/fixtures"
-            class="inline-flex items-center gap-2 text-accent hover:text-accent/80 text-sm font-medium btn-press"
-          >
-            View all {todaysMatches.length} matches
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
-      {/if}
     </div>
   {/if}
 
   <!-- Quick Access Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 stagger-enter">
-    <Link
-      to="/fixtures"
-      class="glass-card p-5 md:p-6 card-interactive group touch-target"
-    >
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-enter">
+    <Link to="/fixtures" class="glass-card p-6 group relative overflow-hidden">
       <div
-        class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400 mb-3 md:mb-4 icon-hover text-xl md:text-2xl"
+        class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500"
       >
-        📅
+        <svg
+          class="w-24 h-24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          /></svg
+        >
       </div>
-      <h3 class="text-lg md:text-xl font-bold mb-2">Today's Fixtures</h3>
-      <p class="text-xs md:text-sm text-slate-400">
-        Browse matches playing today across 14 major leagues. Predictions are generated on match day.
+      <div
+        class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 group-hover:bg-blue-500/20 transition-colors"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+          /></svg
+        >
+      </div>
+      <h3
+        class="text-xl font-display font-bold mb-2 group-hover:text-primary transition-colors"
+      >
+        Fixtures
+      </h3>
+      <p class="text-sm text-slate-400 leading-relaxed">
+        Browse matches playing today across 14 major leagues.
       </p>
     </Link>
 
-    <Link
-      to="/teams"
-      class="glass-card p-5 md:p-6 card-interactive group touch-target"
-    >
+    <Link to="/teams" class="glass-card p-6 group relative overflow-hidden">
       <div
-        class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3 md:mb-4 icon-hover text-xl md:text-2xl"
+        class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500"
       >
-        🛡️
+        <svg
+          class="w-24 h-24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          /></svg
+        >
       </div>
-      <h3 class="text-lg md:text-xl font-bold mb-2">Team Stats</h3>
-      <p class="text-xs md:text-sm text-slate-400">
-        Analyze detailed team statistics, form guides, and performance metrics.
+      <div
+        class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-4 group-hover:bg-emerald-500/20 transition-colors"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+          /></svg
+        >
+      </div>
+      <h3
+        class="text-xl font-display font-bold mb-2 group-hover:text-emerald-400 transition-colors"
+      >
+        Team Stats
+      </h3>
+      <p class="text-sm text-slate-400 leading-relaxed">
+        Analyze detailed team statistics and form guides.
       </p>
     </Link>
 
     <Link
       to="/predictions"
-      class="glass-card p-5 md:p-6 card-interactive group touch-target sm:col-span-2 lg:col-span-1"
+      class="glass-card p-6 group relative overflow-hidden"
     >
       <div
-        class="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 mb-3 md:mb-4 icon-hover text-xl md:text-2xl"
+        class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500"
       >
-        🧠
+        <svg
+          class="w-24 h-24"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="1.5"
+            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+          /></svg
+        >
       </div>
-      <h3 class="text-lg md:text-xl font-bold mb-2">AI Models</h3>
-      <p class="text-xs md:text-sm text-slate-400">
-        Access predictions from our ensemble of 11 ML models including GBDT,
-        LSTM, GNN, and Monte Carlo simulation.
+      <div
+        class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 mb-4 group-hover:bg-purple-500/20 transition-colors"
+      >
+        <svg
+          class="w-6 h-6"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          ><path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+          /></svg
+        >
+      </div>
+      <h3
+        class="text-xl font-display font-bold mb-2 group-hover:text-purple-400 transition-colors"
+      >
+        AI Models
+      </h3>
+      <p class="text-sm text-slate-400 leading-relaxed">
+        Access predictions from our ensemble of 11 ML models.
       </p>
-    </Link>
-  </div>
-
-  <!-- Additional Features Grid -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4 stagger-enter">
-    <Link
-      to="/standings"
-      class="glass-card p-4 card-interactive text-center touch-target"
-    >
-      <div class="text-2xl md:text-3xl mb-1 md:mb-2">🏆</div>
-      <h4 class="font-bold text-sm md:text-base">Standings</h4>
-    </Link>
-
-    <Link
-      to="/results"
-      class="glass-card p-4 card-interactive text-center touch-target"
-    >
-      <div class="text-2xl md:text-3xl mb-1 md:mb-2">📊</div>
-      <h4 class="font-bold text-sm md:text-base">Results</h4>
-    </Link>
-
-    <Link
-      to="/live"
-      class="glass-card p-4 card-interactive text-center touch-target"
-    >
-      <div class="text-2xl md:text-3xl mb-1 md:mb-2">🔴</div>
-      <h4 class="font-bold text-sm md:text-base">Live Scores</h4>
-    </Link>
-
-    <Link
-      to="/models"
-      class="glass-card p-4 card-interactive text-center touch-target"
-    >
-      <div class="text-2xl md:text-3xl mb-1 md:mb-2">📈</div>
-      <h4 class="font-bold text-sm md:text-base">Model Stats</h4>
     </Link>
   </div>
 </div>

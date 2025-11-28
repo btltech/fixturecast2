@@ -1,6 +1,5 @@
 <script>
   import { Router, Link, Route } from "svelte-routing";
-  import { onMount } from "svelte";
   import Navbar from "./components/Navbar.svelte";
   import BottomNav from "./components/BottomNav.svelte";
   import ComparePanel from "./components/ComparePanel.svelte";
@@ -22,39 +21,7 @@
   import Cookies from "./pages/Cookies.svelte";
 
   export let url = "";
-
-  // Track current path for bottom nav - reactive to URL changes
-  let currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
-
-  // Update path on navigation (browser back/forward)
-  function handleNavigation() {
-    currentPath = window.location.pathname;
-  }
-
-  // Use MutationObserver pattern to detect URL changes from Link clicks
-  onMount(() => {
-    // Set initial path
-    currentPath = window.location.pathname;
-
-    // Listen for clicks that might change the URL (Link components use history.pushState)
-    const handleClick = () => {
-      // Small delay to allow pushState to complete
-      setTimeout(() => {
-        if (currentPath !== window.location.pathname) {
-          currentPath = window.location.pathname;
-        }
-      }, 0);
-    };
-
-    document.addEventListener("click", handleClick);
-
-    return () => {
-      document.removeEventListener("click", handleClick);
-    };
-  });
 </script>
-
-<svelte:window on:popstate={handleNavigation} />
 
 <Router {url}>
   <div class="min-h-screen flex flex-col pb-16 md:pb-0">
@@ -80,7 +47,7 @@
     <ResponsibleGamblingFooter />
 
     <!-- Mobile Bottom Navigation -->
-    <BottomNav {currentPath} />
+    <BottomNav />
 
     <!-- Compare Panel (floating) -->
     <ComparePanel />

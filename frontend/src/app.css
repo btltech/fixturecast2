@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,8 +8,8 @@
    ANIMATION TOKENS & CSS VARIABLES
    ===================================================== */
 :root {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
+  --bg-primary: #0b0e14;
+  --bg-secondary: #151b28;
   --text-primary: #ffffff;
   --text-secondary: #94a3b8;
   --safe-area-inset-top: env(safe-area-inset-top);
@@ -60,6 +62,7 @@ body {
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -76,21 +79,27 @@ body {
 .stagger-enter > *:nth-child(1) {
   animation-delay: 0ms;
 }
+
 .stagger-enter > *:nth-child(2) {
   animation-delay: 30ms;
 }
+
 .stagger-enter > *:nth-child(3) {
   animation-delay: 60ms;
 }
+
 .stagger-enter > *:nth-child(4) {
   animation-delay: 90ms;
 }
+
 .stagger-enter > *:nth-child(5) {
   animation-delay: 120ms;
 }
+
 .stagger-enter > *:nth-child(6) {
   animation-delay: 150ms;
 }
+
 .stagger-enter > *:nth-child(n + 7) {
   animation-delay: 180ms;
 }
@@ -112,6 +121,7 @@ body {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -122,23 +132,36 @@ body {
    GLASSMORPHISM UTILITIES
    ===================================================== */
 .glass {
-  @apply backdrop-blur-md border;
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.1);
+  @apply backdrop-blur-xl border;
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
 .glass-card {
-  @apply backdrop-blur-sm border rounded-xl;
-  background: rgba(30, 41, 59, 0.5);
+  @apply backdrop-blur-lg border rounded-2xl;
+  background: linear-gradient(
+    145deg,
+    rgba(30, 41, 59, 0.4) 0%,
+    rgba(15, 23, 42, 0.6) 100%
+  );
   border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 20px -1px rgba(0, 0, 0, 0.2);
   transition:
     transform var(--duration-fast) var(--ease-out-soft),
     background-color var(--duration-fast) var(--ease-out-soft),
-    box-shadow var(--duration-fast) var(--ease-out-soft);
+    box-shadow var(--duration-fast) var(--ease-out-soft),
+    border-color var(--duration-fast) var(--ease-out-soft);
 }
 
 .glass-card:hover {
-  background: rgba(30, 41, 59, 0.6);
+  background: linear-gradient(
+    145deg,
+    rgba(30, 41, 59, 0.5) 0%,
+    rgba(15, 23, 42, 0.7) 100%
+  );
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
 }
 
 /* =====================================================
@@ -231,6 +254,7 @@ body {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -260,6 +284,7 @@ body {
     opacity: 0;
     transform: translateY(8px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -287,6 +312,7 @@ body {
   100% {
     opacity: 0.5;
   }
+
   50% {
     opacity: 1;
   }
@@ -305,6 +331,7 @@ body {
     opacity: 0;
     transform: translateY(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -326,9 +353,11 @@ body {
     transform: scale(0.8);
     opacity: 0;
   }
+
   50% {
     transform: scale(1.05);
   }
+
   100% {
     transform: scale(1);
     opacity: 1;
@@ -411,6 +440,7 @@ body {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -421,18 +451,23 @@ body {
 .stagger-1 {
   animation-delay: 30ms;
 }
+
 .stagger-2 {
   animation-delay: 60ms;
 }
+
 .stagger-3 {
   animation-delay: 90ms;
 }
+
 .stagger-4 {
   animation-delay: 120ms;
 }
+
 .stagger-5 {
   animation-delay: 150ms;
 }
+
 .stagger-6 {
   animation-delay: 180ms;
 }
@@ -475,6 +510,7 @@ body {
     opacity: 0;
     transform: translateY(-4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -562,9 +598,11 @@ body {
   h1 {
     @apply text-2xl;
   }
+
   h2 {
     @apply text-xl;
   }
+
   h3 {
     @apply text-lg;
   }
@@ -611,6 +649,7 @@ body {
     transform: translateY(100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -622,6 +661,7 @@ body {
     transform: translateY(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -691,6 +731,7 @@ body {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

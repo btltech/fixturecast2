@@ -20,7 +20,7 @@ import requests
 from ml_engine.feedback_learning import feedback_system, get_performance_report
 
 # API configuration
-BACKEND_API = "http://localhost:8001"
+BACKEND_API = os.getenv("BACKEND_API_URL", "http://localhost:8001")
 
 
 def fetch_completed_fixtures(league_id: int = 39, last_n: int = 20) -> List[Dict]:

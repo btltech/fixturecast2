@@ -51,6 +51,25 @@ jobs:
           restore-keys: |
             training-data-
 
+      - name: Cache feedback data
+        uses: actions/cache@v3
+        with:
+          path: ml_engine/trained_models/feedback
+          key: feedback-data-${{ github.run_id }}
+          restore-keys: |
+            feedback-data-
+
+      - name: Evaluate Performance
+        env:
+          BACKEND_API_URL: https://backend-api-production-7b7d.up.railway.app
+        run: |
+          cd ml_engine
+          # Create feedback directory if it doesn't exist
+          mkdir -p trained_models/feedback
+          # Run analysis (update results and show report)
+          python auto_update_results.py --update --analyze
+        continue-on-error: true
+
       - name: Train models
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}

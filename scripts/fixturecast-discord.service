@@ -1,0 +1,15 @@
+[Unit]
+Description=FixtureCast Discord Bot
+After=network.target fixturecast-backend.service fixturecast-ml.service
+
+[Service]
+Type=simple
+User=fixturecast
+WorkingDirectory=/path/to/fixturecast
+Environment=PATH=/path/to/fixturecast/.venv/bin
+ExecStart=/path/to/fixturecast/.venv/bin/python scripts/discord_bot.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

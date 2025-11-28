@@ -1,0 +1,17 @@
+# FixtureCast Twitter Bot Cron Job
+# Add this to crontab for daily Twitter posts at 8 AM UTC
+
+# Edit crontab
+# crontab -e
+
+# Add this line (adjust path):
+# 0 8 * * * cd /path/to/fixturecast && /path/to/fixturecast/.venv/bin/python scripts/twitter_bot.py >> /var/log/fixturecast-twitter.log 2>&1
+
+# For testing (run every minute):
+# * * * * * cd /path/to/fixturecast && /path/to/fixturecast/.venv/bin/python scripts/twitter_bot.py >> /var/log/fixturecast-twitter.log 2>&1
+
+# Check cron logs:
+# tail -f /var/log/fixturecast-twitter.log
+
+# List cron jobs:
+# crontab -l

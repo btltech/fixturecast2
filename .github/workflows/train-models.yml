@@ -53,10 +53,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase origin main
           git add ml_engine/trained_models/
           git commit -m "chore: Update trained models - $(date +'%Y-%m-%d %H:%M:%S UTC')"
-          git push
+
+          # Pull latest changes and retry push up to 3 times
+          for i in {1..3}; do
+            git pull --rebase origin main && git push && break || sleep 5
+          done
 
       - name: Notify on success
         if: success()

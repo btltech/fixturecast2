@@ -53,6 +53,7 @@ COPY --from=python-deps /usr/local/bin /usr/local/bin
 # Copy application code
 COPY backend/ ./backend/
 COPY ml_engine/ ./ml_engine/
+COPY scripts/ ./scripts/
 COPY data/ ./data/
 
 # Create necessary directories
@@ -62,7 +63,8 @@ RUN mkdir -p ml_engine/trained_models
 # Note: Frontend build is optional - the COPY may fail if not built
 RUN mkdir -p ./frontend/dist
 
-# Copy startup script
+# Copy .env template and startup scripts
+COPY .env.example .env.example
 COPY start.sh .
 RUN chmod +x start.sh
 

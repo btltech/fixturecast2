@@ -40,7 +40,7 @@ except ImportError:
 DISCORD_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 ML_API_URL = os.getenv("ML_API_URL", "http://localhost:8000")
 BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8001")
-APP_URL = os.getenv("APP_URL", "https://fixturecast.app")
+APP_URL = os.getenv("APP_URL", "https://fixturecast.com")
 
 # Bot intents
 intents = discord.Intents.default()

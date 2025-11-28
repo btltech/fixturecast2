@@ -23,7 +23,7 @@ permissions:
 jobs:
   train:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 360
 
     steps:
       - name: Checkout repository
@@ -43,23 +43,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Check for existing training data
-        id: check_data
-        run: |
-          if [ -f "data/historical/all_leagues_combined.json" ]; then
-            echo "data_exists=true" >> $GITHUB_OUTPUT
-            echo "✓ Found existing training data"
-          else
-            echo "data_exists=false" >> $GITHUB_OUTPUT
-            echo "⚠ No training data found - will use season files"
-          fi
+      - name: Cache training data
+        uses: actions/cache@v3
+        with:
+          path: data/historical
+          key: training-data-${{ github.run_id }}
+          restore-keys: |
+            training-data-
 
       - name: Train models
         env:
           API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
         run: |
           cd ml_engine
-          python continuous_training.py --no-collect --train
+          # Run with data collection enabled (remove --no-collect)
+          # Use --train to ensure models are retrained
+          python -u continuous_training.py --train
         continue-on-error: false
 
       - name: Verify models created

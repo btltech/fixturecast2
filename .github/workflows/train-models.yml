@@ -58,9 +58,42 @@ jobs:
 
       - name: Notify on success
         if: success()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          echo "✅ Training pipeline completed successfully"
-          echo "Models updated and committed to repository"
+          if [ ! -z "$DISCORD_WEBHOOK" ]; then
+            curl -X POST "$DISCORD_WEBHOOK" \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "content": "✅ **FixtureCast Training Completed**",
+                "embeds": [{
+                  "title": "Weekly Model Training",
+                  "description": "Models have been successfully trained and updated!",
+                  "color": 65280,
+                  "fields": [
+                    {
+                      "name": "Status",
+                      "value": "✅ Training completed successfully",
+                      "inline": true
+                    },
+                    {
+                      "name": "Repository",
+                      "value": "${{ github.repository }}",
+                      "inline": true
+                    },
+                    {
+                      "name": "Run",
+                      "value": "[View Run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})",
+                      "inline": false
+                    }
+                  ],
+                  "timestamp": "'$(date -u +'%Y-%m-%dT%H:%M:%SZ')'"
+                }]
+              }'
+          else
+            echo "✅ Training pipeline completed successfully"
+            echo "Models updated and committed to repository"
+          fi
 
       - name: Notify on failure
         if: failure()

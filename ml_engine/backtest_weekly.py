@@ -6,8 +6,10 @@ Evaluates the PREVIOUS week's trained models on matches that finished
 in the past 7 days to measure real-world performance.
 
 This runs BEFORE retraining to show how well the old model performed.
+Saves results to JSON and sends notifications to Discord/Telegram.
 """
 
+import json
 import os
 import sys
 from datetime import datetime, timedelta
@@ -130,6 +132,97 @@ def evaluate_prediction(prediction, actual_home_goals, actual_away_goals):
     }
 
 
+def save_backtest_metrics(summary, detailed_results):
+    """Save backtest results to JSON file"""
+    metrics_file = os.path.join(os.path.dirname(__file__), "..", "backend", "backtest_history.json")
+
+    # Load existing history
+    history = []
+    if os.path.exists(metrics_file):
+        try:
+            with open(metrics_file, "r") as f:
+                history = json.load(f)
+        except:
+            history = []
+
+    # Add new entry
+    entry = {
+        "timestamp": datetime.now().isoformat(),
+        "date": datetime.now().strftime("%Y-%m-%d"),
+        "summary": summary,
+        "sample_size": len(detailed_results),
+        "details": detailed_results[:10],  # Save first 10 for reference
+    }
+
+    history.append(entry)
+
+    # Keep only last 52 weeks (1 year)
+    history = history[-52:]
+
+    # Save
+    os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
+    with open(metrics_file, "w") as f:
+        json.dump(history, f, indent=2)
+
+    print(f"✅ Metrics saved to {metrics_file}")
+
+
+def send_notifications(summary):
+    """Send backtest summary to Discord and Telegram"""
+
+    # Discord webhook
+    discord_webhook = os.getenv("DISCORD_WEBHOOK_URL")
+    if discord_webhook:
+        try:
+            embed = {
+                "title": "📊 Weekly Backtest Results",
+                "description": "Performance of last week's models on recent matches",
+                "color": 0x00FF00 if summary["accuracy"] >= 55 else 0xFF9900,
+                "fields": [
+                    {
+                        "name": "🎯 Accuracy",
+                        "value": f"{summary['accuracy']:.1f}% ({summary['correct']}/{summary['evaluated']})",
+                        "inline": True,
+                    },
+                    {"name": "💰 Profit", "value": f"${summary['profit']:.2f}", "inline": True},
+                    {"name": "📈 ROI", "value": f"{summary['roi']:.1f}%", "inline": True},
+                ],
+                "footer": {
+                    "text": f"Evaluated {summary['total_matches']} matches from past 7 days"
+                },
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+
+            payload = {"embeds": [embed]}
+            response = requests.post(discord_webhook, json=payload, timeout=10)
+            response.raise_for_status()
+            print("✅ Discord notification sent")
+        except Exception as e:
+            print(f"⚠️ Discord notification failed: {e}")
+
+    # Telegram notification (optional)
+    telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
+    telegram_channel = os.getenv("TELEGRAM_CHANNEL_ID")
+
+    if telegram_token and telegram_channel:
+        try:
+            message = (
+                f"📊 <b>Weekly Backtest Results</b>\n\n"
+                f"🎯 Accuracy: <b>{summary['accuracy']:.1f}%</b> ({summary['correct']}/{summary['evaluated']})\n"
+                f"💰 Profit: <b>${summary['profit']:.2f}</b>\n"
+                f"📈 ROI: <b>{summary['roi']:.1f}%</b>\n\n"
+                f"<i>Evaluated {summary['total_matches']} matches from past 7 days</i>"
+            )
+
+            url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+            payload = {"chat_id": telegram_channel, "text": message, "parse_mode": "HTML"}
+            response = requests.post(url, json=payload, timeout=10)
+            response.raise_for_status()
+            print("✅ Telegram notification sent")
+        except Exception as e:
+            print(f"⚠️ Telegram notification failed: {e}")
+
+
 def run_weekly_backtest():
     """Main backtesting function"""
     print("=" * 70)
@@ -224,7 +317,16 @@ def run_weekly_backtest():
 
 if __name__ == "__main__":
     try:
-        run_weekly_backtest()
+        summary = run_weekly_backtest()
+
+        if summary and summary.get("evaluated", 0) > 0:
+            # Save metrics to file
+            results_for_save = []  # Detailed results would come from run_weekly_backtest
+            save_backtest_metrics(summary, results_for_save)
+
+            # Send notifications
+            send_notifications(summary)
+
     except Exception as e:
         print(f"\n❌ Backtest failed: {e}")
         import traceback

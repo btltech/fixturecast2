@@ -214,5 +214,25 @@
     },
     "sample_size": 0,
     "details": []
+  },
+  {
+    "timestamp": "2025-11-29T13:55:16.543448",
+    "date": "2025-11-29",
+    "summary": {
+      "total_matches": 85,
+      "evaluated": 82,
+      "correct": 32,
+      "accuracy": 39.02439024390244,
+      "btts_correct": 44,
+      "btts_accuracy": 53.65853658536586,
+      "over25_correct": 53,
+      "over25_accuracy": 64.63414634146342,
+      "correct_score_correct": 11,
+      "correct_score_accuracy": 13.414634146341465,
+      "profit": 0.0,
+      "roi": 0
+    },
+    "sample_size": 0,
+    "details": []
   }
 ]

@@ -169,10 +169,19 @@ class EnsemblePredictor:
             print(f"  Vectorization error for {vectorizer_name}: {e}")
             return None
 
+    def _get_fallback_probs(self):
+        """Return neutral fallback probabilities when a model fails"""
+        return {
+            "home_win": 0.40,
+            "draw": 0.27,
+            "away_win": 0.33,
+        }
+
     def _safe_predict(self, model, features_dict, vectorizer_name="main"):
         """
         Helper to handle sklearn models that need feature arrays.
         Tries multiple methods in order of reliability.
+        Always returns valid probabilities (never None).
         """
         # Method 1: Use model's feature_keys (most reliable for GBDT/CatBoost)
         if (
@@ -208,18 +217,57 @@ class EnsemblePredictor:
                 logger.debug(f"Vectorized prediction error for {type(model).__name__}: {e}")
 
         # Method 3: Use model's own predict method (heuristic fallback)
-        return model.predict(features_dict)
+        try:
+            result = model.predict(features_dict)
+            # Validate result has required keys with non-None values
+            if (
+                result
+                and isinstance(result, dict)
+                and result.get("home_win") is not None
+                and result.get("draw") is not None
+                and result.get("away_win") is not None
+            ):
+                return result
+        except Exception as e:
+            logger.debug(f"Model.predict error for {type(model).__name__}: {e}")
+
+        # Method 4: Return fallback if all methods fail
+        logger.warning(f"All prediction methods failed for {type(model).__name__}, using fallback")
+        return self._get_fallback_probs()
+
+    def _validate_prediction(self, pred, model_name):
+        """Validate and fix prediction dict, ensuring no None values"""
+        if pred is None or not isinstance(pred, dict):
+            logger.warning(f"{model_name} returned invalid prediction, using fallback")
+            return self._get_fallback_probs()
+
+        # Check for None values and replace with fallback
+        home = pred.get("home_win")
+        draw = pred.get("draw")
+        away = pred.get("away_win")
+
+        if home is None or draw is None or away is None:
+            logger.warning(f"{model_name} returned None probabilities, using fallback")
+            return self._get_fallback_probs()
+
+        return pred
 
     def predict_fixture(self, features):
         print("DEBUG: predict_fixture v4 called")
 
         # 1. Get predictions from all models (using correct vectorizers)
-        p_gbdt = self._safe_predict(self.gbdt, features, "main")
-        p_cat = self._safe_predict(self.catboost, features, "main")
-        p_trans = self._safe_predict(self.transformer, features, "transformer")
-        p_lstm = self._safe_predict(self.lstm, features, "lstm")
-        p_gnn = self._safe_predict(self.gnn, features, "gnn")
-        p_bayes = self._safe_predict(self.bayesian, features, "bayesian")
+        p_gbdt = self._validate_prediction(self._safe_predict(self.gbdt, features, "main"), "gbdt")
+        p_cat = self._validate_prediction(
+            self._safe_predict(self.catboost, features, "main"), "catboost"
+        )
+        p_trans = self._validate_prediction(
+            self._safe_predict(self.transformer, features, "transformer"), "transformer"
+        )
+        p_lstm = self._validate_prediction(self._safe_predict(self.lstm, features, "lstm"), "lstm")
+        p_gnn = self._validate_prediction(self._safe_predict(self.gnn, features, "gnn"), "gnn")
+        p_bayes = self._validate_prediction(
+            self._safe_predict(self.bayesian, features, "bayesian"), "bayesian"
+        )
 
         # Use TRUE Elo tracker if available, else fallback to heuristic
         if self.elo_tracker:
@@ -231,6 +279,9 @@ class EnsemblePredictor:
             features["away_elo_rating"] = p_elo.get("away_rating", 1500)
         else:
             p_elo = self.elo.predict(features.get("home_id"), features.get("away_id"), features)
+
+        # Validate Elo prediction
+        p_elo = self._validate_prediction(p_elo, "elo")
 
         # Poisson & Monte Carlo
         lambdas = self.poisson.predict(features)

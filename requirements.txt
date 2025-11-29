@@ -21,7 +21,7 @@ catboost>=1.2.0
 shap>=0.43.0
 
 # PyTorch (CPU version for smaller deployment)
-torch>=2.0.0 --index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0
 
 # CORS
 python-multipart>=0.0.6

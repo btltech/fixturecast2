@@ -38,21 +38,26 @@
   <div class="glass-card p-6 element-enter">
     <div class="flex justify-between items-center">
       <div>
-        <h1 class="text-3xl font-bold mb-2 flex items-center gap-2">
+        <h1 class="text-2xl md:text-3xl font-bold mb-2 flex items-center gap-2">
           <span class="relative flex h-3 w-3">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+            ></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"
+            ></span>
           </span>
           Live Scores
         </h1>
-        <p class="text-slate-400">Real-time match updates • Auto-refresh every 30s</p>
+        <p class="text-sm md:text-base text-slate-400">
+          Real-time match updates • Auto-refresh every 30s
+        </p>
       </div>
       <button
         on:click={fetchLiveScores}
-        class="px-4 py-2 bg-accent/20 text-accent rounded-lg hover:bg-accent/30 flex items-center gap-2 btn-interact"
+        class="px-4 py-2.5 bg-accent/20 text-accent rounded-lg hover:bg-accent/30 flex items-center gap-2 btn-interact touch-target"
       >
         <span>🔄</span>
-        <span>Refresh</span>
+        <span class="hidden sm:inline">Refresh</span>
       </button>
     </div>
   </div>
@@ -72,43 +77,49 @@
     <div class="glass-card p-12 text-center">
       <div class="text-6xl mb-4">⚽</div>
       <p class="text-xl font-bold mb-2">No Live Matches</p>
-      <p class="text-slate-400">
-        Check back later for live match updates
-      </p>
+      <p class="text-slate-400">Check back later for live match updates</p>
     </div>
   {:else}
     <div class="space-y-4 element-enter stagger-1">
       {#each liveMatches as match}
-        <div class="glass-card p-6 border-l-4 border-red-500 live-match-card">
+        <div
+          class="glass-card p-4 md:p-6 border-l-4 border-red-500 live-match-card"
+        >
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
               <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                <span
+                  class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"
+                ></span>
+                <span
+                  class="relative inline-flex rounded-full h-2 w-2 bg-red-500"
+                ></span>
               </span>
               <span class="text-red-400 font-bold">{getMinute(match)}'</span>
             </div>
             <div class="text-sm text-slate-400">{match.league.name}</div>
           </div>
 
-          <div class="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
+          <div
+            class="flex flex-col sm:grid sm:grid-cols-[1fr_auto_1fr] gap-4 items-center"
+          >
             <Link
               to="/team/{match.teams.home.id}?league={match.league.id}"
-              class="flex items-center gap-3 justify-end hover:text-accent transition-colors"
+              class="flex items-center gap-2 sm:gap-3 justify-end hover:text-accent transition-colors order-1 sm:order-none"
             >
-              <span class="text-lg font-bold text-right"
+              <span class="text-base sm:text-lg font-bold text-right truncate"
                 >{match.teams.home.name}</span
               >
               <img
                 src={match.teams.home.logo}
                 alt={match.teams.home.name}
-                class="w-12 h-12"
+                class="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0"
               />
             </Link>
 
-            <div class="text-center">
+            <div class="text-center order-3 sm:order-none">
               <div
-                class="text-4xl font-bold px-6 py-3 bg-white/10 rounded-lg min-w-[100px]"
+                class="text-3xl sm:text-4xl font-bold px-4 py-2 sm:px-6 sm:py-3 bg-white/10 rounded-lg min-w-[90px] sm:min-w-[100px]"
               >
                 {match.goals?.home ?? 0} - {match.goals?.away ?? 0}
               </div>
@@ -116,14 +127,16 @@
 
             <Link
               to="/team/{match.teams.away.id}?league={match.league.id}"
-              class="flex items-center gap-3 hover:text-accent transition-colors"
+              class="flex items-center gap-2 sm:gap-3 hover:text-accent transition-colors order-2 sm:order-none"
             >
               <img
                 src={match.teams.away.logo}
                 alt={match.teams.away.name}
-                class="w-12 h-12"
+                class="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0"
               />
-              <span class="text-lg font-bold">{match.teams.away.name}</span>
+              <span class="text-base sm:text-lg font-bold truncate"
+                >{match.teams.away.name}</span
+              >
             </Link>
           </div>
 

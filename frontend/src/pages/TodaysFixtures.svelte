@@ -107,7 +107,7 @@
 
     try {
       const res = await fetch(
-        `${ML_API_URL}/api/prediction/${fixtureId}?league=${leagueId}&season=${season}`
+        `${ML_API_URL}/api/prediction/${fixtureId}?league=${leagueId}&season=${season}`,
       );
 
       if (res.ok) {
@@ -149,22 +149,27 @@
   <div class="flex flex-col gap-4">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-2xl lg:text-3xl font-display font-bold flex items-center gap-3">
+        <h1
+          class="text-2xl lg:text-3xl font-display font-bold flex items-center gap-3"
+        >
           <span class="text-3xl">📅</span>
           Today's Fixtures
         </h1>
         <p class="text-slate-400 mt-1">
-          All matches playing today across major leagues • {new Date().toLocaleDateString("en-GB", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
+          All matches playing today across major leagues • {new Date().toLocaleDateString(
+            "en-GB",
+            {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            },
+          )}
         </p>
       </div>
       <button
         on:click={loadTodaysFixtures}
-        class="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+        class="p-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-colors touch-target"
         title="Refresh fixtures"
       >
         <svg
@@ -189,7 +194,7 @@
         type="text"
         bind:value={searchQuery}
         placeholder="Search teams or leagues..."
-        class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
+        class="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50"
       />
     </div>
   </div>
@@ -226,18 +231,34 @@
         class="inline-flex items-center gap-2 px-6 py-3 bg-primary/20 hover:bg-primary/30 text-primary rounded-lg font-medium"
       >
         Browse Upcoming Fixtures
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        <svg
+          class="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M9 5l7 7-7 7"
+          />
         </svg>
       </Link>
     </div>
   {:else}
     <!-- Match of the Day Highlight -->
     {#if matchOfTheDay}
-      <div class="glass-card p-6 border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-transparent">
+      <div
+        class="glass-card p-4 md:p-6 border-amber-500/30 bg-gradient-to-r from-amber-500/10 to-transparent"
+      >
         <div class="flex items-center gap-2 mb-4">
           <span class="text-amber-400 text-xl">⭐</span>
-          <h2 class="font-display font-bold text-lg text-amber-400">Match of the Day</h2>
+          <h2
+            class="font-display font-bold text-base md:text-lg text-amber-400"
+          >
+            Match of the Day
+          </h2>
         </div>
 
         <Link
@@ -252,7 +273,9 @@
                 alt={matchOfTheDay.teams.home.name}
                 class="w-16 h-16 mx-auto mb-2 group-hover:scale-110 transition-transform"
               />
-              <div class="font-bold">{matchOfTheDay.teams.home.name}</div>
+              <div class="font-bold text-sm sm:text-base">
+                {matchOfTheDay.teams.home.name}
+              </div>
             </div>
 
             <!-- VS & Time -->
@@ -261,7 +284,9 @@
                 {getLeagueDisplay(matchOfTheDay.league?.id).emoji}
                 {matchOfTheDay.league?.name}
               </div>
-              <div class="text-2xl font-display font-bold text-primary">
+              <div
+                class="text-xl sm:text-2xl font-display font-bold text-primary"
+              >
                 {formatTime(matchOfTheDay.fixture.date)}
               </div>
               <div class="text-xs text-slate-400">UK Time</div>
@@ -274,12 +299,16 @@
                 alt={matchOfTheDay.teams.away.name}
                 class="w-16 h-16 mx-auto mb-2 group-hover:scale-110 transition-transform"
               />
-              <div class="font-bold">{matchOfTheDay.teams.away.name}</div>
+              <div class="font-bold text-sm sm:text-base">
+                {matchOfTheDay.teams.away.name}
+              </div>
             </div>
           </div>
 
           <div class="mt-4 text-center">
-            <span class="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 text-amber-400 rounded-full text-sm font-medium group-hover:bg-amber-500/30 transition-colors">
+            <span
+              class="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/20 text-amber-400 rounded-full text-sm font-medium group-hover:bg-amber-500/30 transition-colors"
+            >
               🔮 View AI Analysis
             </span>
           </div>
@@ -290,10 +319,15 @@
     <!-- Summary -->
     <div class="flex items-center justify-between px-2">
       <p class="text-sm text-slate-400">
-        {filteredMatches.length} match{filteredMatches.length !== 1 ? "es" : ""} playing today
+        {filteredMatches.length} match{filteredMatches.length !== 1 ? "es" : ""}
+        playing today
       </p>
       <p class="text-xs text-slate-500">
-        {Object.keys(matchesByLeague).length} league{Object.keys(matchesByLeague).length !== 1 ? "s" : ""}
+        {Object.keys(matchesByLeague).length} league{Object.keys(
+          matchesByLeague,
+        ).length !== 1
+          ? "s"
+          : ""}
       </p>
     </div>
 
@@ -303,8 +337,12 @@
       <div class="space-y-3">
         <div class="flex items-center gap-2 px-2">
           <span class="text-xl">{league.emoji}</span>
-          <h2 class="font-display font-bold text-lg">{matches[0]?.league?.name || league.name}</h2>
-          <span class="text-xs text-slate-400 bg-white/5 px-2 py-0.5 rounded-full">
+          <h2 class="font-display font-bold text-lg">
+            {matches[0]?.league?.name || league.name}
+          </h2>
+          <span
+            class="text-xs text-slate-400 bg-white/5 px-2 py-0.5 rounded-full"
+          >
             {matches.length} match{matches.length !== 1 ? "es" : ""}
           </span>
         </div>
@@ -361,18 +399,34 @@
 
               <!-- Prediction Section -->
               {#if pred}
-                <div class="bg-gradient-to-r from-accent/10 to-purple-500/10 rounded-lg p-3 border border-accent/20">
+                <div
+                  class="bg-gradient-to-r from-accent/10 to-purple-500/10 rounded-lg p-3 border border-accent/20"
+                >
                   <div class="flex justify-between items-center mb-2">
                     <span class="text-xs text-slate-400">AI Prediction</span>
-                    <ConfidenceBadge confidence={summary.prob / 100} size="sm" showLabel={false} />
+                    <ConfidenceBadge
+                      confidence={summary.prob / 100}
+                      size="sm"
+                      showLabel={false}
+                    />
                   </div>
                   <div class="flex justify-between items-center text-xs mb-2">
-                    <span class="font-medium {summary.winner === 'home' ? 'text-emerald-400' : summary.winner === 'away' ? 'text-rose-400' : 'text-slate-300'}">
+                    <span
+                      class="font-medium {summary.winner === 'home'
+                        ? 'text-emerald-400'
+                        : summary.winner === 'away'
+                          ? 'text-rose-400'
+                          : 'text-slate-300'}"
+                    >
                       {summary.label}
                     </span>
-                    <span class="text-accent font-bold">{summary.prob.toFixed(0)}%</span>
+                    <span class="text-accent font-bold"
+                      >{summary.prob.toFixed(0)}%</span
+                    >
                   </div>
-                  <div class="flex gap-1 h-2 rounded-full overflow-hidden bg-slate-700">
+                  <div
+                    class="flex gap-1 h-2 rounded-full overflow-hidden bg-slate-700"
+                  >
                     <div
                       class="bg-green-500 transition-all"
                       style="width: {pred.home_win_prob * 100}%"
@@ -388,7 +442,7 @@
                   </div>
                   <Link
                     to={`/prediction/${fixtureId}?league=${leagueIdNum}&season=${season}`}
-                    class="block mt-3 text-center py-2 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg text-sm font-medium"
+                    class="block mt-3 text-center py-2.5 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg text-sm font-medium touch-target"
                   >
                     🔮 View Full Analysis
                   </Link>
@@ -397,11 +451,21 @@
                 <button
                   on:click={() => loadPrediction(fixtureId, leagueIdNum)}
                   disabled={loadingPredictions[fixtureId]}
-                  class="w-full py-3 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                  class="w-full py-3 bg-accent/20 hover:bg-accent/30 text-accent rounded-lg font-medium text-sm flex items-center justify-center gap-2 disabled:opacity-50 touch-target"
                 >
                   {#if loadingPredictions[fixtureId]}
-                    <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    <svg
+                      class="w-4 h-4 animate-spin"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
                     </svg>
                     Loading...
                   {:else}

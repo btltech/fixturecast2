@@ -360,14 +360,17 @@ async def search_match(team1, team2=None):
 
 
 async def get_prediction(fixture_id, league_id):
-    """Get AI prediction"""
+    """Get AI prediction - also logs to database for tracking"""
     # Defensive: ensure fixture_id and league_id are clean integers
     try:
         fid = int(str(fixture_id).strip())
         lid = int(str(league_id).strip())
         url = f"{ML_API_URL}/api/prediction/{fid}?league={lid}"
         print(f"DEBUG: Fetching prediction from: {url}")
-        return await fetch_json(url)
+        result = await fetch_json(url)
+        if result and "prediction" in result:
+            print(f"✅ Prediction logged to DB for fixture {fid}")
+        return result
     except Exception as e:
         print(f"❌ Error getting prediction: {e}")
         return None

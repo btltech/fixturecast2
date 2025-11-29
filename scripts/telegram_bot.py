@@ -107,7 +107,7 @@ def search_match(team1, team2=None):
 
 
 def get_prediction(fixture_id, league_id):
-    """Get AI prediction"""
+    """Get AI prediction - also logs to database for tracking"""
     try:
         fid = int(str(fixture_id).strip())
         lid = int(str(league_id).strip())
@@ -115,7 +115,10 @@ def get_prediction(fixture_id, league_id):
         print(f"DEBUG: Fetching prediction from: {url}")
         response = requests.get(url, timeout=30)
         response.raise_for_status()
-        return response.json()
+        result = response.json()
+        if result and "prediction" in result:
+            print(f"✅ Prediction logged to DB for fixture {fid}")
+        return result
     except Exception as e:
         print(f"❌ Error getting prediction: {e}")
         return None

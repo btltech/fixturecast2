@@ -278,7 +278,9 @@ def get_team_fixtures(
         raise HTTPException(status_code=503, detail="API client not initialized")
 
     try:
-        result = api_client.get_last_fixtures(team_id, league, season, last)
+        result = api_client.get_last_fixtures(
+            team_id=team_id, league=league, season=season, last=last
+        )
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

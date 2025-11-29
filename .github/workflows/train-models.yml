@@ -4,11 +4,7 @@ on:
   schedule:
     # Run every Monday at 3 AM UTC
     - cron: "0 3 * * 1"
-  push:
-    branches:
-      - main
-  # Allow manual trigger
-  # Allow manual trigger
+  # Manual trigger only - removed push trigger to prevent training on every commit
   workflow_dispatch:
     inputs:
       collect_data:

@@ -53,3 +53,4 @@ apscheduler>=3.10.0
 
 # Image Generation (for OG images)
 Pillow>=10.0.0
+psycopg2-binary>=2.9.9

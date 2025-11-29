@@ -1,29 +1,54 @@
 """
 Database module for FixtureCast Performance Monitoring.
-Uses SQLite for simplicity - can be upgraded to PostgreSQL later.
+Supports both SQLite (local development) and PostgreSQL (production).
+Auto-detects based on DATABASE_URL environment variable.
 """
 
 import json
 import os
-import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
-# Database path
-DB_PATH = os.environ.get(
-    "FIXTURECAST_DB_PATH", os.path.join(os.path.dirname(__file__), "data", "fixturecast.db")
+# Check for PostgreSQL connection string
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+# Determine which database to use
+USE_POSTGRES = DATABASE_URL is not None and DATABASE_URL.startswith(
+    ("postgres://", "postgresql://")
 )
 
-# Ensure data directory exists
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+if USE_POSTGRES:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+
+    print("🐘 Using PostgreSQL database")
+else:
+    import sqlite3
+
+    # SQLite fallback path
+    DB_PATH = os.environ.get(
+        "FIXTURECAST_DB_PATH",
+        os.path.join(os.path.dirname(__file__), "data", "fixturecast.db"),
+    )
+    # Ensure data directory exists
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    print(f"📁 Using SQLite database at {DB_PATH}")
 
 
 def get_db_connection():
-    """Get a database connection with row factory."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    """Get a database connection."""
+    if USE_POSTGRES:
+        # Parse and handle Railway's postgres:// URL (needs to be postgresql://)
+        url = DATABASE_URL
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql://", 1)
+        conn = psycopg2.connect(url, cursor_factory=RealDictCursor)
+        return conn
+    else:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
 
 
 @contextmanager
@@ -40,154 +65,250 @@ def get_db():
         conn.close()
 
 
+def _get_placeholder():
+    """Get the correct placeholder for the database type."""
+    return "%s" if USE_POSTGRES else "?"
+
+
+def _row_to_dict(row) -> Dict:
+    """Convert a database row to a dictionary."""
+    if row is None:
+        return None
+    return dict(row)
+
+
 def init_database():
     """Initialize the database schema."""
     with get_db() as conn:
         cursor = conn.cursor()
 
-        # Predictions table - stores all predictions made
-        cursor.execute(
+        if USE_POSTGRES:
+            # PostgreSQL schema
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS predictions (
+                    id SERIAL PRIMARY KEY,
+                    fixture_id INTEGER UNIQUE NOT NULL,
+                    home_team TEXT NOT NULL,
+                    away_team TEXT NOT NULL,
+                    home_team_id INTEGER,
+                    away_team_id INTEGER,
+                    league_id INTEGER NOT NULL,
+                    league_name TEXT,
+                    match_date TIMESTAMP NOT NULL,
+                    home_win_prob REAL NOT NULL,
+                    draw_prob REAL NOT NULL,
+                    away_win_prob REAL NOT NULL,
+                    predicted_outcome TEXT NOT NULL,
+                    confidence REAL NOT NULL,
+                    confidence_level TEXT NOT NULL,
+                    predicted_scoreline TEXT,
+                    btts_prob REAL,
+                    over25_prob REAL,
+                    model_breakdown TEXT,
+                    result_home_goals INTEGER,
+                    result_away_goals INTEGER,
+                    actual_outcome TEXT,
+                    match_status TEXT,
+                    outcome_correct INTEGER,
+                    brier_score REAL,
+                    btts_correct INTEGER,
+                    over25_correct INTEGER,
+                    exact_score INTEGER,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    result_recorded_at TIMESTAMP,
+                    evaluated INTEGER DEFAULT 0
+                )
             """
-            CREATE TABLE IF NOT EXISTS predictions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                fixture_id INTEGER UNIQUE NOT NULL,
-                home_team TEXT NOT NULL,
-                away_team TEXT NOT NULL,
-                home_team_id INTEGER,
-                away_team_id INTEGER,
-                league_id INTEGER NOT NULL,
-                league_name TEXT,
-                match_date TIMESTAMP NOT NULL,
-
-                -- Prediction probabilities
-                home_win_prob REAL NOT NULL,
-                draw_prob REAL NOT NULL,
-                away_win_prob REAL NOT NULL,
-                predicted_outcome TEXT NOT NULL,
-                confidence REAL NOT NULL,
-                confidence_level TEXT NOT NULL,
-
-                -- Additional predictions
-                predicted_scoreline TEXT,
-                btts_prob REAL,
-                over25_prob REAL,
-
-                -- Model breakdown (JSON)
-                model_breakdown TEXT,
-
-                -- Result tracking
-                result_home_goals INTEGER,
-                result_away_goals INTEGER,
-                actual_outcome TEXT,
-                match_status TEXT,
-
-                -- Evaluation
-                outcome_correct INTEGER,
-                brier_score REAL,
-                btts_correct INTEGER,
-                over25_correct INTEGER,
-                exact_score INTEGER,
-
-                -- Timestamps
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                result_recorded_at TIMESTAMP,
-                evaluated INTEGER DEFAULT 0
             )
-        """
-        )
 
-        # Model performance table - tracks each model's accuracy
-        cursor.execute(
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS model_performance (
+                    id SERIAL PRIMARY KEY,
+                    model_name TEXT NOT NULL,
+                    fixture_id INTEGER NOT NULL,
+                    predicted_outcome TEXT NOT NULL,
+                    actual_outcome TEXT,
+                    is_correct INTEGER,
+                    home_prob REAL,
+                    draw_prob REAL,
+                    away_prob REAL,
+                    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
             """
-            CREATE TABLE IF NOT EXISTS model_performance (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                model_name TEXT NOT NULL,
-                fixture_id INTEGER NOT NULL,
-                predicted_outcome TEXT NOT NULL,
-                actual_outcome TEXT,
-                is_correct INTEGER,
-                home_prob REAL,
-                draw_prob REAL,
-                away_prob REAL,
-                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (fixture_id) REFERENCES predictions (fixture_id)
             )
-        """
-        )
 
-        # Daily metrics table - aggregated daily stats
-        cursor.execute(
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS daily_metrics (
+                    id SERIAL PRIMARY KEY,
+                    date DATE UNIQUE NOT NULL,
+                    total_predictions INTEGER DEFAULT 0,
+                    correct_predictions INTEGER DEFAULT 0,
+                    accuracy REAL DEFAULT 0,
+                    avg_confidence REAL DEFAULT 0,
+                    avg_brier_score REAL DEFAULT 0,
+                    high_conf_correct INTEGER DEFAULT 0,
+                    high_conf_total INTEGER DEFAULT 0,
+                    medium_conf_correct INTEGER DEFAULT 0,
+                    medium_conf_total INTEGER DEFAULT 0,
+                    low_conf_correct INTEGER DEFAULT 0,
+                    low_conf_total INTEGER DEFAULT 0,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
             """
-            CREATE TABLE IF NOT EXISTS daily_metrics (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                date DATE UNIQUE NOT NULL,
-                total_predictions INTEGER DEFAULT 0,
-                correct_predictions INTEGER DEFAULT 0,
-                accuracy REAL DEFAULT 0,
-                avg_confidence REAL DEFAULT 0,
-                avg_brier_score REAL DEFAULT 0,
-                high_conf_correct INTEGER DEFAULT 0,
-                high_conf_total INTEGER DEFAULT 0,
-                medium_conf_correct INTEGER DEFAULT 0,
-                medium_conf_total INTEGER DEFAULT 0,
-                low_conf_correct INTEGER DEFAULT 0,
-                low_conf_total INTEGER DEFAULT 0,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """
-        )
 
-        # League performance table
-        cursor.execute(
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS api_logs (
+                    id SERIAL PRIMARY KEY,
+                    endpoint TEXT NOT NULL,
+                    method TEXT NOT NULL,
+                    status_code INTEGER,
+                    response_time_ms REAL,
+                    error TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
             """
-            CREATE TABLE IF NOT EXISTS league_performance (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                league_id INTEGER NOT NULL,
-                league_name TEXT,
-                period TEXT NOT NULL,  -- 'all_time', 'monthly', 'weekly'
-                period_start DATE,
-                total_predictions INTEGER DEFAULT 0,
-                correct_predictions INTEGER DEFAULT 0,
-                accuracy REAL DEFAULT 0,
-                avg_brier_score REAL DEFAULT 0,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                UNIQUE(league_id, period, period_start)
             )
-        """
-        )
 
-        # API request logs - for monitoring
-        cursor.execute(
+            # PostgreSQL indexes
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_predictions_fixture ON predictions(fixture_id)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_predictions_date ON predictions(match_date)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_predictions_league ON predictions(league_id)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_predictions_evaluated ON predictions(evaluated)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_model_perf_model ON model_performance(model_name)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_daily_metrics_date ON daily_metrics(date)"
+            )
+
+            print("✅ PostgreSQL database initialized")
+
+        else:
+            # SQLite schema
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS predictions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fixture_id INTEGER UNIQUE NOT NULL,
+                    home_team TEXT NOT NULL,
+                    away_team TEXT NOT NULL,
+                    home_team_id INTEGER,
+                    away_team_id INTEGER,
+                    league_id INTEGER NOT NULL,
+                    league_name TEXT,
+                    match_date TIMESTAMP NOT NULL,
+                    home_win_prob REAL NOT NULL,
+                    draw_prob REAL NOT NULL,
+                    away_win_prob REAL NOT NULL,
+                    predicted_outcome TEXT NOT NULL,
+                    confidence REAL NOT NULL,
+                    confidence_level TEXT NOT NULL,
+                    predicted_scoreline TEXT,
+                    btts_prob REAL,
+                    over25_prob REAL,
+                    model_breakdown TEXT,
+                    result_home_goals INTEGER,
+                    result_away_goals INTEGER,
+                    actual_outcome TEXT,
+                    match_status TEXT,
+                    outcome_correct INTEGER,
+                    brier_score REAL,
+                    btts_correct INTEGER,
+                    over25_correct INTEGER,
+                    exact_score INTEGER,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    result_recorded_at TIMESTAMP,
+                    evaluated INTEGER DEFAULT 0
+                )
             """
-            CREATE TABLE IF NOT EXISTS api_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                endpoint TEXT NOT NULL,
-                method TEXT NOT NULL,
-                status_code INTEGER,
-                response_time_ms REAL,
-                error TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """
-        )
 
-        # Create indexes for common queries
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_predictions_fixture ON predictions(fixture_id)"
-        )
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_predictions_date ON predictions(match_date)")
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_predictions_league ON predictions(league_id)"
-        )
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_predictions_evaluated ON predictions(evaluated)"
-        )
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_model_perf_model ON model_performance(model_name)"
-        )
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_daily_metrics_date ON daily_metrics(date)")
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS model_performance (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    model_name TEXT NOT NULL,
+                    fixture_id INTEGER NOT NULL,
+                    predicted_outcome TEXT NOT NULL,
+                    actual_outcome TEXT,
+                    is_correct INTEGER,
+                    home_prob REAL,
+                    draw_prob REAL,
+                    away_prob REAL,
+                    recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
 
-        print(f"✅ Database initialized at {DB_PATH}")
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS daily_metrics (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    date DATE UNIQUE NOT NULL,
+                    total_predictions INTEGER DEFAULT 0,
+                    correct_predictions INTEGER DEFAULT 0,
+                    accuracy REAL DEFAULT 0,
+                    avg_confidence REAL DEFAULT 0,
+                    avg_brier_score REAL DEFAULT 0,
+                    high_conf_correct INTEGER DEFAULT 0,
+                    high_conf_total INTEGER DEFAULT 0,
+                    medium_conf_correct INTEGER DEFAULT 0,
+                    medium_conf_total INTEGER DEFAULT 0,
+                    low_conf_correct INTEGER DEFAULT 0,
+                    low_conf_total INTEGER DEFAULT 0,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS api_logs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    endpoint TEXT NOT NULL,
+                    method TEXT NOT NULL,
+                    status_code INTEGER,
+                    response_time_ms REAL,
+                    error TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """
+            )
+
+            # SQLite indexes
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_predictions_fixture ON predictions(fixture_id)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_predictions_date ON predictions(match_date)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_predictions_league ON predictions(league_id)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_predictions_evaluated ON predictions(evaluated)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_model_perf_model ON model_performance(model_name)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_daily_metrics_date ON daily_metrics(date)"
+            )
+
+            print(f"✅ SQLite database initialized at {DB_PATH}")
 
 
 class PredictionDB:
@@ -208,7 +329,6 @@ class PredictionDB:
     ) -> bool:
         """Log a new prediction to the database."""
         try:
-            # Determine predicted outcome
             home_prob = prediction.get("home_win_prob", 0)
             draw_prob = prediction.get("draw_prob", 0)
             away_prob = prediction.get("away_win_prob", 0)
@@ -220,7 +340,6 @@ class PredictionDB:
             else:
                 predicted_outcome = "draw"
 
-            # Calculate confidence level
             max_prob = max(home_prob, draw_prob, away_prob)
             if max_prob >= 0.65:
                 confidence_level = "high"
@@ -231,41 +350,82 @@ class PredictionDB:
 
             with get_db() as conn:
                 cursor = conn.cursor()
-                cursor.execute(
-                    """
-                    INSERT OR REPLACE INTO predictions (
-                        fixture_id, home_team, away_team, home_team_id, away_team_id,
-                        league_id, league_name, match_date,
-                        home_win_prob, draw_prob, away_win_prob,
-                        predicted_outcome, confidence, confidence_level,
-                        predicted_scoreline, btts_prob, over25_prob,
-                        model_breakdown
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                    (
-                        fixture_id,
-                        home_team,
-                        away_team,
-                        home_team_id,
-                        away_team_id,
-                        league_id,
-                        league_name,
-                        match_date,
-                        home_prob,
-                        draw_prob,
-                        away_prob,
-                        predicted_outcome,
-                        max_prob,
-                        confidence_level,
-                        prediction.get("predicted_scoreline"),
-                        prediction.get("btts_prob"),
-                        prediction.get("over25_prob"),
-                        json.dumps(model_breakdown) if model_breakdown else None,
-                    ),
-                )
+
+                if USE_POSTGRES:
+                    cursor.execute(
+                        """
+                        INSERT INTO predictions (
+                            fixture_id, home_team, away_team, home_team_id, away_team_id,
+                            league_id, league_name, match_date,
+                            home_win_prob, draw_prob, away_win_prob,
+                            predicted_outcome, confidence, confidence_level,
+                            predicted_scoreline, btts_prob, over25_prob, model_breakdown
+                        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (fixture_id) DO UPDATE SET
+                            home_win_prob = EXCLUDED.home_win_prob,
+                            draw_prob = EXCLUDED.draw_prob,
+                            away_win_prob = EXCLUDED.away_win_prob,
+                            predicted_outcome = EXCLUDED.predicted_outcome,
+                            confidence = EXCLUDED.confidence,
+                            model_breakdown = EXCLUDED.model_breakdown
+                    """,
+                        (
+                            fixture_id,
+                            home_team,
+                            away_team,
+                            home_team_id,
+                            away_team_id,
+                            league_id,
+                            league_name,
+                            match_date,
+                            home_prob,
+                            draw_prob,
+                            away_prob,
+                            predicted_outcome,
+                            max_prob,
+                            confidence_level,
+                            prediction.get("predicted_scoreline"),
+                            prediction.get("btts_prob"),
+                            prediction.get("over25_prob"),
+                            json.dumps(model_breakdown) if model_breakdown else None,
+                        ),
+                    )
+                else:
+                    cursor.execute(
+                        """
+                        INSERT OR REPLACE INTO predictions (
+                            fixture_id, home_team, away_team, home_team_id, away_team_id,
+                            league_id, league_name, match_date,
+                            home_win_prob, draw_prob, away_win_prob,
+                            predicted_outcome, confidence, confidence_level,
+                            predicted_scoreline, btts_prob, over25_prob, model_breakdown
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                        (
+                            fixture_id,
+                            home_team,
+                            away_team,
+                            home_team_id,
+                            away_team_id,
+                            league_id,
+                            league_name,
+                            match_date,
+                            home_prob,
+                            draw_prob,
+                            away_prob,
+                            predicted_outcome,
+                            max_prob,
+                            confidence_level,
+                            prediction.get("predicted_scoreline"),
+                            prediction.get("btts_prob"),
+                            prediction.get("over25_prob"),
+                            json.dumps(model_breakdown) if model_breakdown else None,
+                        ),
+                    )
 
                 # Log individual model predictions
                 if model_breakdown:
+                    ph = _get_placeholder()
                     for model_name, model_pred in model_breakdown.items():
                         m_home = model_pred.get("home_win", 0)
                         m_draw = model_pred.get("draw", 0)
@@ -279,11 +439,11 @@ class PredictionDB:
                             m_outcome = "draw"
 
                         cursor.execute(
-                            """
+                            f"""
                             INSERT INTO model_performance (
                                 model_name, fixture_id, predicted_outcome,
                                 home_prob, draw_prob, away_prob
-                            ) VALUES (?, ?, ?, ?, ?, ?)
+                            ) VALUES ({ph}, {ph}, {ph}, {ph}, {ph}, {ph})
                         """,
                             (model_name, fixture_id, m_outcome, m_home, m_draw, m_away),
                         )
@@ -299,7 +459,6 @@ class PredictionDB:
     ) -> Optional[Dict]:
         """Record match result and evaluate prediction."""
         try:
-            # Determine actual outcome
             if home_goals > away_goals:
                 actual_outcome = "home"
             elif away_goals > home_goals:
@@ -309,44 +468,33 @@ class PredictionDB:
 
             with get_db() as conn:
                 cursor = conn.cursor()
+                ph = _get_placeholder()
 
-                # Get the prediction
-                cursor.execute("SELECT * FROM predictions WHERE fixture_id = ?", (fixture_id,))
+                cursor.execute(f"SELECT * FROM predictions WHERE fixture_id = {ph}", (fixture_id,))
                 row = cursor.fetchone()
 
                 if not row:
                     return None
 
-                pred = dict(row)
-
-                # Calculate evaluation metrics
+                pred = _row_to_dict(row)
                 outcome_correct = 1 if pred["predicted_outcome"] == actual_outcome else 0
 
-                # Brier score
                 actual_probs = {"home": 0, "draw": 0, "away": 0}
                 actual_probs[actual_outcome] = 1
                 brier_score = (
                     (pred["home_win_prob"] - actual_probs["home"]) ** 2
-                    + (
-                        pred["draw_win_prob"]
-                        if "draw_win_prob" in pred
-                        else pred["draw_prob"] - actual_probs["draw"]
-                    )
-                    ** 2
+                    + (pred["draw_prob"] - actual_probs["draw"]) ** 2
                     + (pred["away_win_prob"] - actual_probs["away"]) ** 2
                 ) / 3
 
-                # BTTS evaluation
                 btts_actual = home_goals > 0 and away_goals > 0
                 btts_correct = 1 if ((pred.get("btts_prob", 0.5) >= 0.5) == btts_actual) else 0
 
-                # Over 2.5 evaluation
                 over25_actual = (home_goals + away_goals) > 2.5
                 over25_correct = (
                     1 if ((pred.get("over25_prob", 0.5) >= 0.5) == over25_actual) else 0
                 )
 
-                # Exact score
                 exact_score = 0
                 if pred.get("predicted_scoreline"):
                     try:
@@ -357,22 +505,15 @@ class PredictionDB:
                     except (ValueError, AttributeError):
                         pass
 
-                # Update prediction record
                 cursor.execute(
-                    """
+                    f"""
                     UPDATE predictions SET
-                        result_home_goals = ?,
-                        result_away_goals = ?,
-                        actual_outcome = ?,
-                        match_status = ?,
-                        outcome_correct = ?,
-                        brier_score = ?,
-                        btts_correct = ?,
-                        over25_correct = ?,
-                        exact_score = ?,
-                        result_recorded_at = ?,
-                        evaluated = 1
-                    WHERE fixture_id = ?
+                        result_home_goals = {ph}, result_away_goals = {ph},
+                        actual_outcome = {ph}, match_status = {ph},
+                        outcome_correct = {ph}, brier_score = {ph},
+                        btts_correct = {ph}, over25_correct = {ph}, exact_score = {ph},
+                        result_recorded_at = {ph}, evaluated = 1
+                    WHERE fixture_id = {ph}
                 """,
                     (
                         home_goals,
@@ -389,22 +530,24 @@ class PredictionDB:
                     ),
                 )
 
-                # Update model performance records
                 cursor.execute(
-                    """
+                    f"""
                     UPDATE model_performance SET
-                        actual_outcome = ?,
-                        is_correct = CASE WHEN predicted_outcome = ? THEN 1 ELSE 0 END
-                    WHERE fixture_id = ?
+                        actual_outcome = {ph},
+                        is_correct = CASE WHEN predicted_outcome = {ph} THEN 1 ELSE 0 END
+                    WHERE fixture_id = {ph}
                 """,
                     (actual_outcome, actual_outcome, fixture_id),
                 )
 
-                # Update daily metrics
                 match_date = (
                     pred["match_date"][:10]
-                    if pred["match_date"]
-                    else datetime.now().strftime("%Y-%m-%d")
+                    if isinstance(pred["match_date"], str)
+                    else (
+                        pred["match_date"].strftime("%Y-%m-%d")
+                        if pred["match_date"]
+                        else datetime.now().strftime("%Y-%m-%d")
+                    )
                 )
                 PredictionDB._update_daily_metrics(cursor, match_date)
 
@@ -426,14 +569,13 @@ class PredictionDB:
     @staticmethod
     def _update_daily_metrics(cursor, date: str):
         """Update aggregated daily metrics."""
-        # Get stats for this date
+        ph = _get_placeholder()
+
         cursor.execute(
-            """
+            f"""
             SELECT
-                COUNT(*) as total,
-                SUM(outcome_correct) as correct,
-                AVG(confidence) as avg_conf,
-                AVG(brier_score) as avg_brier,
+                COUNT(*) as total, SUM(outcome_correct) as correct,
+                AVG(confidence) as avg_conf, AVG(brier_score) as avg_brier,
                 SUM(CASE WHEN confidence_level = 'high' AND outcome_correct = 1 THEN 1 ELSE 0 END) as high_correct,
                 SUM(CASE WHEN confidence_level = 'high' THEN 1 ELSE 0 END) as high_total,
                 SUM(CASE WHEN confidence_level = 'medium' AND outcome_correct = 1 THEN 1 ELSE 0 END) as med_correct,
@@ -441,85 +583,115 @@ class PredictionDB:
                 SUM(CASE WHEN confidence_level = 'low' AND outcome_correct = 1 THEN 1 ELSE 0 END) as low_correct,
                 SUM(CASE WHEN confidence_level = 'low' THEN 1 ELSE 0 END) as low_total
             FROM predictions
-            WHERE DATE(match_date) = ? AND evaluated = 1
+            WHERE DATE(match_date) = {ph} AND evaluated = 1
         """,
             (date,),
         )
 
-        stats = cursor.fetchone()
-        if stats and stats["total"] > 0:
+        stats = _row_to_dict(cursor.fetchone())
+        if stats and stats["total"] and stats["total"] > 0:
             accuracy = (stats["correct"] or 0) / stats["total"]
-            cursor.execute(
-                """
-                INSERT OR REPLACE INTO daily_metrics (
-                    date, total_predictions, correct_predictions, accuracy,
-                    avg_confidence, avg_brier_score,
-                    high_conf_correct, high_conf_total,
-                    medium_conf_correct, medium_conf_total,
-                    low_conf_correct, low_conf_total,
-                    updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-                (
-                    date,
-                    stats["total"],
-                    stats["correct"] or 0,
-                    accuracy,
-                    stats["avg_conf"] or 0,
-                    stats["avg_brier"] or 0,
-                    stats["high_correct"] or 0,
-                    stats["high_total"] or 0,
-                    stats["med_correct"] or 0,
-                    stats["med_total"] or 0,
-                    stats["low_correct"] or 0,
-                    stats["low_total"] or 0,
-                    datetime.now().isoformat(),
-                ),
-            )
+
+            if USE_POSTGRES:
+                cursor.execute(
+                    """
+                    INSERT INTO daily_metrics (
+                        date, total_predictions, correct_predictions, accuracy,
+                        avg_confidence, avg_brier_score,
+                        high_conf_correct, high_conf_total, medium_conf_correct, medium_conf_total,
+                        low_conf_correct, low_conf_total, updated_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (date) DO UPDATE SET
+                        total_predictions = EXCLUDED.total_predictions,
+                        correct_predictions = EXCLUDED.correct_predictions,
+                        accuracy = EXCLUDED.accuracy, updated_at = EXCLUDED.updated_at
+                """,
+                    (
+                        date,
+                        stats["total"],
+                        stats["correct"] or 0,
+                        accuracy,
+                        stats["avg_conf"] or 0,
+                        stats["avg_brier"] or 0,
+                        stats["high_correct"] or 0,
+                        stats["high_total"] or 0,
+                        stats["med_correct"] or 0,
+                        stats["med_total"] or 0,
+                        stats["low_correct"] or 0,
+                        stats["low_total"] or 0,
+                        datetime.now().isoformat(),
+                    ),
+                )
+            else:
+                cursor.execute(
+                    """
+                    INSERT OR REPLACE INTO daily_metrics (
+                        date, total_predictions, correct_predictions, accuracy,
+                        avg_confidence, avg_brier_score,
+                        high_conf_correct, high_conf_total, medium_conf_correct, medium_conf_total,
+                        low_conf_correct, low_conf_total, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                    (
+                        date,
+                        stats["total"],
+                        stats["correct"] or 0,
+                        accuracy,
+                        stats["avg_conf"] or 0,
+                        stats["avg_brier"] or 0,
+                        stats["high_correct"] or 0,
+                        stats["high_total"] or 0,
+                        stats["med_correct"] or 0,
+                        stats["med_total"] or 0,
+                        stats["low_correct"] or 0,
+                        stats["low_total"] or 0,
+                        datetime.now().isoformat(),
+                    ),
+                )
 
     @staticmethod
     def get_pending_results() -> List[Dict]:
         """Get predictions that haven't been evaluated yet."""
         with get_db() as conn:
             cursor = conn.cursor()
-            cursor.execute(
+            if USE_POSTGRES:
+                cursor.execute(
+                    """
+                    SELECT fixture_id, home_team, away_team, league_id, match_date
+                    FROM predictions WHERE evaluated = 0 AND match_date < NOW()
+                    ORDER BY match_date ASC LIMIT 100
                 """
-                SELECT fixture_id, home_team, away_team, league_id, match_date
-                FROM predictions
-                WHERE evaluated = 0 AND match_date < datetime('now')
-                ORDER BY match_date ASC
-                LIMIT 100
-            """
-            )
-            return [dict(row) for row in cursor.fetchall()]
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT fixture_id, home_team, away_team, league_id, match_date
+                    FROM predictions WHERE evaluated = 0 AND match_date < datetime('now')
+                    ORDER BY match_date ASC LIMIT 100
+                """
+                )
+            return [_row_to_dict(row) for row in cursor.fetchall()]
 
     @staticmethod
     def get_metrics_summary(days: int = 7) -> Dict:
         """Get performance metrics summary for the last N days."""
         with get_db() as conn:
             cursor = conn.cursor()
-
             cutoff = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
+            ph = _get_placeholder()
 
-            # Overall stats
             cursor.execute(
-                """
-                SELECT
-                    COUNT(*) as total,
-                    SUM(outcome_correct) as correct,
-                    AVG(confidence) as avg_conf,
-                    MIN(confidence) as min_conf,
-                    MAX(confidence) as max_conf,
-                    AVG(brier_score) as avg_brier
-                FROM predictions
-                WHERE evaluated = 1 AND match_date >= ?
+                f"""
+                SELECT COUNT(*) as total, SUM(outcome_correct) as correct,
+                    AVG(confidence) as avg_conf, MIN(confidence) as min_conf,
+                    MAX(confidence) as max_conf, AVG(brier_score) as avg_brier
+                FROM predictions WHERE evaluated = 1 AND match_date >= {ph}
             """,
                 (cutoff,),
             )
 
-            stats = dict(cursor.fetchone())
-
-            if stats["total"] == 0:
+            stats = _row_to_dict(cursor.fetchone())
+            if not stats or stats["total"] == 0:
                 return {
                     "period_days": days,
                     "total_predictions": 0,
@@ -527,15 +699,10 @@ class PredictionDB:
                     "message": "No evaluated predictions in this period",
                 }
 
-            # By confidence level
             cursor.execute(
-                """
-                SELECT
-                    confidence_level,
-                    COUNT(*) as total,
-                    SUM(outcome_correct) as correct
-                FROM predictions
-                WHERE evaluated = 1 AND match_date >= ?
+                f"""
+                SELECT confidence_level, COUNT(*) as total, SUM(outcome_correct) as correct
+                FROM predictions WHERE evaluated = 1 AND match_date >= {ph}
                 GROUP BY confidence_level
             """,
                 (cutoff,),
@@ -543,55 +710,45 @@ class PredictionDB:
 
             by_confidence = {}
             for row in cursor.fetchall():
+                row = _row_to_dict(row)
                 by_confidence[row["confidence_level"]] = {
                     "total": row["total"],
                     "correct": row["correct"] or 0,
                     "accuracy": (row["correct"] or 0) / row["total"] if row["total"] > 0 else 0,
                 }
 
-            # Model comparison
             cursor.execute(
-                """
-                SELECT
-                    model_name,
-                    COUNT(*) as total,
-                    SUM(is_correct) as correct
-                FROM model_performance mp
-                JOIN predictions p ON mp.fixture_id = p.fixture_id
-                WHERE p.evaluated = 1 AND p.match_date >= ?
-                GROUP BY model_name
-                ORDER BY SUM(is_correct) * 1.0 / COUNT(*) DESC
+                f"""
+                SELECT model_name, COUNT(*) as total, SUM(is_correct) as correct
+                FROM model_performance mp JOIN predictions p ON mp.fixture_id = p.fixture_id
+                WHERE p.evaluated = 1 AND p.match_date >= {ph}
+                GROUP BY model_name ORDER BY SUM(is_correct) * 1.0 / COUNT(*) DESC
             """,
                 (cutoff,),
             )
 
             model_comparison = {}
             for row in cursor.fetchall():
+                row = _row_to_dict(row)
                 model_comparison[row["model_name"]] = {
                     "total": row["total"],
                     "correct": row["correct"] or 0,
                     "accuracy": (row["correct"] or 0) / row["total"] if row["total"] > 0 else 0,
                 }
 
-            # By league
             cursor.execute(
-                """
-                SELECT
-                    league_id,
-                    league_name,
-                    COUNT(*) as total,
-                    SUM(outcome_correct) as correct,
-                    AVG(brier_score) as avg_brier
-                FROM predictions
-                WHERE evaluated = 1 AND match_date >= ?
-                GROUP BY league_id
-                ORDER BY COUNT(*) DESC
+                f"""
+                SELECT league_id, league_name, COUNT(*) as total,
+                    SUM(outcome_correct) as correct, AVG(brier_score) as avg_brier
+                FROM predictions WHERE evaluated = 1 AND match_date >= {ph}
+                GROUP BY league_id, league_name ORDER BY COUNT(*) DESC
             """,
                 (cutoff,),
             )
 
             by_league = {}
             for row in cursor.fetchall():
+                row = _row_to_dict(row)
                 by_league[str(row["league_id"])] = {
                     "name": row["league_name"],
                     "total": row["total"],
@@ -620,26 +777,20 @@ class PredictionDB:
         """Get all-time performance statistics."""
         with get_db() as conn:
             cursor = conn.cursor()
-
             cursor.execute(
                 """
-                SELECT
-                    COUNT(*) as total,
-                    SUM(outcome_correct) as correct,
-                    AVG(brier_score) as avg_brier,
-                    SUM(btts_correct) as btts_correct,
+                SELECT COUNT(*) as total, SUM(outcome_correct) as correct,
+                    AVG(brier_score) as avg_brier, SUM(btts_correct) as btts_correct,
                     SUM(CASE WHEN btts_prob IS NOT NULL THEN 1 ELSE 0 END) as btts_total,
                     SUM(over25_correct) as over25_correct,
                     SUM(CASE WHEN over25_prob IS NOT NULL THEN 1 ELSE 0 END) as over25_total,
                     SUM(exact_score) as exact_scores
-                FROM predictions
-                WHERE evaluated = 1
+                FROM predictions WHERE evaluated = 1
             """
             )
 
-            stats = dict(cursor.fetchone())
-
-            if stats["total"] == 0:
+            stats = _row_to_dict(cursor.fetchone())
+            if not stats or stats["total"] == 0:
                 return {
                     "total_predictions": 0,
                     "accuracy": 0,
@@ -668,49 +819,49 @@ class PredictionDB:
         """Get daily accuracy trend."""
         with get_db() as conn:
             cursor = conn.cursor()
-
-            cursor.execute(
-                """
-                SELECT
-                    date,
-                    total_predictions,
-                    correct_predictions,
-                    accuracy,
-                    avg_confidence,
-                    avg_brier_score
-                FROM daily_metrics
-                WHERE date >= date('now', ? || ' days')
-                ORDER BY date ASC
-            """,
-                (f"-{days}",),
-            )
-
-            return [dict(row) for row in cursor.fetchall()]
+            if USE_POSTGRES:
+                cursor.execute(
+                    """
+                    SELECT date, total_predictions, correct_predictions,
+                        accuracy, avg_confidence, avg_brier_score
+                    FROM daily_metrics
+                    WHERE date >= CURRENT_DATE - INTERVAL '%s days'
+                    ORDER BY date ASC
+                """,
+                    (days,),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT date, total_predictions, correct_predictions,
+                        accuracy, avg_confidence, avg_brier_score
+                    FROM daily_metrics
+                    WHERE date >= date('now', ? || ' days')
+                    ORDER BY date ASC
+                """,
+                    (f"-{days}",),
+                )
+            return [_row_to_dict(row) for row in cursor.fetchall()]
 
     @staticmethod
     def get_recent_predictions(limit: int = 50) -> List[Dict]:
         """Get recent predictions with their evaluations."""
         with get_db() as conn:
             cursor = conn.cursor()
-
+            ph = _get_placeholder()
             cursor.execute(
-                """
-                SELECT
-                    fixture_id, home_team, away_team, league_name, match_date,
+                f"""
+                SELECT fixture_id, home_team, away_team, league_name, match_date,
                     home_win_prob, draw_prob, away_win_prob,
                     predicted_outcome, confidence, confidence_level,
                     predicted_scoreline, btts_prob, over25_prob,
                     result_home_goals, result_away_goals, actual_outcome,
-                    outcome_correct, brier_score, btts_correct, over25_correct,
-                    evaluated
-                FROM predictions
-                ORDER BY match_date DESC
-                LIMIT ?
+                    outcome_correct, brier_score, btts_correct, over25_correct, evaluated
+                FROM predictions ORDER BY match_date DESC LIMIT {ph}
             """,
                 (limit,),
             )
-
-            return [dict(row) for row in cursor.fetchall()]
+            return [_row_to_dict(row) for row in cursor.fetchall()]
 
 
 # Initialize database on module load

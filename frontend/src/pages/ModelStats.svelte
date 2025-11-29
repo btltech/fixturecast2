@@ -113,6 +113,9 @@
       Our prediction engine uses an ensemble of 11 specialized machine learning
       models
     </p>
+    <p class="text-xs text-amber-400 mt-2">
+      🆕 Launched November 25, 2025 - Performance tracking begins after first week
+    </p>
   </div>
 
   {#if loading}
@@ -123,7 +126,7 @@
       <p class="mt-4 text-slate-400">Loading model information...</p>
     </div>
   {:else}
-    <!-- Weekly Performance Section (Backtest Results) -->
+    <!-- Weekly Performance Section (Backtest Results) - Only show if we have real data -->
     {#if backtestHistory && backtestHistory.history && backtestHistory.history.length > 0}
       <div class="glass-card p-6 border border-green-500/30">
         <div class="flex items-center justify-between mb-4">
@@ -132,7 +135,7 @@
               ✅ Weekly Performance
             </h2>
             <p class="text-xs text-slate-400">
-              Verified backtest results on past matches
+              Verified backtest results on completed matches
             </p>
           </div>
           <div class="text-right">
@@ -158,18 +161,35 @@
               </div>
               <div class="text-right">
                 <div
-                  class="font-bold {week.summary.profit >= 0
+                  class="font-bold {week.summary.accuracy >= 40
                     ? 'text-green-400'
-                    : 'text-red-400'}"
+                    : 'text-amber-400'}"
                 >
                   {week.summary.accuracy.toFixed(1)}%
-                </div>
-                <div class="text-xs text-slate-400">
-                  Profit: ${week.summary.profit.toFixed(2)}
                 </div>
               </div>
             </div>
           {/each}
+        </div>
+      </div>
+    {:else}
+      <!-- No backtest data yet - App just launched -->
+      <div class="glass-card p-6 border border-amber-500/30">
+        <div class="flex items-start gap-3">
+          <span class="text-2xl">📊</span>
+          <div>
+            <h3 class="font-bold text-amber-400">
+              Performance Tracking Starting Soon
+            </h3>
+            <p class="text-sm text-slate-400 mt-1">
+              FixtureCast launched on November 25, 2025. Weekly performance backtests
+              will begin after our first full week of predictions. Check back soon for
+              verified accuracy metrics on completed matches.
+            </p>
+            <p class="text-xs text-slate-500 mt-2">
+              First backtest scheduled: Week of December 2, 2025
+            </p>
+          </div>
         </div>
       </div>
     {/if}

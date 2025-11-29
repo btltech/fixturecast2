@@ -1629,6 +1629,27 @@ async def get_model_stats():
     return stats_tracker.get_model_stats()
 
 
+@app.post("/api/model-stats/reset")
+async def reset_model_stats(secret: str = ""):
+    """
+    Reset prediction statistics. Requires secret key.
+    """
+    if secret != "fixturecast2025reset":
+        raise HTTPException(status_code=403, detail="Invalid secret")
+
+    stats_tracker.stats = {
+        "total_predictions": 0,
+        "predictions_by_model": defaultdict(int),
+        "confidence_sums": defaultdict(float),
+        "confidence_counts": defaultdict(int),
+        "predictions_log": [],
+        "started_at": datetime.now().isoformat(),
+        "last_prediction_at": None,
+    }
+    stats_tracker._save_stats()
+    return {"status": "reset", "message": "All prediction statistics have been reset to 0"}
+
+
 # ============================================
 # FEEDBACK LEARNING ENDPOINTS
 # ============================================

@@ -81,17 +81,23 @@ class FixtureCastBot(discord.Client):
         await self.tree.sync()
         print("✅ Commands synced with Discord")
 
-        # Start scheduled tasks
-        self.daily_motd_post.start()
-        self.health_check_task.start()
-        self.weekly_summary.start()
+        # Start scheduled tasks (these are module-level, not class methods)
+        if not daily_motd_post.is_running():
+            daily_motd_post.start()
+        if not health_check_task.is_running():
+            health_check_task.start()
+        if not weekly_summary.is_running():
+            weekly_summary.start()
         print("✅ Scheduled tasks started")
 
     async def close(self):
         """Cleanup on shutdown"""
-        self.daily_motd_post.cancel()
-        self.health_check_task.cancel()
-        self.weekly_summary.cancel()
+        if daily_motd_post.is_running():
+            daily_motd_post.cancel()
+        if health_check_task.is_running():
+            health_check_task.cancel()
+        if weekly_summary.is_running():
+            weekly_summary.cancel()
         await super().close()
 
 

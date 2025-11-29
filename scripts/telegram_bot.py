@@ -419,7 +419,8 @@ def main():
     # Set start time for uptime tracking
     start_time = datetime.utcnow()
 
-    # Setup scheduled tasks
+    # Setup scheduled tasks - store scheduler for later start
+    scheduler = None
     if AsyncIOScheduler and DAILY_PREDICTION_CHANNELS:
         scheduler = AsyncIOScheduler()
 
@@ -448,8 +449,7 @@ def main():
         # Health check every 5 minutes
         scheduler.add_job(health_check, "interval", minutes=5, id="health_check")
 
-        scheduler.start()
-        print("✅ Scheduled tasks started")
+        print("✅ Scheduled tasks configured")
         print("   - Daily MOTD: 8:00 AM & 2:00 PM UTC")
         print("   - Weekly summary: Sunday 8:00 PM UTC")
         print("   - Health check: Every 5 minutes")
@@ -457,6 +457,14 @@ def main():
         print("⚠️ No TELEGRAM_DAILY_CHANNELS configured - scheduled posts disabled")
     else:
         print("⚠️ APScheduler not installed - scheduled posts disabled")
+
+    # Start scheduler in post_init callback (after event loop is running)
+    async def post_init(app):
+        if scheduler:
+            scheduler.start()
+            print("✅ Scheduler started")
+
+    application.post_init = post_init
 
     # Start bot
     print("\n✅ Bot is now running!")

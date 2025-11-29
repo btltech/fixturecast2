@@ -26,6 +26,9 @@
     { id: 136, name: "Serie B", country: "Italy", emoji: "🇮🇹", tier: 2 },
     { id: 79, name: "2. Bundesliga", country: "Germany", emoji: "🇩🇪", tier: 2 },
     { id: 62, name: "Ligue 2", country: "France", emoji: "🇫🇷", tier: 2 },
+    // Domestic Cups (Tier 3)
+    { id: 45, name: "FA Cup", country: "England", emoji: "🏆", tier: 3 },
+    { id: 48, name: "League Cup", country: "England", emoji: "🏆", tier: 3 },
   ];
 
   let teams = [];
@@ -128,12 +131,26 @@
               {/each}
             </div>
             <!-- Second Division -->
-            <div class="p-2">
+            <div class="p-2 border-b border-white/10">
               <div class="text-xs text-slate-400 px-2 py-1 font-bold">📋 SECOND DIVISION</div>
               {#each leagues.filter(l => l.tier === 2) as league}
                 <button
                   type="button"
                   class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-all {selectedLeague === league.id ? 'bg-accent/20 text-accent' : ''}"
+                  on:click={() => { loadTeams(league.id); showLeagueSelector = false; }}
+                >
+                  <span>{league.emoji}</span>
+                  <span>{league.name}</span>
+                </button>
+              {/each}
+            </div>
+            <!-- Domestic Cups -->
+            <div class="p-2">
+              <div class="text-xs text-slate-400 px-2 py-1 font-bold">🏆 DOMESTIC CUPS</div>
+              {#each leagues.filter(l => l.tier === 3) as league}
+                <button
+                  type="button"
+                  class="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 transition-all {selectedLeague === league.id ? 'bg-orange-500/20 text-orange-400' : ''}"
                   on:click={() => { loadTeams(league.id); showLeagueSelector = false; }}
                 >
                   <span>{league.emoji}</span>

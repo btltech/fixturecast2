@@ -868,7 +868,7 @@
                   {#if injury.fixture?.date}
                     {@const returnDate = new Date(injury.fixture.date)}
                     {@const daysUntil = Math.ceil(
-                      (returnDate - new Date()) / (1000 * 60 * 60 * 24),
+                      (returnDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
                     )}
                     <span
                       class="px-2 py-1 rounded-full bg-slate-500/20 text-slate-300"

@@ -30,6 +30,9 @@
     { id: 136, name: "Serie B", flag: "🇮🇹", tier: 2 },
     { id: 79, name: "2. Bundesliga", flag: "🇩🇪", tier: 2 },
     { id: 62, name: "Ligue 2", flag: "🇫🇷", tier: 2 },
+    // Domestic Cups
+    { id: 45, name: "FA Cup", flag: "🏆", tier: 3 },
+    { id: 48, name: "League Cup", flag: "🏆", tier: 3 },
   ];
 
   async function fetchResults() {
@@ -103,13 +106,29 @@
     </div>
 
     <!-- Second Division -->
-    <div>
+    <div class="mb-3">
       <div class="text-xs text-slate-400 mb-2 font-bold">📋 SECOND DIVISION</div>
       <div class="flex flex-wrap gap-2">
         {#each leagues.filter(l => l.tier === 2) as league}
           <button
             on:click={() => changeLeague(league.id)}
             class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id ? 'bg-accent text-white' : 'bg-white/5 hover:bg-white/10'}"
+          >
+            <span class="mr-1">{league.flag}</span>
+            {league.name}
+          </button>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Domestic Cups -->
+    <div>
+      <div class="text-xs text-slate-400 mb-2 font-bold">🏆 DOMESTIC CUPS</div>
+      <div class="flex flex-wrap gap-2">
+        {#each leagues.filter(l => l.tier === 3) as league}
+          <button
+            on:click={() => changeLeague(league.id)}
+            class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id ? 'bg-orange-500/80 text-white' : 'bg-white/5 hover:bg-white/10'}"
           >
             <span class="mr-1">{league.flag}</span>
             {league.name}

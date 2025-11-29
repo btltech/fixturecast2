@@ -23,11 +23,14 @@
     94: { name: "Primeira Liga", emoji: "🇵🇹" },
     2: { name: "Champions League", emoji: "🏆" },
     3: { name: "Europa League", emoji: "🏆" },
+    848: { name: "Conference League", emoji: "🥉" },
     40: { name: "Championship", emoji: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
     141: { name: "Segunda División", emoji: "🇪🇸" },
     136: { name: "Serie B", emoji: "🇮🇹" },
     79: { name: "2. Bundesliga", emoji: "🇩🇪" },
     62: { name: "Ligue 2", emoji: "🇫🇷" },
+    45: { name: "FA Cup", emoji: "🏆" },
+    48: { name: "League Cup", emoji: "🏆" },
   };
 
   function getLeagueDisplay(leagueId) {

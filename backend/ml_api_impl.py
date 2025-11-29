@@ -30,6 +30,16 @@ from metrics_tracker import MetricsTracker
 from ml_engine.ensemble_predictor import EnsemblePredictor
 from ml_engine.feedback_learning import log_prediction as log_feedback_prediction
 
+# Import database for prediction logging
+try:
+    from database import PredictionDB
+
+    DB_AVAILABLE = True
+    logger.info("✅ Database module loaded for prediction tracking")
+except ImportError:
+    DB_AVAILABLE = False
+    logger.warning("⚠️ Database module not available, predictions won't be tracked in DB")
+
 # Initialize metrics tracker for logging predictions
 metrics_tracker = MetricsTracker()
 
@@ -634,6 +644,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include metrics router for performance tracking
+try:
+    from metrics_api import router as metrics_router
+
+    app.include_router(metrics_router)
+    logger.info("✅ Metrics API router included")
+except ImportError as e:
+    logger.warning(f"⚠️ Metrics API router not available: {e}")
+
 
 class MatchFeatures(BaseModel):
     """
@@ -1068,6 +1087,24 @@ async def predict_fixture(fixture_id: int, league: int = 39, season: int = 2025)
             )
         except Exception as e:
             print(f"Warning: Failed to log prediction for feedback: {e}")
+
+        # Log prediction to database for performance tracking
+        if DB_AVAILABLE:
+            try:
+                PredictionDB.log_prediction(
+                    fixture_id=fixture_id,
+                    home_team=fixture["teams"]["home"]["name"],
+                    away_team=fixture["teams"]["away"]["name"],
+                    home_team_id=fixture["teams"]["home"]["id"],
+                    away_team_id=fixture["teams"]["away"]["id"],
+                    league_id=league,
+                    league_name=fixture.get("league", {}).get("name", "Unknown"),
+                    match_date=fixture["fixture"]["date"],
+                    prediction=result,
+                    model_breakdown=result.get("model_breakdown", {}),
+                )
+            except Exception as e:
+                print(f"Warning: Failed to log prediction to database: {e}")
 
         response_payload = {"prediction": result, "fixture_details": fixture, "analysis": analysis}
 

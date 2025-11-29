@@ -88,7 +88,9 @@
 
       if (teamData.response && teamData.response.length > 0) {
         // Find the specific team by ID from the response
-        const fullTeamData = teamData.response.find(t => t.team?.id == id) || teamData.response[0];
+        const fullTeamData =
+          teamData.response.find((t) => t.team?.id == id) ||
+          teamData.response[0];
         team = {
           team: fullTeamData.team,
           venue: fullTeamData.venue,
@@ -667,16 +669,18 @@
 
         <!-- Filter Controls -->
         <div class="mb-6 p-4 rounded-lg bg-white/5 border border-white/10">
-          <div class="flex flex-wrap gap-4 items-center">
+          <div
+            class="flex flex-col sm:flex-row flex-wrap gap-3 items-stretch sm:items-center"
+          >
             <!-- Search -->
-            <div class="flex-1 min-w-48">
+            <div class="flex-1 min-w-full sm:min-w-[200px]">
               <label for="player-search" class="sr-only">Search players</label>
               <input
                 id="player-search"
                 type="text"
                 bind:value={playerSearch}
                 placeholder="Search players..."
-                class="w-full px-4 py-2 rounded-lg bg-black/30 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
+                class="w-full px-4 py-2.5 rounded-lg bg-black/30 border border-white/20 text-white placeholder-slate-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent"
                 aria-describedby="search-help"
               />
               <span id="search-help" class="sr-only"
@@ -685,14 +689,14 @@
             </div>
 
             <!-- Position Filter -->
-            <div>
+            <div class="flex-1 sm:flex-initial min-w-full sm:min-w-[160px]">
               <label for="position-filter" class="sr-only"
                 >Filter by position</label
               >
               <select
                 id="position-filter"
                 bind:value={selectedPosition}
-                class="px-4 py-2 rounded-lg bg-black/30 border border-white/20 text-white focus:outline-none focus:border-accent cursor-pointer"
+                class="w-full px-4 py-2.5 rounded-lg bg-black/30 border border-white/20 text-white focus:outline-none focus:border-accent cursor-pointer"
               >
                 <option value="all">All Positions</option>
                 <option value="Goalkeeper">Goalkeepers</option>
@@ -703,12 +707,12 @@
             </div>
 
             <!-- Sort By -->
-            <div>
+            <div class="flex-1 sm:flex-initial min-w-full sm:min-w-[160px]">
               <label for="sort-by" class="sr-only">Sort players by</label>
               <select
                 id="sort-by"
                 bind:value={sortBy}
-                class="px-4 py-2 rounded-lg bg-black/30 border border-white/20 text-white focus:outline-none focus:border-accent cursor-pointer"
+                class="w-full px-4 py-2.5 rounded-lg bg-black/30 border border-white/20 text-white focus:outline-none focus:border-accent cursor-pointer"
               >
                 <option value="name">Sort by Name</option>
                 <option value="age">Sort by Age</option>
@@ -722,7 +726,7 @@
             <button
               on:click={() =>
                 (sortOrder = sortOrder === "asc" ? "desc" : "asc")}
-              class="px-4 py-2 rounded-lg bg-accent/20 text-accent hover:bg-accent/30 transition-colors flex items-center gap-2"
+              class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-accent/20 text-accent hover:bg-accent/30 transition-colors flex items-center justify-center gap-2 min-h-[44px]"
               aria-label={`Sort ${sortOrder === "asc" ? "ascending" : "descending"}, click to toggle`}
             >
               {#if sortOrder === "asc"}
@@ -868,7 +872,8 @@
                   {#if injury.fixture?.date}
                     {@const returnDate = new Date(injury.fixture.date)}
                     {@const daysUntil = Math.ceil(
-                      (returnDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24),
+                      (returnDate.getTime() - new Date().getTime()) /
+                        (1000 * 60 * 60 * 24),
                     )}
                     <span
                       class="px-2 py-1 rounded-full bg-slate-500/20 text-slate-300"

@@ -97,7 +97,7 @@
       </div>
 
       <h1
-        class="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight leading-none"
+        class="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-6 tracking-tight leading-none"
       >
         <span
           class="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-slate-400"
@@ -117,11 +117,11 @@
       </p>
 
       <div
-        class="flex flex-col sm:flex-row justify-center gap-4 w-full max-w-md mx-auto relative z-10"
+        class="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 w-full max-w-md mx-auto relative z-10"
       >
         <Link
           to="/today"
-          class="group relative px-8 py-4 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white font-bold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 overflow-hidden"
+          class="group relative px-6 py-3 sm:px-8 sm:py-4 rounded-xl bg-gradient-to-r from-primary to-blue-600 text-white font-bold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:-translate-y-0.5 overflow-hidden text-center"
         >
           <div
             class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"
@@ -144,7 +144,7 @@
         </Link>
         <Link
           to="/predictions"
-          class="px-8 py-4 rounded-xl bg-white/5 text-white font-bold border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all hover:-translate-y-0.5 backdrop-blur-sm"
+          class="px-6 py-3 sm:px-8 sm:py-4 rounded-xl bg-white/5 text-white font-bold border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all hover:-translate-y-0.5 backdrop-blur-sm text-center"
         >
           View AI Models
         </Link>
@@ -161,7 +161,7 @@
         <div class="h-6 w-32 bg-white/10 rounded-full animate-pulse"></div>
       </div>
 
-      <div class="glass-card p-8 md:p-10 animate-pulse">
+      <div class="glass-card p-6 md:p-8 lg:p-10 animate-pulse">
         <div
           class="flex flex-col md:flex-row items-center justify-between gap-8"
         >
@@ -238,7 +238,7 @@
           class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-primary/5 to-transparent opacity-50"
         ></div>
 
-        <div class="relative p-8 md:p-10">
+        <div class="relative p-6 md:p-8 lg:p-10">
           <div
             class="flex flex-col md:flex-row items-center justify-between gap-8"
           >
@@ -269,8 +269,9 @@
                 VS
               </div>
               <div
-                class="text-4xl md:text-5xl font-display font-bold text-white mb-2 tracking-tight"
+                class="text-3xl sm:text-4xl md:text-5xl font-display font-bold text-white mb-2 tracking-tight"
               >
+                >
                 {formatTime(matchOfTheDay.fixture.date)}
               </div>
               <div

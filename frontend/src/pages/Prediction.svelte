@@ -205,7 +205,7 @@
 {:else if error}
   <div class="text-center text-danger py-10">Error: {error}</div>
 {:else if data}
-  <div class="max-w-5xl mx-auto space-y-6 md:space-y-8 page-enter px-1">
+  <div class="max-w-5xl mx-auto space-y-6 md:space-y-8 page-enter px-4">
     <!-- Confidence Badge (prominent) -->
     <div class="flex justify-center element-enter">
       <ConfidenceBadge confidence={maxConfidence} size="lg" />
@@ -217,7 +217,7 @@
     >
       <button
         on:click={toggleFavorite}
-        class="flex-shrink-0 px-3 md:px-4 py-2 rounded-lg text-sm touch-target btn-interact {isFixtureFavorite(
+        class="flex-shrink-0 px-3 md:px-4 py-2.5 md:py-2 rounded-lg text-sm touch-target btn-interact {isFixtureFavorite(
           parseInt(id),
           currentFavorites,
         )
@@ -252,7 +252,7 @@
 
     <!-- Match Header -->
     <div
-      class="glass-card p-4 md:p-8 text-center relative overflow-hidden group element-enter stagger-2"
+      class="glass-card p-6 md:p-8 text-center relative overflow-hidden group element-enter stagger-2"
     >
       <div
         class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-accent to-transparent"

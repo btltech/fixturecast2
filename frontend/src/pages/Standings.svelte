@@ -12,19 +12,36 @@
   let leagueInfo = null;
   const season = getSavedSeason(getCurrentSeason());
 
+  // All supported leagues - grouped by tier
   const leagues = [
-    { id: 39, name: "Premier League", country: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
-    { id: 140, name: "La Liga", country: "Spain", flag: "🇪🇸" },
-    { id: 135, name: "Serie A", country: "Italy", flag: "🇮🇹" },
-    { id: 78, name: "Bundesliga", country: "Germany", flag: "🇩🇪" },
-    { id: 61, name: "Ligue 1", country: "France", flag: "🇫🇷" },
-    { id: 88, name: "Eredivisie", country: "Netherlands", flag: "🇳🇱" },
-    { id: 94, name: "Primeira Liga", country: "Portugal", flag: "🇵🇹" },
-    { id: 40, name: "Championship", country: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿" },
-    { id: 141, name: "Segunda División", country: "Spain", flag: "🇪🇸" },
-    { id: 2, name: "Champions League", country: "UEFA", flag: "🇪🇺" },
-    { id: 3, name: "Europa League", country: "UEFA", flag: "🇪🇺" },
+    // European Competitions (Tier 0)
+    { id: 2, name: "Champions League", country: "Europe", flag: "🏆", tier: 0 },
+    { id: 3, name: "Europa League", country: "Europe", flag: "🥈", tier: 0 },
+    { id: 848, name: "Conference League", country: "Europe", flag: "🥉", tier: 0 },
+    // Top Leagues (Tier 1)
+    { id: 39, name: "Premier League", country: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: 1 },
+    { id: 140, name: "La Liga", country: "Spain", flag: "🇪🇸", tier: 1 },
+    { id: 135, name: "Serie A", country: "Italy", flag: "🇮🇹", tier: 1 },
+    { id: 78, name: "Bundesliga", country: "Germany", flag: "🇩🇪", tier: 1 },
+    { id: 61, name: "Ligue 1", country: "France", flag: "🇫🇷", tier: 1 },
+    { id: 88, name: "Eredivisie", country: "Netherlands", flag: "🇳🇱", tier: 1 },
+    { id: 94, name: "Primeira Liga", country: "Portugal", flag: "🇵🇹", tier: 1 },
+    // Championship Leagues (Tier 2)
+    { id: 40, name: "Championship", country: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: 2 },
+    { id: 141, name: "Segunda División", country: "Spain", flag: "🇪🇸", tier: 2 },
+    { id: 136, name: "Serie B", country: "Italy", flag: "🇮🇹", tier: 2 },
+    { id: 79, name: "2. Bundesliga", country: "Germany", flag: "🇩🇪", tier: 2 },
+    { id: 62, name: "Ligue 2", country: "France", flag: "🇫🇷", tier: 2 },
+    // Domestic Cups (Tier 3)
+    { id: 45, name: "FA Cup", country: "England", flag: "🏆", tier: 3 },
+    { id: 48, name: "League Cup", country: "England", flag: "🏆", tier: 3 },
   ];
+
+  // Group leagues by tier for display
+  $: europeanLeagues = leagues.filter(l => l.tier === 0);
+  $: topLeagues = leagues.filter(l => l.tier === 1);
+  $: secondDivisions = leagues.filter(l => l.tier === 2);
+  $: cups = leagues.filter(l => l.tier === 3);
 
   async function fetchStandings() {
     loading = true;
@@ -72,24 +89,95 @@
   <div class="glass-card p-6 element-enter">
     <h1 class="text-3xl font-bold mb-4">League Standings</h1>
 
-    <!-- League Selector -->
-    <div class="flex flex-wrap gap-2">
-      {#each leagues as league}
-        <button
-          on:click={() => {
-            selectedLeague = league.id;
-            saveLeague(selectedLeague);
-            fetchStandings();
-          }}
-          class="px-4 py-2 rounded-lg btn-interact {selectedLeague ===
-          league.id
-            ? 'bg-accent text-white'
-            : 'bg-white/5 hover:bg-white/10'}"
-        >
-          <span class="mr-2">{league.flag}</span>
-          {league.name}
-        </button>
-      {/each}
+    <!-- League Selector - Grouped by tier -->
+    <div class="space-y-4">
+      <!-- European Competitions -->
+      <div>
+        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">🏆 European Competitions</h3>
+        <div class="flex flex-wrap gap-2">
+          {#each europeanLeagues as league}
+            <button
+              on:click={() => {
+                selectedLeague = league.id;
+                saveLeague(selectedLeague);
+                fetchStandings();
+              }}
+              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id
+                ? 'bg-yellow-500/80 text-black font-medium'
+                : 'bg-white/5 hover:bg-white/10'}"
+            >
+              <span class="mr-1">{league.flag}</span>
+              {league.name}
+            </button>
+          {/each}
+        </div>
+      </div>
+
+      <!-- Top Leagues -->
+      <div>
+        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">⭐ Top Leagues</h3>
+        <div class="flex flex-wrap gap-2">
+          {#each topLeagues as league}
+            <button
+              on:click={() => {
+                selectedLeague = league.id;
+                saveLeague(selectedLeague);
+                fetchStandings();
+              }}
+              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id
+                ? 'bg-accent text-white font-medium'
+                : 'bg-white/5 hover:bg-white/10'}"
+            >
+              <span class="mr-1">{league.flag}</span>
+              {league.name}
+            </button>
+          {/each}
+        </div>
+      </div>
+
+      <!-- Second Divisions -->
+      <div>
+        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">📊 Second Divisions</h3>
+        <div class="flex flex-wrap gap-2">
+          {#each secondDivisions as league}
+            <button
+              on:click={() => {
+                selectedLeague = league.id;
+                saveLeague(selectedLeague);
+                fetchStandings();
+              }}
+              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id
+                ? 'bg-accent text-white font-medium'
+                : 'bg-white/5 hover:bg-white/10'}"
+            >
+              <span class="mr-1">{league.flag}</span>
+              {league.name}
+            </button>
+          {/each}
+        </div>
+      </div>
+
+      <!-- Domestic Cups -->
+      <div>
+        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">🏆 Domestic Cups</h3>
+        <div class="flex flex-wrap gap-2">
+          {#each cups as league}
+            <button
+              on:click={() => {
+                selectedLeague = league.id;
+                saveLeague(selectedLeague);
+                fetchStandings();
+              }}
+              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id
+                ? 'bg-orange-500/80 text-white font-medium'
+                : 'bg-white/5 hover:bg-white/10'}"
+            >
+              <span class="mr-1">{league.flag}</span>
+              {league.name}
+            </button>
+          {/each}
+        </div>
+      </div>
     </div>
   </div>
 

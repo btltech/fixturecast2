@@ -230,15 +230,20 @@ async def get_match_of_the_day():
 
 @app.get("/api/teams")
 async def get_teams(
+    id: int = Query(None, description="Team ID (optional, for fetching a specific team)"),
     league: int = Query(39, description="League ID"),
     season: int = Query(2025, description="Season year"),
 ):
-    """Get teams in a league"""
+    """Get teams in a league, or a specific team by ID"""
     if api_client is None:
         raise HTTPException(status_code=503, detail="API client not initialized")
 
     try:
-        result = api_client.get_teams(league, season)
+        # If team ID is provided, fetch that specific team
+        if id:
+            result = api_client.get_teams(league_id=None, season=season, team_id=id)
+        else:
+            result = api_client.get_teams(league, season)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

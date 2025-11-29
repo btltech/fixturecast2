@@ -82,16 +82,15 @@
       league = leagueParam ? parseInt(leagueParam, 10) : 39;
       season = seasonParam ? parseInt(seasonParam, 10) || season : season;
 
-      // Fetch Team Details (Venue, Founded, etc.)
+      // Fetch Team Details (Venue, Founded, etc.) - use the team ID to get specific team
       const teamRes = await fetch(`${API_URL}/api/teams?id=${id}`);
       const teamData = await teamRes.json();
 
-      if (teamData.response && teamData.response[0]) {
-        // Merge with stats team data or use as primary
-        const fullTeamData = teamData.response[0];
+      if (teamData.response && teamData.response.length > 0) {
+        // Find the specific team by ID from the response
+        const fullTeamData = teamData.response.find(t => t.team?.id == id) || teamData.response[0];
         team = {
-          ...team,
-          team: { ...team?.team, ...fullTeamData.team },
+          team: fullTeamData.team,
           venue: fullTeamData.venue,
         };
       }

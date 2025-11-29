@@ -35,11 +35,11 @@ jobs:
             exit 0
           fi
 
-          # Generate predictions for each fixture (this warms the cache)
+          # Generate predictions for ALL fixtures (no limit)
           SUCCESSFUL=0
           FAILED=0
 
-          echo $FIXTURES | jq -c '.response[]' | head -20 | while read fixture; do
+          echo $FIXTURES | jq -c '.response[]' | while read fixture; do
             FIXTURE_ID=$(echo $fixture | jq -r '.fixture.id')
             LEAGUE_ID=$(echo $fixture | jq -r '.league.id')
             HOME=$(echo $fixture | jq -r '.teams.home.name')

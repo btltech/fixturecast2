@@ -1,12 +1,12 @@
 # GitHub Actions Workflow for FixtureCast Health Monitoring
-# Runs every 4 hours to check system health and auto-restart if needed
+# Runs every 12 hours to check system health and auto-restart if needed
 
 name: Health Monitor
 
 on:
   schedule:
-    # Run every 4 hours (at minute 0)
-    - cron: '0 */4 * * *'
+    # Run every 12 hours (at 6 AM and 6 PM UTC)
+    - cron: '0 6,18 * * *'
   workflow_dispatch:  # Allow manual triggers
 
 env:

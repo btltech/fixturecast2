@@ -3,7 +3,12 @@
   import { Link } from "svelte-routing";
   import { API_URL } from "../config.js";
   import { getCurrentSeason } from "../services/season.js";
-  import { getSavedLeague, saveLeague, getSavedSeason, saveSeason } from "../services/preferences.js";
+  import {
+    getSavedLeague,
+    saveLeague,
+    getSavedSeason,
+    saveSeason,
+  } from "../services/preferences.js";
 
   let selectedLeague = getSavedLeague(39); // Premier League default (persisted)
   let standings = [];
@@ -17,7 +22,13 @@
     // European Competitions (Tier 0)
     { id: 2, name: "Champions League", country: "Europe", flag: "🏆", tier: 0 },
     { id: 3, name: "Europa League", country: "Europe", flag: "🥈", tier: 0 },
-    { id: 848, name: "Conference League", country: "Europe", flag: "🥉", tier: 0 },
+    {
+      id: 848,
+      name: "Conference League",
+      country: "Europe",
+      flag: "🥉",
+      tier: 0,
+    },
     // Top Leagues (Tier 1)
     { id: 39, name: "Premier League", country: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: 1 },
     { id: 140, name: "La Liga", country: "Spain", flag: "🇪🇸", tier: 1 },
@@ -28,7 +39,13 @@
     { id: 94, name: "Primeira Liga", country: "Portugal", flag: "🇵🇹", tier: 1 },
     // Championship Leagues (Tier 2)
     { id: 40, name: "Championship", country: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", tier: 2 },
-    { id: 141, name: "Segunda División", country: "Spain", flag: "🇪🇸", tier: 2 },
+    {
+      id: 141,
+      name: "Segunda División",
+      country: "Spain",
+      flag: "🇪🇸",
+      tier: 2,
+    },
     { id: 136, name: "Serie B", country: "Italy", flag: "🇮🇹", tier: 2 },
     { id: 79, name: "2. Bundesliga", country: "Germany", flag: "🇩🇪", tier: 2 },
     { id: 62, name: "Ligue 2", country: "France", flag: "🇫🇷", tier: 2 },
@@ -38,17 +55,17 @@
   ];
 
   // Group leagues by tier for display
-  $: europeanLeagues = leagues.filter(l => l.tier === 0);
-  $: topLeagues = leagues.filter(l => l.tier === 1);
-  $: secondDivisions = leagues.filter(l => l.tier === 2);
-  $: cups = leagues.filter(l => l.tier === 3);
+  $: europeanLeagues = leagues.filter((l) => l.tier === 0);
+  $: topLeagues = leagues.filter((l) => l.tier === 1);
+  $: secondDivisions = leagues.filter((l) => l.tier === 2);
+  $: cups = leagues.filter((l) => l.tier === 3);
 
   async function fetchStandings() {
     loading = true;
     error = null;
     try {
       const response = await fetch(
-        `${API_URL}/api/standings?league=${selectedLeague}&season=${season}`
+        `${API_URL}/api/standings?league=${selectedLeague}&season=${season}`,
       );
       if (!response.ok) throw new Error("Failed to fetch standings");
       const data = await response.json();
@@ -93,7 +110,9 @@
     <div class="space-y-4">
       <!-- European Competitions -->
       <div>
-        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">🏆 European Competitions</h3>
+        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">
+          🏆 European Competitions
+        </h3>
         <div class="flex flex-wrap gap-2">
           {#each europeanLeagues as league}
             <button
@@ -102,7 +121,8 @@
                 saveLeague(selectedLeague);
                 fetchStandings();
               }}
-              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id
+              class="px-3 py-2 rounded-lg text-sm btn-interact touch-target {selectedLeague ===
+              league.id
                 ? 'bg-yellow-500/80 text-black font-medium'
                 : 'bg-white/5 hover:bg-white/10'}"
             >
@@ -115,7 +135,9 @@
 
       <!-- Top Leagues -->
       <div>
-        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">⭐ Top Leagues</h3>
+        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">
+          ⭐ Top Leagues
+        </h3>
         <div class="flex flex-wrap gap-2">
           {#each topLeagues as league}
             <button
@@ -124,7 +146,8 @@
                 saveLeague(selectedLeague);
                 fetchStandings();
               }}
-              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id
+              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague ===
+              league.id
                 ? 'bg-accent text-white font-medium'
                 : 'bg-white/5 hover:bg-white/10'}"
             >
@@ -137,7 +160,9 @@
 
       <!-- Second Divisions -->
       <div>
-        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">📊 Second Divisions</h3>
+        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">
+          📊 Second Divisions
+        </h3>
         <div class="flex flex-wrap gap-2">
           {#each secondDivisions as league}
             <button
@@ -146,7 +171,8 @@
                 saveLeague(selectedLeague);
                 fetchStandings();
               }}
-              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id
+              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague ===
+              league.id
                 ? 'bg-accent text-white font-medium'
                 : 'bg-white/5 hover:bg-white/10'}"
             >
@@ -159,7 +185,9 @@
 
       <!-- Domestic Cups -->
       <div>
-        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">🏆 Domestic Cups</h3>
+        <h3 class="text-xs uppercase tracking-wider text-slate-400 mb-2">
+          🏆 Domestic Cups
+        </h3>
         <div class="flex flex-wrap gap-2">
           {#each cups as league}
             <button
@@ -168,7 +196,8 @@
                 saveLeague(selectedLeague);
                 fetchStandings();
               }}
-              class="px-3 py-1.5 rounded-lg text-sm btn-interact {selectedLeague === league.id
+              class="px-3 py-1.5 rounded-lg text-sm btn-interact touch-target {selectedLeague ===
+              league.id
                 ? 'bg-orange-500/80 text-white font-medium'
                 : 'bg-white/5 hover:bg-white/10'}"
             >
@@ -198,11 +227,7 @@
       <!-- League Info -->
       {#if leagueInfo}
         <div class="p-4 border-b border-white/10 flex items-center gap-3">
-          <img
-            src={leagueInfo.logo}
-            alt={leagueInfo.name}
-            class="w-12 h-12"
-          />
+          <img src={leagueInfo.logo} alt={leagueInfo.name} class="w-12 h-12" />
           <div>
             <h2 class="text-xl font-bold">{leagueInfo.name}</h2>
             <p class="text-sm text-slate-400">
@@ -242,7 +267,8 @@
                 </td>
                 <td class="p-3">
                   <Link
-                    to="/team/{team.team.id}?league={selectedLeague}&season={season}"
+                    to="/team/{team.team
+                      .id}?league={selectedLeague}&season={season}"
                     class="flex items-center gap-2 hover:text-accent transition-colors"
                   >
                     <img
@@ -253,7 +279,8 @@
                     <span class="font-medium">{team.team.name}</span>
                   </Link>
                 </td>
-                <td class="p-3 text-center text-slate-400">{team.all.played}</td>
+                <td class="p-3 text-center text-slate-400">{team.all.played}</td
+                >
                 <td class="p-3 text-center text-green-400">{team.all.win}</td>
                 <td class="p-3 text-center text-yellow-400">{team.all.draw}</td>
                 <td class="p-3 text-center text-red-400">{team.all.lose}</td>
@@ -275,7 +302,7 @@
                       {#each team.form.split("").slice(-5) as result}
                         <div
                           class="{getFormColor(
-                            result
+                            result,
                           )} w-6 h-6 rounded flex items-center justify-center text-xs font-bold"
                           title={result === "W"
                             ? "Win"

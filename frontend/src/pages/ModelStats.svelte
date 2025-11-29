@@ -195,37 +195,28 @@
     {/if}
 
     {#if apiAvailable && stats}
-      <!-- Real Stats from API -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-        <div class="glass-card p-6">
-          <div class="text-sm text-slate-400 mb-2">Avg Confidence</div>
-          <div class="text-3xl md:text-4xl font-bold text-accent">
-            {stats.avg_ensemble_confidence
-              ? (stats.avg_ensemble_confidence * 100).toFixed(1) + "%"
-              : "--"}
-          </div>
-          <div class="text-xs text-slate-500 mt-1">Ensemble certainty</div>
-        </div>
-        <div class="glass-card p-6">
-          <div class="text-sm text-slate-400 mb-2">Total Predictions</div>
-          <div class="text-3xl md:text-4xl font-bold">
-            {stats.total_predictions.toLocaleString()}
-          </div>
-          <div class="text-xs text-slate-500 mt-1">
-            {#if stats.last_prediction}
-              Last: {new Date(stats.last_prediction).toLocaleDateString()}
-            {:else}
-              Start making predictions!
-            {/if}
-          </div>
-        </div>
+      <!-- Model Info - Only show verified data -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
         <div class="glass-card p-6">
           <div class="text-sm text-slate-400 mb-2">Active Models</div>
           <div class="text-3xl md:text-4xl font-bold text-green-400">
             {stats.models.filter((m) => m.status === "active").length}
           </div>
           <div class="text-xs text-slate-500 mt-1">
-            Contributing to ensemble
+            Contributing to ensemble predictions
+          </div>
+        </div>
+        <div class="glass-card p-6">
+          <div class="text-sm text-slate-400 mb-2">Tracking Since</div>
+          <div class="text-xl md:text-2xl font-bold">
+            {#if stats.tracking_since}
+              {new Date(stats.tracking_since).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            {:else}
+              Nov 25, 2025
+            {/if}
+          </div>
+          <div class="text-xs text-slate-500 mt-1">
+            App launch date
           </div>
         </div>
       </div>
@@ -286,23 +277,15 @@
                 </div>
               </div>
 
-              <div class="grid grid-cols-3 gap-4 text-sm">
+              <div class="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <div class="text-slate-400 text-xs">Type</div>
                   <div class="font-bold text-xs">{model.type || "ML"}</div>
                 </div>
                 <div>
-                  <div class="text-slate-400 text-xs">Avg Confidence</div>
-                  <div class="font-bold">
-                    {model.avg_confidence
-                      ? (model.avg_confidence * 100).toFixed(0) + "%"
-                      : "--"}
-                  </div>
-                </div>
-                <div>
-                  <div class="text-slate-400 text-xs">Predictions</div>
-                  <div class="font-bold">
-                    {model.predictions.toLocaleString()}
+                  <div class="text-slate-400 text-xs">Status</div>
+                  <div class="font-bold text-xs {model.status === 'active' ? 'text-green-400' : 'text-slate-400'}">
+                    {model.status === 'active' ? '● Active' : '○ Auxiliary'}
                   </div>
                 </div>
               </div>

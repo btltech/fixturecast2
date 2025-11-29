@@ -392,16 +392,16 @@ def main():
         if backend_health.status_code == 200:
             print("✅ Backend API is reachable")
     except Exception as e:
-        print(f"❌ Backend API not reachable: {e}")
-        sys.exit(1)
+        print(f"⚠️ Backend API not reachable: {e}")
+        print("   Bot will start anyway and retry connection later.")
 
     try:
         ml_health = requests.get(f"{ML_API_URL}/health", timeout=5)
         if ml_health.status_code == 200:
             print("✅ ML API is reachable")
     except Exception as e:
-        print(f"❌ ML API not reachable: {e}")
-        sys.exit(1)
+        print(f"⚠️ ML API not reachable: {e}")
+        print("   Bot will start anyway and retry connection later.")
 
     print("\n🚀 Starting Telegram bot...\n")
 

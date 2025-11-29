@@ -40,5 +40,19 @@
     },
     "sample_size": 0,
     "details": []
+  },
+  {
+    "timestamp": "2025-11-29T09:00:29.741330",
+    "date": "2025-11-29",
+    "summary": {
+      "total_matches": 85,
+      "evaluated": 82,
+      "correct": 31,
+      "accuracy": 37.80487804878049,
+      "profit": 0.0,
+      "roi": 0
+    },
+    "sample_size": 0,
+    "details": []
   }
 ]

@@ -58,38 +58,35 @@ def fetch_recent_finished_matches(days=7):
     return all_matches
 
 
-def generate_prediction_for_match(fixture, predictor):
-    """Generate prediction using loaded predictor"""
+def generate_prediction_for_match(fixture):
+    """Generate prediction by calling the ML API (which has all real features)"""
     try:
-        # Extract basic features from fixture data
-        home_team = fixture["teams"]["home"]["name"]
-        away_team = fixture["teams"]["away"]["name"]
-        home_id = fixture["teams"]["home"]["id"]
-        away_id = fixture["teams"]["away"]["id"]
+        fixture_id = fixture["fixture"]["id"]
         league_id = fixture["league"]["id"]
 
-        # Create minimal feature dict
-        features = {
-            "home_id": home_id,
-            "away_id": away_id,
-            "home_name": home_team,
-            "away_name": away_team,
-            "league_id": league_id,
-            # Add defaults for key features
-            "home_league_pos": 10,
-            "away_league_pos": 10,
-            "home_points_last10": 15,
-            "away_points_last10": 15,
-            "home_goals_for_avg": 1.3,
-            "away_goals_for_avg": 1.2,
-            "home_goals_against_avg": 1.2,
-            "away_goals_against_avg": 1.3,
+        # Call the ML API which fetches real team stats and features
+        response = requests.get(
+            f"{ML_API_URL}/api/prediction/{fixture_id}",
+            params={"league": league_id},
+            timeout=60,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        # Extract probabilities from the response
+        prediction = data.get("prediction", {})
+
+        return {
+            "probabilities": {
+                "home_win": prediction.get("home_win_prob", 0),
+                "draw": prediction.get("draw_prob", 0),
+                "away_win": prediction.get("away_win_prob", 0),
+            },
+            "btts_prob": prediction.get("btts_prob", 0.5),
+            "over25_prob": prediction.get("over25_prob", 0.5),
+            "predicted_scoreline": prediction.get("predicted_scoreline", "1-1"),
+            "confidence": prediction.get("ensemble_confidence", 0),
         }
-
-        # Use the loaded predictor
-        prediction = predictor.predict_fixture(features)
-
-        return prediction
 
     except Exception as e:
         print(f"  Error generating prediction: {e}")
@@ -97,11 +94,15 @@ def generate_prediction_for_match(fixture, predictor):
 
 
 def evaluate_prediction(prediction, actual_home_goals, actual_away_goals):
-    """Evaluate a prediction against actual result"""
+    """Evaluate a prediction against actual result for ALL markets"""
     if not prediction:
         return None
 
-    # Determine actual outcome
+    total_goals = actual_home_goals + actual_away_goals
+
+    # ==========================================
+    # MARKET 1: 1X2 (Match Result)
+    # ==========================================
     if actual_home_goals > actual_away_goals:
         actual_outcome = "home_win"
     elif actual_away_goals > actual_home_goals:
@@ -125,28 +126,69 @@ def evaluate_prediction(prediction, actual_home_goals, actual_away_goals):
         predicted_outcome = "draw"
         confidence = draw_prob
 
-    # Check if prediction was correct
-    correct = predicted_outcome == actual_outcome
+    match_result_correct = predicted_outcome == actual_outcome
 
-    # Calculate profit (assuming odds based on probabilities)
-    # Simple kelly criterion: bet when confidence > 60%
+    # ==========================================
+    # MARKET 2: BTTS (Both Teams to Score)
+    # ==========================================
+    actual_btts = actual_home_goals > 0 and actual_away_goals > 0
+    btts_prob = prediction.get("btts_prob", 0.5)
+    predicted_btts = btts_prob > 0.5
+    btts_correct = predicted_btts == actual_btts
+    btts_confidence = btts_prob if predicted_btts else (1 - btts_prob)
+
+    # ==========================================
+    # MARKET 3: Over/Under 2.5 Goals
+    # ==========================================
+    actual_over25 = total_goals > 2.5
+    over25_prob = prediction.get("over25_prob", 0.5)
+    predicted_over25 = over25_prob > 0.5
+    over25_correct = predicted_over25 == actual_over25
+    over25_confidence = over25_prob if predicted_over25 else (1 - over25_prob)
+
+    # ==========================================
+    # MARKET 4: Correct Score
+    # ==========================================
+    predicted_scoreline = prediction.get("predicted_scoreline", "1-1")
+    actual_scoreline = f"{actual_home_goals}-{actual_away_goals}"
+    correct_score_correct = predicted_scoreline == actual_scoreline
+
+    # Calculate profit for 1X2 market (main bet)
     bet_amount = 10 if confidence > 0.6 else 0
     implied_odds = 1 / confidence if confidence > 0 else 1
     profit = 0
 
     if bet_amount > 0:
-        if correct:
+        if match_result_correct:
             profit = bet_amount * (implied_odds - 1)
         else:
             profit = -bet_amount
 
     return {
-        "correct": correct,
-        "confidence": confidence,
+        # 1X2 Market
+        "match_result_correct": match_result_correct,
         "predicted": predicted_outcome,
         "actual": actual_outcome,
+        "confidence": confidence,
+        # BTTS Market
+        "btts_correct": btts_correct,
+        "btts_predicted": predicted_btts,
+        "btts_actual": actual_btts,
+        "btts_confidence": btts_confidence,
+        # Over 2.5 Market
+        "over25_correct": over25_correct,
+        "over25_predicted": predicted_over25,
+        "over25_actual": actual_over25,
+        "over25_confidence": over25_confidence,
+        # Correct Score Market
+        "correct_score_correct": correct_score_correct,
+        "predicted_scoreline": predicted_scoreline,
+        "actual_scoreline": actual_scoreline,
+        # Profit tracking (for 1X2)
         "profit": profit,
         "bet_amount": bet_amount,
+        # Legacy field for compatibility
+        "correct": match_result_correct,
     }
 
 
@@ -192,18 +234,36 @@ def send_notifications(summary):
     discord_webhook = os.getenv("DISCORD_WEBHOOK_URL")
     if discord_webhook:
         try:
+            # Color based on overall 1X2 accuracy
+            color = 0x00FF00 if summary["accuracy"] >= 55 else 0xFF9900
+
             embed = {
-                "title": "📊 Weekly Backtest Results",
+                "title": "📊 Weekly Backtest Results - All Markets",
                 "description": "Performance of last week's models on recent matches",
-                "color": 0x00FF00 if summary["accuracy"] >= 55 else 0xFF9900,
+                "color": color,
                 "fields": [
                     {
-                        "name": "🎯 Accuracy",
+                        "name": "🏆 Match Result (1X2)",
                         "value": f"{summary['accuracy']:.1f}% ({summary['correct']}/{summary['evaluated']})",
                         "inline": True,
                     },
+                    {
+                        "name": "⚽ Both Teams Score",
+                        "value": f"{summary.get('btts_accuracy', 0):.1f}% ({summary.get('btts_correct', 0)}/{summary['evaluated']})",
+                        "inline": True,
+                    },
+                    {
+                        "name": "📈 Over/Under 2.5",
+                        "value": f"{summary.get('over25_accuracy', 0):.1f}% ({summary.get('over25_correct', 0)}/{summary['evaluated']})",
+                        "inline": True,
+                    },
+                    {
+                        "name": "🎯 Correct Score",
+                        "value": f"{summary.get('correct_score_accuracy', 0):.1f}% ({summary.get('correct_score_correct', 0)}/{summary['evaluated']})",
+                        "inline": True,
+                    },
                     {"name": "💰 Profit", "value": f"${summary['profit']:.2f}", "inline": True},
-                    {"name": "📈 ROI", "value": f"{summary['roi']:.1f}%", "inline": True},
+                    {"name": "📊 ROI", "value": f"{summary['roi']:.1f}%", "inline": True},
                 ],
                 "footer": {
                     "text": f"Evaluated {summary['total_matches']} matches from past 7 days"
@@ -225,10 +285,13 @@ def send_notifications(summary):
     if telegram_token and telegram_channel:
         try:
             message = (
-                f"📊 <b>Weekly Backtest Results</b>\n\n"
-                f"🎯 Accuracy: <b>{summary['accuracy']:.1f}%</b> ({summary['correct']}/{summary['evaluated']})\n"
+                f"📊 <b>Weekly Backtest Results - All Markets</b>\n\n"
+                f"🏆 <b>Match Result (1X2):</b> {summary['accuracy']:.1f}% ({summary['correct']}/{summary['evaluated']})\n"
+                f"⚽ <b>Both Teams Score:</b> {summary.get('btts_accuracy', 0):.1f}% ({summary.get('btts_correct', 0)}/{summary['evaluated']})\n"
+                f"📈 <b>Over/Under 2.5:</b> {summary.get('over25_accuracy', 0):.1f}% ({summary.get('over25_correct', 0)}/{summary['evaluated']})\n"
+                f"🎯 <b>Correct Score:</b> {summary.get('correct_score_accuracy', 0):.1f}% ({summary.get('correct_score_correct', 0)}/{summary['evaluated']})\n\n"
                 f"💰 Profit: <b>${summary['profit']:.2f}</b>\n"
-                f"📈 ROI: <b>{summary['roi']:.1f}%</b>\n\n"
+                f"📊 ROI: <b>{summary['roi']:.1f}%</b>\n\n"
                 f"<i>Evaluated {summary['total_matches']} matches from past 7 days</i>"
             )
 
@@ -255,15 +318,17 @@ def run_weekly_backtest():
         print("No matches found to backtest.")
         return
 
-    # Load models once (optimization)
-    print("Loading trained models...")
-    from ml_engine.ensemble_predictor import EnsemblePredictor
-
-    predictor = EnsemblePredictor(load_trained=True)
-    print("✅ Models loaded\n")
+    print(f"Using ML API at: {ML_API_URL}")
+    print("Predictions will use real team stats and features\n")
 
     results = []
-    total_correct = 0
+
+    # Track all 4 markets
+    match_result_correct = 0
+    btts_correct = 0
+    over25_correct = 0
+    correct_score_correct = 0
+
     total_profit = 0.0
     total_bet = 0.0
 
@@ -277,22 +342,53 @@ def run_weekly_backtest():
 
         print(f"  {home_team} {home_goals}-{away_goals} {away_team}")
 
-        # Generate prediction
-        prediction = generate_prediction_for_match(match, predictor)
+        # Generate prediction via ML API (which fetches real features)
+        prediction = generate_prediction_for_match(match)
 
         # Evaluate
         evaluation = evaluate_prediction(prediction, home_goals, away_goals)
 
         if evaluation:
             results.append(evaluation)
-            if evaluation["correct"]:
-                total_correct += 1
+
+            # Track 1X2 (Match Result)
+            if evaluation["match_result_correct"]:
+                match_result_correct += 1
                 print(
-                    f"    ✅ Correct! Predicted: {evaluation['predicted']} (Confidence: {evaluation['confidence']*100:.1f}%)"
+                    f"    ✅ 1X2: Correct! Predicted: {evaluation['predicted']} (Confidence: {evaluation['confidence']*100:.1f}%)"
                 )
             else:
                 print(
-                    f"    ❌ Wrong. Predicted: {evaluation['predicted']}, Actual: {evaluation['actual']}"
+                    f"    ❌ 1X2: Wrong. Predicted: {evaluation['predicted']}, Actual: {evaluation['actual']}"
+                )
+
+            # Track BTTS
+            if evaluation["btts_correct"]:
+                btts_correct += 1
+                btts_pred = "Yes" if evaluation["btts_predicted"] else "No"
+                print(f"    ✅ BTTS: Correct! Predicted: {btts_pred}")
+            else:
+                btts_pred = "Yes" if evaluation["btts_predicted"] else "No"
+                btts_act = "Yes" if evaluation["btts_actual"] else "No"
+                print(f"    ❌ BTTS: Wrong. Predicted: {btts_pred}, Actual: {btts_act}")
+
+            # Track Over 2.5
+            if evaluation["over25_correct"]:
+                over25_correct += 1
+                over_pred = "Over" if evaluation["over25_predicted"] else "Under"
+                print(f"    ✅ O/U 2.5: Correct! Predicted: {over_pred}")
+            else:
+                over_pred = "Over" if evaluation["over25_predicted"] else "Under"
+                over_act = "Over" if evaluation["over25_actual"] else "Under"
+                print(f"    ❌ O/U 2.5: Wrong. Predicted: {over_pred}, Actual: {over_act}")
+
+            # Track Correct Score
+            if evaluation["correct_score_correct"]:
+                correct_score_correct += 1
+                print(f"    🎯 SCORE: Correct! Predicted: {evaluation['predicted_scoreline']}")
+            else:
+                print(
+                    f"    ❌ SCORE: Wrong. Predicted: {evaluation['predicted_scoreline']}, Actual: {evaluation['actual_scoreline']}"
                 )
 
             total_profit += evaluation["profit"]
@@ -300,44 +396,83 @@ def run_weekly_backtest():
 
             if evaluation["profit"] != 0:
                 print(f"    💰 Profit: ${evaluation['profit']:.2f}")
+            print()  # Blank line between matches
         else:
-            print(f"    ⚠️  Could not evaluate")
+            print(f"    ⚠️  Could not evaluate\n")
 
     # Print summary
     print("\n" + "=" * 70)
-    print("BACKTEST SUMMARY")
+    print("BACKTEST SUMMARY - ALL MARKETS")
     print("=" * 70)
 
     if results:
-        accuracy = (total_correct / len(results)) * 100
-        print(f"\n📊 Accuracy: {accuracy:.1f}% ({total_correct}/{len(results)})")
-        print(f"💰 Total Profit: ${total_profit:.2f}")
+        n = len(results)
+
+        # Calculate accuracy for each market
+        mr_accuracy = (match_result_correct / n) * 100
+        btts_accuracy = (btts_correct / n) * 100
+        over25_accuracy = (over25_correct / n) * 100
+        cs_accuracy = (correct_score_correct / n) * 100
+
+        print(f"\n📊 ACCURACY BY MARKET (out of {n} matches):")
+        print(f"   🏆 Match Result (1X2): {mr_accuracy:.1f}% ({match_result_correct}/{n})")
+        print(f"   ⚽ Both Teams to Score: {btts_accuracy:.1f}% ({btts_correct}/{n})")
+        print(f"   📈 Over/Under 2.5 Goals: {over25_accuracy:.1f}% ({over25_correct}/{n})")
+        print(f"   🎯 Correct Score: {cs_accuracy:.1f}% ({correct_score_correct}/{n})")
+
+        print(f"\n💰 Total Profit (1X2 bets): ${total_profit:.2f}")
         print(f"💵 Total Wagered: ${total_bet:.2f}")
 
+        roi = 0
         if total_bet > 0:
             roi = (total_profit / total_bet) * 100
             print(f"📈 ROI: {roi:.1f}%")
 
-        # Breakdown by confidence
+        # Breakdown by confidence for 1X2
         high_conf = [r for r in results if r["confidence"] > 0.7]
         if high_conf:
-            high_correct = sum(1 for r in high_conf if r["correct"])
+            high_correct = sum(1 for r in high_conf if r["match_result_correct"])
             print(
-                f"\n🎯 High Confidence (>70%): {high_correct}/{len(high_conf)} ({high_correct/len(high_conf)*100:.1f}%)"
+                f"\n🎯 High Confidence 1X2 (>70%): {high_correct}/{len(high_conf)} ({high_correct/len(high_conf)*100:.1f}%)"
             )
 
         print()
+
+        return {
+            "total_matches": len(matches),
+            "evaluated": n,
+            # 1X2 Market
+            "correct": match_result_correct,
+            "accuracy": mr_accuracy,
+            # BTTS Market
+            "btts_correct": btts_correct,
+            "btts_accuracy": btts_accuracy,
+            # Over 2.5 Market
+            "over25_correct": over25_correct,
+            "over25_accuracy": over25_accuracy,
+            # Correct Score Market
+            "correct_score_correct": correct_score_correct,
+            "correct_score_accuracy": cs_accuracy,
+            # Profit
+            "profit": total_profit,
+            "roi": roi,
+        }
     else:
         print("\nNo results to analyze.")
-
-    return {
-        "total_matches": len(matches),
-        "evaluated": len(results),
-        "correct": total_correct,
-        "accuracy": accuracy if results else 0,
-        "profit": total_profit,
-        "roi": (total_profit / total_bet * 100) if total_bet > 0 else 0,
-    }
+        return {
+            "total_matches": len(matches),
+            "evaluated": 0,
+            "correct": 0,
+            "accuracy": 0,
+            "btts_correct": 0,
+            "btts_accuracy": 0,
+            "over25_correct": 0,
+            "over25_accuracy": 0,
+            "correct_score_correct": 0,
+            "correct_score_accuracy": 0,
+            "profit": 0,
+            "roi": 0,
+        }
 
 
 if __name__ == "__main__":
